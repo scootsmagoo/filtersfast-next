@@ -10,6 +10,13 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { state: cart } = useCart();
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
       {/* Top Banner */}
@@ -41,7 +48,7 @@ export default function Header() {
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-2xl">
-            <div className="relative w-full">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
               <label htmlFor="desktop-search" className="sr-only">
                 Search for filters by part number, brand, or product
               </label>
@@ -55,7 +62,7 @@ export default function Header() {
                 aria-describedby="search-help"
               />
               <button 
-                type="button"
+                type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
                 aria-label="Search for filters"
               >
@@ -64,7 +71,7 @@ export default function Header() {
               <div id="search-help" className="sr-only">
                 Enter a part number, brand name, or product description to search our filter catalog
               </div>
-            </div>
+            </form>
           </div>
 
           {/* Right Actions */}
@@ -101,7 +108,7 @@ export default function Header() {
 
         {/* Search Bar - Mobile */}
         <div className="md:hidden mt-4">
-          <div className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <label htmlFor="mobile-search" className="sr-only">
               Search for filters by part number, brand, or product
             </label>
@@ -115,7 +122,7 @@ export default function Header() {
               aria-describedby="mobile-search-help"
             />
             <button 
-              type="button"
+              type="submit"
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
               aria-label="Search for filters"
             >
@@ -124,7 +131,7 @@ export default function Header() {
             <div id="mobile-search-help" className="sr-only">
               Enter a part number, brand name, or product description to search our filter catalog
             </div>
-          </div>
+          </form>
         </div>
       </div>
 
