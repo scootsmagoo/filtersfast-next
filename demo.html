@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiltersFast - Modern Demo (No Build Required)</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-orange': '#f26722',
+                        'brand-orange-dark': '#d85a1c',
+                        'brand-blue': '#0066b2',
+                        'brand-blue-dark': '#004d8a',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .btn-primary {
+            @apply bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-2 px-6 rounded transition-colors duration-200;
+        }
+        
+        .btn-secondary {
+            @apply bg-brand-blue hover:bg-brand-blue-dark text-white font-bold py-2 px-6 rounded transition-colors duration-200;
+        }
+        
+        .input-field {
+            @apply w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all;
+        }
+    </style>
+</head>
+<body class="antialiased bg-white">
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <!-- Top Banner -->
+        <div class="bg-brand-orange text-white py-2">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center gap-4">
+                        <span class="font-semibold">⭐ Over 62,000 5-star reviews</span>
+                        <span class="hidden md:inline">Free Shipping on Orders $99+</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>📞</span>
+                        <span class="font-semibold">1-866-438-3458</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Header -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between gap-4">
+                <!-- Logo -->
+                <div class="text-2xl font-bold cursor-pointer">
+                    <span class="text-brand-orange">Filters</span>
+                    <span class="text-brand-blue">Fast</span>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-2xl">
+                    <div class="relative w-full">
+                        <input
+                            type="text"
+                            placeholder="Search by part #, brand, or product..."
+                            class="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+                        />
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors">
+                            🔍
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-4">
+                    <a href="#" class="hidden md:block text-sm hover:text-brand-orange transition-colors">Sign In</a>
+                    <a href="#" class="relative">
+                        <span class="text-2xl">🛒</span>
+                        <span class="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="bg-brand-blue text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-center gap-8 py-3">
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium">Refrigerator Filters</a>
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium">Air Filters</a>
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium">Water Filters</a>
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium">Pool & Spa</a>
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium">Humidifier Filters</a>
+                    <a href="#" class="hover:text-brand-orange transition-colors font-medium text-brand-orange">Sale</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-brand-blue to-brand-blue-dark text-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left Content -->
+                <div class="space-y-6">
+                    <div class="inline-block bg-brand-orange px-4 py-2 rounded-full text-sm font-semibold">
+                        ⭐ Over 62,000 5-Star Reviews
+                    </div>
+                    
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                        Trusted Replacement Filters from America's Top Online Filtration Retailer
+                    </h1>
+                    
+                    <p class="text-xl md:text-2xl text-blue-100">
+                        Huge Selection. Unbeatable Quality. 365-Day Returns.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="btn-primary">Shop Refrigerator Filters</button>
+                        <button class="border-2 border-white text-white hover:bg-white hover:text-brand-blue font-bold py-2 px-6 rounded transition-colors">Shop Air Filters</button>
+                    </div>
+                </div>
+                
+                <!-- Right Content -->
+                <div class="relative">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-4">
+                            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all cursor-pointer">
+                                <div class="text-brand-orange text-3xl font-bold mb-2">2M+</div>
+                                <div class="text-sm">Happy Customers</div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all cursor-pointer">
+                                <div class="text-brand-orange text-3xl font-bold mb-2">5K+</div>
+                                <div class="text-sm">Products Available</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4 mt-8">
+                            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all cursor-pointer">
+                                <div class="text-brand-orange text-3xl font-bold mb-2">24/7</div>
+                                <div class="text-sm">Customer Support</div>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all cursor-pointer">
+                                <div class="text-brand-orange text-3xl font-bold mb-2">Fast</div>
+                                <div class="text-sm">Shipping</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Tools Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Find Your Perfect Filter</h2>
+                <p class="text-lg text-gray-600">Search by part number, brand, or custom size</p>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-4xl">💧</span>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Replace Your Refrigerator Water Filter</h3>
+                        <p class="text-gray-600">Search by part number or select your brand</p>
+                    </div>
+                </div>
+
+                <form class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Search by Part #</label>
+                        <div class="flex gap-3">
+                            <input type="text" placeholder="Enter part number (e.g., MWF, EDR1RXD1)" class="input-field" />
+                            <button type="button" class="btn-primary whitespace-nowrap">Find It</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 pt-4">
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">GE</button>
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">Whirlpool</button>
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">LG</button>
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">Samsung</button>
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">Frigidaire</button>
+                        <button type="button" class="px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-brand-orange hover:bg-orange-50 transition-all font-semibold text-gray-700">Kenmore</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Featured Categories</h2>
+                <p class="text-lg text-gray-600">Browse our most popular filter categories</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-brand-orange cursor-pointer">
+                    <div class="flex flex-col items-center text-center space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-full group-hover:scale-110 transition-transform">
+                            <span class="text-4xl">💧</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-brand-orange transition-colors">Refrigerator Water Filters</h3>
+                        <p class="text-sm text-brand-orange font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Shop Now →</p>
+                    </div>
+                </div>
+
+                <div class="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-brand-orange cursor-pointer">
+                    <div class="flex flex-col items-center text-center space-y-4">
+                        <div class="bg-cyan-50 p-4 rounded-full group-hover:scale-110 transition-transform">
+                            <span class="text-4xl">💨</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-brand-orange transition-colors">Air Filters</h3>
+                        <p class="text-sm text-brand-orange font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Shop Now →</p>
+                    </div>
+                </div>
+
+                <div class="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-6 border-2 border-transparent hover:border-brand-orange cursor-pointer">
+                    <div class="flex flex-col items-center text-center space-y-4">
+                        <div class="bg-purple-50 p-4 rounded-full group-hover:scale-110 transition-transform">
+                            <span class="text-4xl">🏊</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-brand-orange transition-colors">Pool & Spa Filters</h3>
+                        <p class="text-sm text-brand-orange font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Shop Now →</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Home Filter Club -->
+    <section class="py-16 bg-gradient-to-br from-brand-orange to-brand-orange-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="inline-block bg-white/20 px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm">
+                        💰 Save Up To 10%
+                    </div>
+                    
+                    <h2 class="text-3xl md:text-4xl font-bold">Join Home Filter Club</h2>
+                    
+                    <p class="text-xl text-orange-100">
+                        Get FREE shipping on every order and save up to 10% off when you subscribe.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-white/20 p-3 rounded-lg backdrop-blur-sm flex-shrink-0">
+                                <span class="text-2xl">🚚</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg mb-1">Free Shipping Always</h3>
+                                <p class="text-orange-100">No minimum order required for subscribers</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="border-2 border-white text-white hover:bg-white hover:text-brand-orange font-bold py-3 px-8 rounded transition-colors">
+                        Learn More About Home Filter Club
+                    </button>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border-2 border-white/20">
+                    <div class="text-center mb-4">
+                        <span class="text-5xl">📦</span>
+                        <h3 class="text-2xl font-bold mt-4 mb-2">Subscribe & Save</h3>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm font-medium">Regular Price</span>
+                            <span class="text-xl line-through">$39.99</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm font-medium">Subscription Discount</span>
+                            <span class="text-xl text-green-300">-$4.00</span>
+                        </div>
+                        <div class="border-t border-white/30 pt-4">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold">Your Price</span>
+                                <span class="text-3xl font-bold">$35.99</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Indicators -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose FiltersFast?</h2>
+                <p class="text-lg text-gray-600">America's most trusted online filtration retailer</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-brand-orange mb-2">2M+</div>
+                        <div class="text-gray-600">Happy Customers</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-brand-orange mb-2">5,000+</div>
+                        <div class="text-gray-600">Products</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-brand-orange mb-2">99.7%</div>
+                        <div class="text-gray-600">Customer Satisfaction</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl md:text-4xl font-bold text-brand-orange mb-2">20+</div>
+                        <div class="text-gray-600">Years in Business</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <span class="text-brand-orange">Filters</span><span>Fast</span>
+                    </h3>
+                    <p class="text-gray-300 mb-4">America's Top Online Filtration Retailer</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Shop</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Refrigerator Filters</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Air Filters</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Water Filters</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Customer Service</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Track Order</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Returns</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">About</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Our Story</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Reviews</a></li>
+                        <li><a href="#" class="hover:text-brand-orange transition-colors">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="text-center text-sm text-gray-400">
+                    <p>&copy; 2024 FiltersFast. All rights reserved. | Built with Next.js 14 (Demo)</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+

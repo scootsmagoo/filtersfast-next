@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════════════
+   🎯 FILTERSFAST NEXT.JS DEMO - NO NODE.JS REQUIRED!
+═══════════════════════════════════════════════════════════════════
+
+To view the demo without installing Node.js:
+
+1. Find this file in the same folder:
+   
+   📄 demo.html
+
+2. Right-click on "demo.html"
+
+3. Select "Open with" → Your web browser
+   (Chrome, Edge, Firefox, etc.)
+
+4. Done! The demo loads instantly ✨
+
+═══════════════════════════════════════════════════════════════════
+
+What you'll see:
+
+✅ Complete FiltersFast homepage redesign
+✅ Interactive filter finder tool
+✅ Product categories
+✅ Subscription promotion
+✅ Responsive design (try resizing your browser!)
+✅ Modern UI with smooth animations
+
+═══════════════════════════════════════════════════════════════════
+
+For more information, read:
+
+📖 DEMO-INSTRUCTIONS.md  - Detailed viewing guide
+📖 QUICK-START.md        - Getting started
+📖 README.md             - Full project overview
+
+═══════════════════════════════════════════════════════════════════
+
+Built with Next.js 14 + TypeScript + Tailwind CSS
+America's Top Online Filtration Retailer - Modernized 🚀
+
+═══════════════════════════════════════════════════════════════════
+
