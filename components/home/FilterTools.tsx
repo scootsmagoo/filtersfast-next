@@ -1,0 +1,253 @@
+'use client';
+
+import { useState } from 'react';
+import Button from '@/components/ui/Button';
+import { Search, Droplet, Wind } from 'lucide-react';
+
+export default function FilterTools() {
+  const [activeTab, setActiveTab] = useState<'water' | 'air'>('water');
+  const [partNumber, setPartNumber] = useState('');
+  const [airWidth, setAirWidth] = useState('');
+  const [airHeight, setAirHeight] = useState('');
+  const [airDepth, setAirDepth] = useState('1');
+
+  const handleWaterSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Searching for part number:', partNumber);
+  };
+
+  const handleAirSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Searching for air filter:', { airWidth, airHeight, airDepth });
+  };
+
+  return (
+    <section className="py-16 bg-brand-gray-50">
+      <div className="container-custom">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-4">
+            Find Your Perfect Filter
+          </h2>
+          <p className="text-lg text-brand-gray-600">
+            Search by part number, brand, or custom size
+          </p>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex rounded-lg border border-brand-gray-300 bg-white p-1">
+            <button
+              onClick={() => setActiveTab('water')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
+                activeTab === 'water'
+                  ? 'bg-brand-blue text-white'
+                  : 'text-brand-gray-600 hover:text-brand-blue'
+              }`}
+            >
+              <Droplet className="w-5 h-5" />
+              Refrigerator Water Filters
+            </button>
+            <button
+              onClick={() => setActiveTab('air')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
+                activeTab === 'air'
+                  ? 'bg-brand-blue text-white'
+                  : 'text-brand-gray-600 hover:text-brand-blue'
+              }`}
+            >
+              <Wind className="w-5 h-5" />
+              Air Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Water Filter Search */}
+        {activeTab === 'water' && (
+          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Droplet className="w-8 h-8 text-brand-blue" />
+              <div>
+                <h3 className="text-xl font-bold text-brand-gray-900">Replace Your Refrigerator Water Filter</h3>
+                <p className="text-brand-gray-600">Search by part number or select your brand</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleWaterSearch} className="space-y-6">
+              <div>
+                <label htmlFor="partNumber" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                  Search by Part #
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    id="partNumber"
+                    placeholder="Enter part number (e.g., MWF, EDR1RXD1)"
+                    value={partNumber}
+                    onChange={(e) => setPartNumber(e.target.value)}
+                    className="flex-1 input-field"
+                  />
+                  <Button type="submit" className="flex items-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Find It
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-brand-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-brand-gray-500 font-medium">OR</span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="brand" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                  Search by Filter Brand
+                </label>
+                <div className="flex gap-3">
+                  <select
+                    id="brand"
+                    className="flex-1 input-field"
+                  >
+                    <option value="">Select Brand</option>
+                    <option value="ge">GE</option>
+                    <option value="whirlpool">Whirlpool</option>
+                    <option value="lg">LG</option>
+                    <option value="samsung">Samsung</option>
+                    <option value="frigidaire">Frigidaire</option>
+                    <option value="kenmore">Kenmore</option>
+                    <option value="kitchenaid">KitchenAid</option>
+                    <option value="maytag">Maytag</option>
+                  </select>
+                  <Button type="button" variant="secondary">Go</Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-4">
+                {['GE', 'Whirlpool', 'LG', 'Samsung', 'Frigidaire', 'Kenmore'].map((brand) => (
+                  <button
+                    key={brand}
+                    type="button"
+                    className="px-4 py-3 border-2 border-brand-gray-300 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 transition-all font-semibold text-brand-gray-700"
+                  >
+                    {brand}
+                  </button>
+                ))}
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Air Filter Search */}
+        {activeTab === 'air' && (
+          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Wind className="w-8 h-8 text-brand-blue" />
+              <div>
+                <h3 className="text-xl font-bold text-brand-gray-900">Replace Your Air Filter</h3>
+                <p className="text-brand-gray-600">Select your filter by size</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAirSearch} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-brand-gray-700 mb-3">
+                  Select Your Filter Size
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="width" className="block text-xs text-brand-gray-600 mb-1">
+                      Short side (W) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="width"
+                      placeholder="W"
+                      maxLength={4}
+                      value={airWidth}
+                      onChange={(e) => setAirWidth(e.target.value)}
+                      className="input-field text-center"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="height" className="block text-xs text-brand-gray-600 mb-1">
+                      Long side (H) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="height"
+                      placeholder="H"
+                      maxLength={4}
+                      value={airHeight}
+                      onChange={(e) => setAirHeight(e.target.value)}
+                      className="input-field text-center"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="depth" className="block text-xs text-brand-gray-600 mb-1">
+                      Thick side (D) <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="depth"
+                      value={airDepth}
+                      onChange={(e) => setAirDepth(e.target.value)}
+                      className="input-field"
+                      required
+                    >
+                      <option value="1">1&quot;</option>
+                      <option value="2">2&quot;</option>
+                      <option value="4">4&quot;</option>
+                      <option value="5">5&quot;</option>
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-brand-gray-500 mt-2">
+                  Enter dimensions in inches (e.g., 16 x 20 x 1)
+                </p>
+              </div>
+
+              <Button type="submit" className="w-full">
+                Find My Filter Size
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-brand-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-brand-gray-500 font-medium">OR</span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="airBrand" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                  Search by Air Filter Brand
+                </label>
+                <div className="flex gap-3">
+                  <select
+                    id="airBrand"
+                    className="flex-1 input-field"
+                  >
+                    <option value="">Select Brand</option>
+                    <option value="aprilaire">Aprilaire</option>
+                    <option value="bryant">Bryant</option>
+                    <option value="carrier">Carrier</option>
+                    <option value="filtrete">3M Filtrete</option>
+                    <option value="honeywell">Honeywell</option>
+                    <option value="lennox">Lennox</option>
+                  </select>
+                  <Button type="button" variant="secondary">Go</Button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+

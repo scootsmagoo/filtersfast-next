@@ -1,0 +1,155 @@
+'use client';
+
+import Link from 'next/link';
+import { ShoppingCart, Search, Phone, Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { useCart } from '@/lib/cart-context';
+
+export default function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { state: cart } = useCart();
+
+  return (
+    <header className="sticky top-0 z-50 bg-white shadow-md">
+      {/* Top Banner */}
+      <div className="bg-brand-orange text-white py-2">
+        <div className="container-custom">
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-4">
+              <span className="font-semibold">⭐ Over 62,000 5-star reviews</span>
+              <span className="hidden md:inline">Free Shipping on Orders $99+</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              <span className="font-semibold">1-866-438-3458</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <div className="container-custom py-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0">
+            <div className="text-2xl font-bold">
+              <span className="text-brand-orange">Filters</span>
+              <span className="text-brand-blue">Fast</span>
+            </div>
+          </Link>
+
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-2xl">
+            <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Search by part #, brand, or product..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+              />
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors">
+                <Search className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-4">
+            <Link href="/account" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
+              Sign In
+            </Link>
+            <Link href="/checkout" className="relative">
+              <ShoppingCart className="w-6 h-6 hover:text-brand-orange transition-colors" />
+              {cart.itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  {cart.itemCount}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Search Bar - Mobile */}
+        <div className="md:hidden mt-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange outline-none"
+            />
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded">
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="bg-brand-blue text-white">
+        <div className="container-custom">
+          <div className="hidden md:flex items-center justify-center gap-8 py-3">
+            <Link href="/refrigerator-filters" className="hover:text-brand-orange transition-colors font-medium">
+              Refrigerator Filters
+            </Link>
+            <Link href="/air-filters" className="hover:text-brand-orange transition-colors font-medium">
+              Air Filters
+            </Link>
+            <Link href="/water-filters" className="hover:text-brand-orange transition-colors font-medium">
+              Water Filters
+            </Link>
+            <Link href="/pool-filters" className="hover:text-brand-orange transition-colors font-medium">
+              Pool & Spa
+            </Link>
+            <Link href="/humidifier-filters" className="hover:text-brand-orange transition-colors font-medium">
+              Humidifier Filters
+            </Link>
+            <Link href="/sale" className="hover:text-brand-orange transition-colors font-medium text-brand-orange">
+              Sale
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t shadow-lg">
+          <div className="container-custom py-4 space-y-4">
+            <Link href="/refrigerator-filters" className="block py-2 hover:text-brand-orange transition-colors">
+              Refrigerator Filters
+            </Link>
+            <Link href="/air-filters" className="block py-2 hover:text-brand-orange transition-colors">
+              Air Filters
+            </Link>
+            <Link href="/water-filters" className="block py-2 hover:text-brand-orange transition-colors">
+              Water Filters
+            </Link>
+            <Link href="/pool-filters" className="block py-2 hover:text-brand-orange transition-colors">
+              Pool & Spa Filters
+            </Link>
+            <Link href="/humidifier-filters" className="block py-2 hover:text-brand-orange transition-colors">
+              Humidifier Filters
+            </Link>
+            <Link href="/sale" className="block py-2 text-brand-orange font-semibold">
+              Sale
+            </Link>
+            <hr />
+            <Link href="/account" className="block py-2 hover:text-brand-orange transition-colors">
+              Sign In / Register
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
