@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Phone, Menu, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
@@ -8,6 +9,7 @@ import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
 
 export default function Header() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchPreview, setShowSearchPreview] = useState(false);
@@ -19,7 +21,7 @@ export default function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSearchPreview(false);
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -35,9 +37,9 @@ export default function Header() {
     console.log('handleProductSelect called with:', product);
     setSearchQuery('');
     setShowSearchPreview(false);
-    // Navigate to product detail page
+    // Navigate to product detail page using Next.js router
     console.log('Navigating to:', `/products/${product.id}`);
-    window.location.href = `/products/${product.id}`;
+    router.push(`/products/${product.id}`);
   };
 
   const handleSearchFocus = () => {
