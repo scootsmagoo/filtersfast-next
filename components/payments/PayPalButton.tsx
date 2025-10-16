@@ -75,7 +75,7 @@ function PayPalButtonContent({ onSuccess, onError, disabled }: PayPalButtonProps
     }
   };
 
-  const onError = (err: any) => {
+  const handlePayPalError = (err: any) => {
     console.error('PayPal error:', err);
     onError?.(err.message || 'Payment failed');
   };
@@ -94,7 +94,7 @@ function PayPalButtonContent({ onSuccess, onError, disabled }: PayPalButtonProps
       <PayPalButtons
         createOrder={createOrder}
         onApprove={onApprove}
-        onError={onError}
+        onError={handlePayPalError}
         disabled={disabled || isProcessing || cart.items.length === 0}
         style={{
           layout: 'vertical',
