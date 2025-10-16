@@ -130,6 +130,7 @@ export default function Header() {
               </form>
               
               {/* Search Preview Dropdown */}
+              {console.log('Header rendering SearchPreview:', { query: searchQuery, isVisible: showSearchPreview })}
               <SearchPreview
                 query={searchQuery}
                 isVisible={showSearchPreview}

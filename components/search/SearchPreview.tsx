@@ -27,7 +27,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
 
   // Fetch search suggestions
   useEffect(() => {
-    if (!query.trim() || query.length < 2) {
+    if (!isVisible || !query.trim() || query.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -48,7 +48,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
 
     const debounceTimer = setTimeout(fetchSuggestions, 200);
     return () => clearTimeout(debounceTimer);
-  }, [query]);
+  }, [query, isVisible]);
 
   // Handle keyboard navigation
   useEffect(() => {
