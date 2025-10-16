@@ -31,8 +31,8 @@ export default function Header() {
   const handleProductSelect = (product: SearchableProduct) => {
     setSearchQuery('');
     setShowSearchPreview(false);
-    // Navigate to product detail page or add to cart
-    window.location.href = `/search?q=${encodeURIComponent(product.name)}`;
+    // Navigate to product detail page
+    window.location.href = `/products/${product.id}`;
   };
 
   const handleSearchFocus = () => {

@@ -12,7 +12,7 @@ import { formatPrice } from '@/lib/utils';
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { addItem } = useCart();
+  const { dispatch } = useCart();
   
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -152,14 +152,17 @@ export default function SearchPage() {
 
   // Add to cart
   const handleAddToCart = (product: any) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      sku: product.sku,
-      price: product.price,
-      image: product.image,
-      quantity: 1
+    dispatch({
+      type: 'ADD_ITEM',
+      payload: {
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        sku: product.sku,
+        price: product.price,
+        image: product.image,
+        quantity: 1
+      }
     });
   };
 
@@ -378,9 +381,12 @@ export default function SearchPage() {
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 hover:text-brand-orange cursor-pointer">
+                            <a 
+                              href={`/products/${result.product.id}`}
+                              className="text-lg font-semibold text-gray-900 hover:text-brand-orange cursor-pointer block"
+                            >
                               {result.product.name}
-                            </h3>
+                            </a>
                             <p className="text-sm text-gray-600">
                               {result.product.brand} • SKU: {result.product.sku}
                             </p>

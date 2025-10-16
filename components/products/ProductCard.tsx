@@ -86,9 +86,12 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           {/* Details */}
           <div className="md:col-span-6 flex flex-col justify-center">
             <div className="text-sm text-brand-gray-600 mb-1">{product.brand} • SKU: {product.sku}</div>
-            <h3 className="text-lg font-bold text-brand-gray-900 mb-2 hover:text-brand-orange transition-colors cursor-pointer">
+            <a 
+              href={`/products/${product.id}`}
+              className="text-lg font-bold text-brand-gray-900 mb-2 hover:text-brand-orange transition-colors cursor-pointer block"
+            >
               {product.name}
-            </h3>
+            </a>
             <div className="flex items-center gap-2 mb-2">
               <div 
                 className="flex items-center"
@@ -188,9 +191,12 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       {/* Content */}
       <div className="p-4 space-y-3">
         <div className="text-sm text-brand-gray-600">{product.brand} • {product.sku}</div>
-        <h3 className="text-base font-bold text-brand-gray-900 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem]">
+        <a 
+          href={`/products/${product.id}`}
+          className="text-base font-bold text-brand-gray-900 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem] block"
+        >
           {product.name}
-        </h3>
+        </a>
 
         {/* Rating */}
         <div className="flex items-center gap-2">
