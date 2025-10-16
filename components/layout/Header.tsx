@@ -27,6 +27,7 @@ export default function Header() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log('Input change event:', { value, eventTarget: e.target.value });
     setSearchQuery(value);
     const shouldShow = value.length >= 2;
     setShowSearchPreview(shouldShow);
@@ -121,6 +122,7 @@ export default function Header() {
                   aria-describedby="search-help"
                   autoComplete="off"
                 />
+                {console.log('Input value:', searchQuery)}
                 <button 
                   type="submit"
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
