@@ -2,20 +2,69 @@
 
 import Link from 'next/link';
 import { ShoppingCart, Search, Phone, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
+import SearchPreview from '@/components/search/SearchPreview';
+import { SearchableProduct } from '@/lib/types';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchPreview, setShowSearchPreview] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { state: cart } = useCart();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSearchPreview(false);
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
     }
   };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setShowSearchPreview(e.target.value.length >= 2);
+  };
+
+  const handleProductSelect = (product: SearchableProduct) => {
+    setSearchQuery('');
+    setShowSearchPreview(false);
+    // Navigate to product detail page or add to cart
+    window.location.href = `/search?q=${encodeURIComponent(product.name)}`;
+  };
+
+  const handleSearchFocus = () => {
+    setSearchFocused(true);
+    if (searchQuery.length >= 2) {
+      setShowSearchPreview(true);
+    }
+  };
+
+  const handleSearchBlur = () => {
+    setSearchFocused(false);
+    // Delay hiding preview to allow clicks on suggestions
+    setTimeout(() => setShowSearchPreview(false), 200);
+  };
+
+  const closeSearchPreview = () => {
+    setShowSearchPreview(false);
+  };
+
+  // Close preview when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchPreview(false);
+      }
+    };
+
+    if (showSearchPreview) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSearchPreview]);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
@@ -48,30 +97,43 @@ export default function Header() {
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-2xl">
-            <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <label htmlFor="desktop-search" className="sr-only">
-                Search for filters by part number, brand, or product
-              </label>
-              <input
-                id="desktop-search"
-                type="text"
-                placeholder="Search by part #, brand, or product..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
-                aria-describedby="search-help"
+            <div ref={searchRef} className="relative w-full">
+              <form onSubmit={handleSearchSubmit} className="relative w-full">
+                <label htmlFor="desktop-search" className="sr-only">
+                  Search for filters by part number, brand, or product
+                </label>
+                <input
+                  id="desktop-search"
+                  type="text"
+                  placeholder="Search by part #, brand, or product..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
+                  className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+                  aria-describedby="search-help"
+                  autoComplete="off"
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                  aria-label="Search for filters"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+                <div id="search-help" className="sr-only">
+                  Enter a part number, brand name, or product description to search our filter catalog
+                </div>
+              </form>
+              
+              {/* Search Preview Dropdown */}
+              <SearchPreview
+                query={searchQuery}
+                isVisible={showSearchPreview}
+                onSelectProduct={handleProductSelect}
+                onClose={closeSearchPreview}
               />
-              <button 
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
-                aria-label="Search for filters"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-              <div id="search-help" className="sr-only">
-                Enter a part number, brand name, or product description to search our filter catalog
-              </div>
-            </form>
+            </div>
           </div>
 
           {/* Right Actions */}
@@ -108,30 +170,43 @@ export default function Header() {
 
         {/* Search Bar - Mobile */}
         <div className="md:hidden mt-4">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <label htmlFor="mobile-search" className="sr-only">
-              Search for filters by part number, brand, or product
-            </label>
-            <input
-              id="mobile-search"
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
-              aria-describedby="mobile-search-help"
+          <div ref={searchRef} className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <label htmlFor="mobile-search" className="sr-only">
+                Search for filters by part number, brand, or product
+              </label>
+              <input
+                id="mobile-search"
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                aria-describedby="mobile-search-help"
+                autoComplete="off"
+              />
+              <button 
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                aria-label="Search for filters"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+              <div id="mobile-search-help" className="sr-only">
+                Enter a part number, brand name, or product description to search our filter catalog
+              </div>
+            </form>
+            
+            {/* Search Preview Dropdown - Mobile */}
+            <SearchPreview
+              query={searchQuery}
+              isVisible={showSearchPreview}
+              onSelectProduct={handleProductSelect}
+              onClose={closeSearchPreview}
             />
-            <button 
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
-              aria-label="Search for filters"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-            <div id="mobile-search-help" className="sr-only">
-              Enter a part number, brand name, or product description to search our filter catalog
-            </div>
-          </form>
+          </div>
         </div>
       </div>
 
