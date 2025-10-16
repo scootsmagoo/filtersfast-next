@@ -106,6 +106,9 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     return null;
   }
 
+  // Debug logging
+  console.log('SearchPreview rendering:', { isVisible, query, suggestions: suggestions.length });
+
   return (
     <div
       ref={dropdownRef}
