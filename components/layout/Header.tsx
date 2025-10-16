@@ -26,9 +26,7 @@ export default function Header() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    const shouldShow = value.length >= 2;
-    setShowSearchPreview(shouldShow);
-    console.log('Search change:', { value, shouldShow, showSearchPreview });
+    setShowSearchPreview(value.length >= 2);
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
@@ -130,7 +128,6 @@ export default function Header() {
               </form>
               
               {/* Search Preview Dropdown */}
-              {console.log('Rendering SearchPreview:', { query: searchQuery, isVisible: showSearchPreview })}
               <SearchPreview
                 query={searchQuery}
                 isVisible={showSearchPreview}
