@@ -102,6 +102,8 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     }
   }, [isVisible, onClose]);
 
+  console.log('SearchPreview render check:', { isVisible, query, queryLength: query.length, suggestions: suggestions.length });
+  
   if (!isVisible || query.length < 2) {
     return null;
   }

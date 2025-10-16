@@ -26,7 +26,9 @@ export default function Header() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
-    setShowSearchPreview(value.length >= 2);
+    const shouldShow = value.length >= 2;
+    setShowSearchPreview(shouldShow);
+    console.log('Search change:', { value, shouldShow, currentState: showSearchPreview });
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
