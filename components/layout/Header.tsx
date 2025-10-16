@@ -14,6 +14,8 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchPreview, setShowSearchPreview] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
+  const [showMobileSearchPreview, setShowMobileSearchPreview] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { state: cart } = useCart();
 
@@ -58,6 +60,22 @@ export default function Header() {
 
   const closeSearchPreview = () => {
     setShowSearchPreview(false);
+  };
+
+  const handleMobileSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMobileSearchQuery(value);
+    setShowMobileSearchPreview(value.length >= 2);
+  };
+
+  const handleMobileProductSelect = (product: SearchableProduct) => {
+    setMobileSearchQuery('');
+    setShowMobileSearchPreview(false);
+    router.push(`/products/${product.id}`);
+  };
+
+  const closeMobileSearchPreview = () => {
+    setShowMobileSearchPreview(false);
   };
 
   // Close preview when clicking outside
@@ -189,10 +207,8 @@ export default function Header() {
                 id="mobile-search"
                 type="text"
                 placeholder="Search products..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onFocus={handleSearchFocus}
-                onBlur={handleSearchBlur}
+                value={mobileSearchQuery}
+                onChange={handleMobileSearchChange}
                 className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
                 aria-describedby="mobile-search-help"
                 autoComplete="off"
@@ -211,10 +227,10 @@ export default function Header() {
             
             {/* Search Preview Dropdown - Mobile */}
             <SearchPreview
-              query={searchQuery}
-              isVisible={showSearchPreview}
-              onSelectProduct={handleProductSelect}
-              onClose={closeSearchPreview}
+              query={mobileSearchQuery}
+              isVisible={showMobileSearchPreview}
+              onSelectProduct={handleMobileProductSelect}
+              onClose={closeMobileSearchPreview}
             />
           </div>
         </div>
