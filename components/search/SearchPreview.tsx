@@ -123,10 +123,14 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion.product.id}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('Product clicked:', suggestion.product);
                 onSelectProduct(suggestion.product);
               }}
+              onMouseDown={() => console.log('Button mousedown')}
+              onMouseUp={() => console.log('Button mouseup')}
               className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               } ${index === 0 ? 'rounded-t-lg' : ''} ${
