@@ -32,9 +32,11 @@ export default function Header() {
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
+    console.log('handleProductSelect called with:', product);
     setSearchQuery('');
     setShowSearchPreview(false);
     // Navigate to product detail page
+    console.log('Navigating to:', `/products/${product.id}`);
     window.location.href = `/products/${product.id}`;
   };
 
