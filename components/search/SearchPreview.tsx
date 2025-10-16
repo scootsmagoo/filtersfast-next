@@ -25,6 +25,9 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Debug: Log props on every render
+  console.log('SearchPreview props:', { query, isVisible, suggestions: suggestions.length });
+
   // Fetch search suggestions
   useEffect(() => {
     if (!isVisible || !query.trim() || query.length < 2) {

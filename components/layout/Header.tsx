@@ -34,6 +34,11 @@ export default function Header() {
     const shouldShow = value.length >= 2;
     setShowSearchPreview(shouldShow);
     console.log('Search change:', { value, shouldShow, currentState: showSearchPreview });
+    
+    // Debug: Check if the state was actually set
+    setTimeout(() => {
+      console.log('State after change:', { searchQuery, showSearchPreview });
+    }, 0);
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
@@ -140,7 +145,6 @@ export default function Header() {
                   aria-describedby="search-help"
                   autoComplete="off"
                 />
-                {console.log('Input value:', searchQuery)}
                 <button 
                   type="submit"
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
@@ -154,7 +158,6 @@ export default function Header() {
               </form>
               
               {/* Search Preview Dropdown */}
-              {console.log('Header rendering SearchPreview:', { query: searchQuery, isVisible: showSearchPreview })}
               <SearchPreview
                 query={searchQuery}
                 isVisible={showSearchPreview}
