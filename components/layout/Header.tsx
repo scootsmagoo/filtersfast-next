@@ -42,16 +42,28 @@ export default function Header() {
           {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-2xl">
             <div className="relative w-full">
+              <label htmlFor="desktop-search" className="sr-only">
+                Search for filters by part number, brand, or product
+              </label>
               <input
+                id="desktop-search"
                 type="text"
                 placeholder="Search by part #, brand, or product..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+                aria-describedby="search-help"
               />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors">
+              <button 
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                aria-label="Search for filters"
+              >
                 <Search className="w-5 h-5" />
               </button>
+              <div id="search-help" className="sr-only">
+                Enter a part number, brand name, or product description to search our filter catalog
+              </div>
             </div>
           </div>
 
@@ -60,17 +72,27 @@ export default function Header() {
             <Link href="/account" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
               Sign In
             </Link>
-            <Link href="/checkout" className="relative">
+            <Link 
+              href="/checkout" 
+              className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-label={`Shopping cart with ${cart.itemCount} items`}
+            >
               <ShoppingCart className="w-6 h-6 hover:text-brand-orange transition-colors" />
               {cart.itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                <span 
+                  className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  aria-label={`${cart.itemCount} items in cart`}
+                >
                   {cart.itemCount}
                 </span>
               )}
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden"
+              className="md:hidden focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -80,16 +102,28 @@ export default function Header() {
         {/* Search Bar - Mobile */}
         <div className="md:hidden mt-4">
           <div className="relative">
+            <label htmlFor="mobile-search" className="sr-only">
+              Search for filters by part number, brand, or product
+            </label>
             <input
+              id="mobile-search"
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange outline-none"
+              className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+              aria-describedby="mobile-search-help"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded">
+            <button 
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-1.5 rounded focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+              aria-label="Search for filters"
+            >
               <Search className="w-4 h-4" />
             </button>
+            <div id="mobile-search-help" className="sr-only">
+              Enter a part number, brand name, or product description to search our filter catalog
+            </div>
           </div>
         </div>
       </div>
@@ -122,7 +156,12 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t shadow-lg">
+        <div 
+          id="mobile-menu"
+          className="md:hidden bg-white border-t shadow-lg"
+          role="menu"
+          aria-label="Main navigation"
+        >
           <div className="container-custom py-4 space-y-4">
             <Link href="/refrigerator-filters" className="block py-2 hover:text-brand-orange transition-colors">
               Refrigerator Filters

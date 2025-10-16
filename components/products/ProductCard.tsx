@@ -63,11 +63,23 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           <div className="md:col-span-3">
             <div className="aspect-square bg-brand-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
               {discount > 0 && (
-                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded font-bold text-sm z-10">
+                <div 
+                  className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded font-bold text-sm z-10"
+                  aria-label={`${discount} percent discount`}
+                >
                   -{discount}%
                 </div>
               )}
-              <div className="text-brand-gray-400 text-sm">Product Image</div>
+              <img
+                src={product.image}
+                alt={`${product.name} - ${product.brand} filter`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="text-brand-gray-400 text-sm hidden">Product Image</div>
             </div>
           </div>
 
@@ -78,7 +90,11 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
               {product.name}
             </h3>
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex items-center">
+              <div 
+                className="flex items-center"
+                role="img"
+                aria-label={`${product.rating} out of 5 stars`}
+              >
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -87,17 +103,22 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                         ? 'text-yellow-400 fill-yellow-400'
                         : 'text-brand-gray-300'
                     }`}
+                    aria-hidden="true"
                   />
                 ))}
               </div>
-              <span className="text-sm text-brand-gray-600">({product.reviewCount} reviews)</span>
+              <span className="text-sm text-brand-gray-600">
+                {product.rating} out of 5 stars ({product.reviewCount} reviews)
+              </span>
             </div>
             {product.badges && (
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap" role="list" aria-label="Product badges">
                 {product.badges.map((badge) => (
                   <span
                     key={badge}
                     className="px-2 py-1 bg-brand-blue/10 text-brand-blue text-xs font-semibold rounded"
+                    role="listitem"
+                    aria-label={`${badge} product`}
                   >
                     {badge.toUpperCase()}
                   </span>
@@ -118,8 +139,8 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                 {formatPrice(product.price)}
               </div>
               <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
-                <Check className="w-4 h-4" />
-                In Stock
+                <Check className="w-4 h-4" aria-hidden="true" />
+                <span className="sr-only">Availability: </span>In Stock
               </div>
             </div>
             <Button 
