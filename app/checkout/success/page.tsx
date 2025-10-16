@@ -11,13 +11,21 @@ export default function CheckoutSuccessPage() {
   const { dispatch } = useCart();
   const [sessionData, setSessionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<string>('stripe');
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
+    const paymentMethodParam = searchParams.get('payment_method');
+    const orderId = searchParams.get('order_id');
     
-    if (sessionId) {
+    if (sessionId || orderId) {
       // Clear the cart on successful payment
       dispatch({ type: 'CLEAR_CART' });
+      
+      // Set payment method
+      if (paymentMethodParam) {
+        setPaymentMethod(paymentMethodParam);
+      }
       
       // In a real app, you might want to fetch session details from your backend
       // For now, we'll just show a success message
@@ -54,7 +62,7 @@ export default function CheckoutSuccessPage() {
             </h1>
             
             <p className="text-lg text-brand-gray-600 mb-6">
-              Thank you for your purchase. Your order has been successfully processed and you will receive a confirmation email shortly.
+              Thank you for your purchase. Your order has been successfully processed via {paymentMethod === 'paypal' ? 'PayPal' : 'Stripe'} and you will receive a confirmation email shortly.
             </p>
 
             <div className="bg-brand-gray-50 rounded-lg p-4 mb-6">
@@ -68,11 +76,11 @@ export default function CheckoutSuccessPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button href="/" variant="primary">
-                Continue Shopping
+              <Button asChild variant="primary">
+                <a href="/">Continue Shopping</a>
               </Button>
-              <Button href="/refrigerator-filters" variant="outline">
-                Shop More Filters
+              <Button asChild variant="outline">
+                <a href="/refrigerator-filters">Shop More Filters</a>
               </Button>
             </div>
           </Card>

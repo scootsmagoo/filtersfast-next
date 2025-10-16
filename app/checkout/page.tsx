@@ -5,11 +5,13 @@ import { useCart } from '@/lib/cart-context';
 import { loadStripe } from '@stripe/stripe-js';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import PayPalButton from '@/components/payments/PayPalButton';
 
 export default function CheckoutPage() {
-  const { state: cart } = useCart();
+  const { state: cart, dispatch } = useCart();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
 
   const handleCheckout = async () => {
     if (cart.items.length === 0) {
@@ -57,14 +59,26 @@ export default function CheckoutPage() {
     }
   };
 
+  const handlePayPalSuccess = (orderId: string) => {
+    // Clear the cart on successful payment
+    dispatch({ type: 'CLEAR_CART' });
+    
+    // Redirect to success page
+    window.location.href = `/checkout/success?payment_method=paypal&order_id=${orderId}`;
+  };
+
+  const handlePayPalError = (error: string) => {
+    setError(`PayPal Error: ${error}`);
+  };
+
   if (cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-brand-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
           <h1 className="text-2xl font-bold text-brand-gray-900 mb-4">Your Cart is Empty</h1>
           <p className="text-brand-gray-600 mb-6">Add some filters to your cart to get started!</p>
-          <Button href="/refrigerator-filters" variant="primary">
-            Shop Filters
+          <Button asChild variant="primary">
+            <a href="/refrigerator-filters">Shop Filters</a>
           </Button>
         </Card>
       </div>
@@ -138,14 +152,83 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <Button
-                  onClick={handleCheckout}
-                  disabled={isLoading}
-                  className="w-full"
-                  variant="primary"
-                >
-                  {isLoading ? 'Processing...' : 'Proceed to Payment'}
-                </Button>
+                {/* Payment Method Selection */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-brand-gray-900 mb-4">Choose Payment Method</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Stripe Payment */}
+                    <div className="border-2 border-brand-gray-200 rounded-lg p-4 hover:border-brand-orange transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id="stripe"
+                            name="payment"
+                            value="stripe"
+                            checked={paymentMethod === 'stripe'}
+                            onChange={(e) => setPaymentMethod(e.target.value as 'stripe')}
+                            className="text-brand-orange focus:ring-brand-orange"
+                          />
+                          <label htmlFor="stripe" className="font-medium text-brand-gray-900 cursor-pointer">
+                            Credit/Debit Card
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                            S
+                          </div>
+                          <span className="text-sm text-brand-gray-600">Stripe</span>
+                        </div>
+                      </div>
+                      
+                      {paymentMethod === 'stripe' && (
+                        <Button
+                          onClick={handleCheckout}
+                          disabled={isLoading}
+                          className="w-full"
+                          variant="primary"
+                        >
+                          {isLoading ? 'Processing...' : 'Pay with Card'}
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* PayPal Payment */}
+                    <div className="border-2 border-brand-gray-200 rounded-lg p-4 hover:border-brand-orange transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id="paypal"
+                            name="payment"
+                            value="paypal"
+                            checked={paymentMethod === 'paypal'}
+                            onChange={(e) => setPaymentMethod(e.target.value as 'paypal')}
+                            className="text-brand-orange focus:ring-brand-orange"
+                          />
+                          <label htmlFor="paypal" className="font-medium text-brand-gray-900 cursor-pointer">
+                            PayPal Express Checkout
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-5 bg-blue-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                            P
+                          </div>
+                          <span className="text-sm text-brand-gray-600">PayPal</span>
+                        </div>
+                      </div>
+                      
+                      {paymentMethod === 'paypal' && (
+                        <PayPalButton
+                          onSuccess={handlePayPalSuccess}
+                          onError={handlePayPalError}
+                          disabled={isLoading}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
               </Card>
             </div>
 
@@ -158,26 +241,39 @@ export default function CheckoutPage() {
                   <div className="bg-brand-gray-50 rounded-lg p-4">
                     <h3 className="font-medium text-brand-gray-900 mb-2">Secure Payment</h3>
                     <p className="text-sm text-brand-gray-600 mb-3">
-                      Your payment information is encrypted and secure. We use Stripe for all transactions.
+                      Your payment information is encrypted and secure. We use industry-leading payment processors.
                     </p>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
-                        S
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
+                          S
+                        </div>
+                        <span className="text-sm text-brand-gray-600">Stripe</span>
                       </div>
-                      <span className="text-sm text-brand-gray-600">Powered by Stripe</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-5 bg-blue-500 rounded text-white text-xs flex items-center justify-center font-bold">
+                          P
+                        </div>
+                        <span className="text-sm text-brand-gray-600">PayPal</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="bg-brand-gray-50 rounded-lg p-4">
                     <h3 className="font-medium text-brand-gray-900 mb-2">Accepted Payment Methods</h3>
-                    <div className="flex items-center space-x-2 text-sm text-brand-gray-600">
-                      <span>• Credit Cards (Visa, Mastercard, American Express)</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-brand-gray-600 mt-1">
-                      <span>• Debit Cards</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-brand-gray-600 mt-1">
-                      <span>• Digital Wallets (Apple Pay, Google Pay)</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2 text-sm text-brand-gray-600">
+                        <span>• Credit Cards (Visa, Mastercard, American Express)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-brand-gray-600">
+                        <span>• Debit Cards</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-brand-gray-600">
+                        <span>• PayPal Express Checkout</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-brand-gray-600">
+                        <span>• Digital Wallets (Apple Pay, Google Pay)</span>
+                      </div>
                     </div>
                   </div>
 
