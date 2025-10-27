@@ -1,0 +1,277 @@
+# 🚀 Setup Guide - FiltersFast Next.js
+
+Complete setup instructions for development and production.
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
+- Node.js 18+ installed
+- npm package manager
+- Git
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/scootsmagoo/filtersfast-next.git
+cd filtersfast-next
+
+# Install dependencies
+npm install
+
+# Set up environment variables (see below)
+cp .env.example .env.local
+# Edit .env.local with your keys
+
+# Run development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🔐 Authentication Setup (Better Auth)
+
+### Required Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Better Auth Configuration (REQUIRED)
+BETTER_AUTH_SECRET=your-super-secret-256-bit-key-change-this
+BETTER_AUTH_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Database (Optional - defaults to SQLite)
+DATABASE_URL=./auth.db
+
+# Node Environment
+NODE_ENV=development
+```
+
+### Generate Secure Secret
+
+**PowerShell:**
+```powershell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+```
+
+**Bash/Git Bash:**
+```bash
+openssl rand -base64 32
+```
+
+**Node.js:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+### Database Setup
+
+The app uses SQLite by default (file: `auth.db`). Tables are created automatically on first run.
+
+**Production:** Use PostgreSQL or MySQL:
+```env
+DATABASE_URL=postgresql://user:pass@localhost:5432/filtersfast
+```
+
+---
+
+## 💳 Payment Integration Setup
+
+### Stripe Configuration
+
+Get your keys from [Stripe Dashboard](https://dashboard.stripe.com/apikeys):
+
+```env
+# Stripe Keys
+STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+
+# Webhook (for order completion)
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+```
+
+**Webhook Setup:**
+1. Go to Stripe Dashboard → Webhooks
+2. Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+3. Select events: `checkout.session.completed`, `payment_intent.succeeded`
+4. Copy webhook secret to .env
+
+### PayPal Configuration
+
+Get your keys from [PayPal Developer Dashboard](https://developer.paypal.com/developer/applications/):
+
+```env
+# PayPal Keys
+PAYPAL_CLIENT_ID=your_paypal_client_id_here
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id_here
+
+# Use sandbox for testing
+PAYPAL_MODE=sandbox
+```
+
+---
+
+## 📧 Email Service Setup (Optional)
+
+For password reset and email verification to work in production:
+
+### SendGrid (Recommended)
+
+```env
+SENDGRID_API_KEY=your_sendgrid_api_key
+SENDGRID_FROM_EMAIL=noreply@filtersfast.com
+```
+
+### Alternative: Mailgun, AWS SES, Postmark
+
+Update the email sending code in:
+- `app/api/auth/forgot-password/route.ts`
+- `app/api/auth/send-verification/route.ts`
+
+---
+
+## 🏗️ Development Workflow
+
+### Commands
+
+```bash
+# Start dev server (Turbopack - fast!)
+npm run dev
+
+# Build for production
+npm run build
+
+# Run production build locally
+npm run start
+
+# Lint code
+npm run lint
+
+# Type check
+npm run type-check
+```
+
+### Development Server
+
+- **Local:** http://localhost:3000
+- **Network:** http://[your-ip]:3000
+- **Hot Reload:** Automatic with Turbopack
+
+---
+
+## 📦 Production Deployment
+
+### Vercel (Recommended)
+
+1. **Push to GitHub:**
+   ```bash
+   git push origin main
+   ```
+
+2. **Deploy to Vercel:**
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Add environment variables
+   - Deploy!
+
+3. **Environment Variables in Vercel:**
+   - Add all `.env.local` variables to Vercel dashboard
+   - Update URLs to production domain
+   - Use production keys (not test keys)
+
+### Self-Hosted
+
+```bash
+# Build the application
+npm run build
+
+# Start production server
+npm run start
+
+# Or use PM2 for process management
+pm2 start npm --name "filtersfast" -- start
+```
+
+---
+
+## 🔒 Security Checklist
+
+Before going live:
+- [ ] Generate new BETTER_AUTH_SECRET (production)
+- [ ] Use production payment processor keys
+- [ ] Enable HTTPS (required for secure cookies)
+- [ ] Update NEXT_PUBLIC_APP_URL to production domain
+- [ ] Set NODE_ENV=production
+- [ ] Configure email service
+- [ ] Run `npm audit` (ensure 0 vulnerabilities)
+- [ ] Test all authentication flows
+- [ ] Test payment processing
+- [ ] Review security headers in middleware
+
+---
+
+## 🎯 First-Time Setup Checklist
+
+- [ ] Clone repository
+- [ ] Run `npm install`
+- [ ] Create `.env.local` file
+- [ ] Generate BETTER_AUTH_SECRET
+- [ ] Add Stripe keys (optional for testing)
+- [ ] Add PayPal keys (optional for testing)
+- [ ] Run `npm run dev`
+- [ ] Visit http://localhost:3000
+- [ ] Create test account
+- [ ] Test checkout flow
+
+---
+
+## 🛠️ Troubleshooting
+
+### "BETTER_AUTH_SECRET is required"
+- Create `.env.local` file
+- Add BETTER_AUTH_SECRET with generated secret
+
+### "Module not found" errors
+```bash
+rm -rf node_modules .next
+npm install
+npm run dev
+```
+
+### Port 3000 already in use
+```bash
+# Kill process on port 3000
+taskkill /F /IM node.exe
+# Or use different port
+npm run dev -- -p 3001
+```
+
+### Build errors after update
+```bash
+# Clean cache and reinstall
+rm -rf .next node_modules
+npm install
+npm run dev
+```
+
+---
+
+## 📚 Additional Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Better Auth Documentation](https://better-auth.com/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Stripe Documentation](https://stripe.com/docs)
+- [PayPal Developer](https://developer.paypal.com/)
+
+---
+
+**Ready to build!** 🚀
+
