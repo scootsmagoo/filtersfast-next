@@ -206,4 +206,49 @@ export const securityHeaders = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };
 
+/**
+ * Verify request origin for CSRF protection
+ * Returns true if origin is trusted
+ */
+export function verifyOrigin(request: Request): boolean {
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  
+  // Allow requests without origin/referer in development
+  if (process.env.NODE_ENV === 'development' && !origin && !referer) {
+    return true;
+  }
+  
+  const trustedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  ];
+  
+  // Check origin header
+  if (origin) {
+    return trustedOrigins.some(trusted => origin === trusted || origin.startsWith(trusted));
+  }
+  
+  // Check referer header as fallback
+  if (referer) {
+    return trustedOrigins.some(trusted => referer.startsWith(trusted));
+  }
+  
+  // No origin or referer - reject in production
+  return process.env.NODE_ENV === 'development';
+}
+
+/**
+ * Validate request payload size to prevent DOS attacks
+ */
+export function validatePayloadSize(body: any, maxSizeKB: number = 10): boolean {
+  try {
+    const size = JSON.stringify(body).length;
+    const maxBytes = maxSizeKB * 1024;
+    return size <= maxBytes;
+  } catch {
+    return false;
+  }
+}
+
 
