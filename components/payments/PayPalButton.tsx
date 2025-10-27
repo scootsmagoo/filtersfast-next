@@ -12,7 +12,7 @@ interface PayPalButtonProps {
 }
 
 function PayPalButtonContent({ onSuccess, onError, disabled }: PayPalButtonProps) {
-  const { state: cart } = useCart();
+  const { items, total } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [{ isPending }] = usePayPalScriptReducer();
 
@@ -25,8 +25,8 @@ function PayPalButtonContent({ onSuccess, onError, disabled }: PayPalButtonProps
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cart.items,
-          total: cart.total,
+          items,
+          total,
         }),
       });
 
@@ -95,7 +95,7 @@ function PayPalButtonContent({ onSuccess, onError, disabled }: PayPalButtonProps
         createOrder={createOrder}
         onApprove={onApprove}
         onError={handlePayPalError}
-        disabled={disabled || isProcessing || cart.items.length === 0}
+        disabled={disabled || isProcessing || items.length === 0}
         style={{
           layout: 'vertical',
           color: 'blue',

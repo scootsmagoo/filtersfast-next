@@ -138,5 +138,41 @@ export function useCart() {
   if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
-  return context;
+  
+  // Helper functions for easier cart management
+  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+    context.dispatch({ type: 'ADD_ITEM', payload: item });
+  };
+  
+  const removeItem = (id: number) => {
+    context.dispatch({ type: 'REMOVE_ITEM', payload: id });
+  };
+  
+  const updateQuantity = (id: number, quantity: number) => {
+    context.dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+  };
+  
+  const clearCart = () => {
+    context.dispatch({ type: 'CLEAR_CART' });
+  };
+  
+  const getItemQuantity = (id: number): number => {
+    const item = context.state.items.find(item => item.id === id);
+    return item ? item.quantity : 0;
+  };
+  
+  const isInCart = (id: number): boolean => {
+    return context.state.items.some(item => item.id === id);
+  };
+  
+  return {
+    ...context.state,
+    dispatch: context.dispatch,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    getItemQuantity,
+    isInCart,
+  };
 }

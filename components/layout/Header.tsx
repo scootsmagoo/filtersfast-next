@@ -15,7 +15,7 @@ export default function Header() {
   const [showSearchPreview, setShowSearchPreview] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const { state: cart } = useCart();
+  const { itemCount } = useCart();
   const { data: session, isPending } = useSession();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -162,17 +162,17 @@ export default function Header() {
               </Link>
             )}
             <Link 
-              href="/checkout" 
+              href="/cart" 
               className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
-              aria-label={`Shopping cart with ${cart.itemCount} items`}
+              aria-label={`Shopping cart with ${itemCount} items`}
             >
               <ShoppingCart className="w-6 h-6 hover:text-brand-orange transition-colors" />
-              {cart.itemCount > 0 && (
+              {itemCount > 0 && (
                 <span 
                   className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
-                  aria-label={`${cart.itemCount} items in cart`}
+                  aria-label={`${itemCount} items in cart`}
                 >
-                  {cart.itemCount}
+                  {itemCount}
                 </span>
               )}
             </Link>

@@ -27,8 +27,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, viewMode }: ProductCardProps) {
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -37,22 +38,23 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const handleAddToCart = async () => {
     setIsAdding(true);
     
-    // Simulate a brief loading state
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simulate a brief loading state for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    dispatch({
-      type: 'ADD_ITEM',
-      payload: {
-        id: product.id,
-        name: product.name,
-        brand: product.brand,
-        sku: product.sku,
-        price: product.price,
-        image: product.image,
-      },
+    addItem({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      sku: product.sku,
+      price: product.price,
+      image: product.image,
     });
     
     setIsAdding(false);
+    setJustAdded(true);
+    
+    // Reset "just added" state after 2 seconds
+    setTimeout(() => setJustAdded(false), 2000);
   };
 
   if (viewMode === 'list') {
@@ -149,10 +151,19 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
             <Button 
               onClick={handleAddToCart}
               disabled={isAdding || !product.inStock}
-              className="w-full flex items-center justify-center gap-2"
+              className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
             >
-              <ShoppingCart className="w-5 h-5" />
-              {isAdding ? 'Adding...' : 'Add to Cart'}
+              {justAdded ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  Added to Cart!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-5 h-5" />
+                  {isAdding ? 'Adding...' : 'Add to Cart'}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -235,10 +246,19 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
         <Button 
           onClick={handleAddToCart}
           disabled={isAdding || !product.inStock}
-          className="w-full flex items-center justify-center gap-2"
+          className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
         >
-          <ShoppingCart className="w-5 h-5" />
-          {isAdding ? 'Adding...' : 'Add to Cart'}
+          {justAdded ? (
+            <>
+              <Check className="w-5 h-5" />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-5 h-5" />
+              {isAdding ? 'Adding...' : 'Add to Cart'}
+            </>
+          )}
         </Button>
       </div>
     </Card>
