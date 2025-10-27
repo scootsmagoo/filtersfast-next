@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import { Star, ShoppingCart, Check } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/lib/cart-context';
+import { useStatusAnnouncement } from '@/components/ui/StatusAnnouncementProvider';
 import { useState } from 'react';
 
 interface Product {
@@ -28,6 +29,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const { addItem } = useCart();
+  const { announceSuccess } = useStatusAnnouncement();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   
@@ -49,6 +51,9 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       price: product.price,
       image: product.image,
     });
+    
+    // Announce to screen readers
+    announceSuccess(`${product.name} added to cart`);
     
     setIsAdding(false);
     setJustAdded(true);

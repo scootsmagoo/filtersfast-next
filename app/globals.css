@@ -38,6 +38,28 @@
   white-space: normal;
 }
 
+/* Enhanced focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid #f26722;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Specific focus styles for interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #f26722;
+  outline-offset: 2px;
+}
+
+/* Remove default outline but keep focus-visible */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .text-brand-gray-600 {

@@ -2,6 +2,8 @@
  * Security utilities for input validation and sanitization
  */
 
+import { logger } from './logger';
+
 /**
  * Sanitize user input to prevent XSS attacks
  * Removes potentially dangerous HTML tags and scripts
@@ -226,15 +228,37 @@ export function verifyOrigin(request: Request): boolean {
   
   // Check origin header
   if (origin) {
-    return trustedOrigins.some(trusted => origin === trusted || origin.startsWith(trusted));
+    const isAllowed = trustedOrigins.some(trusted => origin === trusted || origin.startsWith(trusted));
+    if (!isAllowed) {
+      logger.security('CSRF attempt detected - invalid origin', { 
+        origin, 
+        referer,
+        trustedOrigins 
+      });
+    }
+    return isAllowed;
   }
   
   // Check referer header as fallback
   if (referer) {
-    return trustedOrigins.some(trusted => referer.startsWith(trusted));
+    const isAllowed = trustedOrigins.some(trusted => referer.startsWith(trusted));
+    if (!isAllowed) {
+      logger.security('CSRF attempt detected - invalid referer', { 
+        origin, 
+        referer,
+        trustedOrigins 
+      });
+    }
+    return isAllowed;
   }
   
   // No origin or referer - reject in production
+  if (process.env.NODE_ENV === 'production') {
+    logger.security('CSRF attempt detected - missing origin/referer', {
+      origin,
+      referer
+    });
+  }
   return process.env.NODE_ENV === 'development';
 }
 
