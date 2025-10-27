@@ -1,5 +1,6 @@
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
 
 export default function AutoDeliveryPage() {
   return (
@@ -117,9 +118,11 @@ export default function AutoDeliveryPage() {
                   <span className="text-brand-gray-700">Cancel or modify anytime</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full">
-                Get Started
-              </Button>
+              <Link href="/refrigerator-filters">
+                <Button variant="outline" className="w-full">
+                  Get Started
+                </Button>
+              </Link>
             </Card>
 
             <Card className="p-8 border-2 border-brand-orange bg-brand-orange/5">
@@ -151,9 +154,11 @@ export default function AutoDeliveryPage() {
                   <span className="text-brand-gray-700">Priority customer support</span>
                 </li>
               </ul>
-              <Button variant="primary" className="w-full">
-                Get Started
-              </Button>
+              <Link href="/refrigerator-filters">
+                <Button variant="primary" className="w-full">
+                  Get Started
+                </Button>
+              </Link>
             </Card>
           </div>
         </div>
@@ -198,9 +203,11 @@ export default function AutoDeliveryPage() {
           <Card className="p-8 bg-gradient-to-r from-brand-blue to-brand-blue-dark text-white">
             <h2 className="text-3xl font-bold mb-4">Ready to Join Home Filter Club?</h2>
             <p className="text-lg mb-6 opacity-90">Start saving today with automatic filter deliveries</p>
-            <Button asChild variant="primary" className="bg-brand-orange hover:bg-brand-orange-dark border-0">
-              <a href="/refrigerator-filters">Browse Filters</a>
-            </Button>
+            <Link href="/refrigerator-filters">
+              <Button variant="primary" className="bg-brand-orange hover:bg-brand-orange-dark border-0">
+                Browse Filters
+              </Button>
+            </Link>
           </Card>
         </div>
       </div>
