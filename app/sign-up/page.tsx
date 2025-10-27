@@ -78,8 +78,25 @@ export default function SignUpPage() {
         password: formData.password,
         name: formData.name,
       }, {
-        onSuccess: () => {
-          router.push('/account');
+        onSuccess: async () => {
+          // Send verification email after successful signup
+          try {
+            const response = await fetch('/api/auth/send-verification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: formData.email }),
+            });
+            
+            if (response.ok) {
+              console.log('✅ Verification email sent');
+            }
+          } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+            // Don't block signup if email fails
+          }
+          
+          // Redirect to account with verification prompt
+          router.push('/account?verify-email=true');
         },
         onError: (ctx) => {
           setError(ctx.error.message || 'Failed to create account. Please try again.');
