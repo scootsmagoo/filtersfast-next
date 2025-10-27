@@ -6,7 +6,7 @@ import { useSession } from '@/lib/auth-client'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import SubscriptionCard from '@/components/subscriptions/SubscriptionCard'
-import { Package, Plus, ArrowLeft } from 'lucide-react'
+import { Package, Plus, ArrowLeft, Pause, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { Subscription, SubscriptionItem } from '@/lib/types/subscription'
 
