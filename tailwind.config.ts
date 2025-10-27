@@ -31,7 +31,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Arial', 'Helvetica', 'sans-serif'],
+        sans: ['Lato', 'museo-sans-rounded', 'Verdana', 'sans-serif', 'Helvetica'],
       },
     },
   },
