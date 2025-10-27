@@ -23,11 +23,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'px-8 py-4 text-lg',
     };
     
+    // Filter out non-standard props that shouldn't be passed to DOM
+    const { asChild, ...buttonProps } = props as any;
+    
     return (
       <button
         ref={ref}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
-        {...props}
+        {...buttonProps}
       >
         {children}
       </button>
