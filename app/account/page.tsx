@@ -90,10 +90,10 @@ export default function AccountPage() {
                   <Heart className="w-5 h-5" />
                   Favorites
                 </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/settings" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <Settings className="w-5 h-5" />
                   Settings
-                </button>
+                </Link>
                 <hr className="my-4" />
                 <button
                   onClick={handleSignOut}
