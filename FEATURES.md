@@ -156,6 +156,16 @@ Complete guide to all implemented features.
 - Download invoice button (ready)
 - **One-click reorder button** ⚡ NEW!
 
+### Order Tracking
+- **Guest Order Tracking** - Track by order number + email
+- **Visual Timeline** - Progress indicator with checkmarks
+- **Carrier Information** - UPS, FedEx, USPS, DHL tracking links
+- **Estimated Delivery** - See expected delivery dates
+- **Real-time Status** - Current location and last update
+- **Order Summary** - View items, total, shipping address
+- **Help Section** - Contact info and FAQs
+- **Accessible** - Full keyboard navigation and screen readers
+
 ### Quick Reorder
 - **One-click reorder** from previous orders
 - Batch add all items to cart instantly
@@ -355,6 +365,7 @@ Complete guide to all implemented features.
 | **Quick Reorder** | ✅ Complete | A+ (95) |
 | **Saved Models** | ✅ Complete | A (93) |
 | **Custom Filters** | ✅ Complete | A+ (96) |
+| **Order Tracking** | ✅ Complete | A (92) |
 | Product Reviews | ✅ Complete | A (92) |
 | Search | ✅ Complete | A- (90) |
 | Accessibility | ✅ Complete | A- (93) |

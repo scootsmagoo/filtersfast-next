@@ -87,9 +87,14 @@ export default function Header() {
               <span className="font-semibold">⭐ Over 62,000 5-star reviews</span>
               <span className="hidden md:inline">Free Shipping on Orders $99+</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              <span className="font-semibold">1-866-438-3458</span>
+            <div className="flex items-center gap-4">
+              <Link href="/track-order" className="hidden sm:inline hover:underline font-medium">
+                Track Order
+              </Link>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4" />
+                <span className="font-semibold">1-866-438-3458</span>
+              </div>
             </div>
           </div>
         </div>

@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-10-27
+- **Order Tracking System** 📦
+  - Guest order tracking by order number + email
+  - Track order page with search form
+  - TrackingTimeline component with visual progress
+  - TrackingDetails component with carrier information
+  - External carrier links (UPS, FedEx, USPS, DHL)
+  - Order timeline with status updates
+  - Shipping address display
+  - Order items summary
+  - Estimated delivery dates
+  - Track Order links in header and footer
+  - Rate limiting (20 requests/minute)
+  - Mobile-responsive design
+  - Error handling with helpful messages
+
+### Added - 2025-10-27
 - **Custom Air Filter Builder** 🛠️
   - Build custom-sized air filters with exact dimensions
   - DimensionSelector component (height, width, depth)
