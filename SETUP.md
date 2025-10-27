@@ -257,7 +257,7 @@ Before going live:
 - [ ] Run `npm run dev`
 - [ ] Visit http://localhost:3000
 - [ ] Create test account
-- [ ] Test checkout flow
+- [ ] Test features: cart, checkout, reorder, saved models
 
 ---
 

@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-10-27
+- **Saved Appliance Models** 📱
+  - Save customer's appliance models (refrigerators, HVAC, etc.)
+  - Model search/lookup with compatible filter display
+  - My Models page for managing saved appliances
+  - Add nicknames and locations to models
+  - Quick filter finder from saved models
+  - SavedModels widget for dashboard
+  - Complete CRUD API endpoints
+  - Rate limiting on all endpoints
+  - Full TypeScript type safety
+  - Mock data ready for database integration
+
+### Added - 2025-10-27
 - **Quick Reorder Feature** ⚡
   - One-click reorder from order history
   - Batch add all items from previous orders to cart

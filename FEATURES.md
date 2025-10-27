@@ -353,6 +353,7 @@ Complete guide to all implemented features.
 | Checkout Flow | ✅ Complete | A- (90) |
 | Order Management | ✅ Complete | A- (91) |
 | **Quick Reorder** | ✅ Complete | A+ (95) |
+| **Saved Models** | ✅ Complete | A (93) |
 | Product Reviews | ✅ Complete | A (92) |
 | Search | ✅ Complete | A- (90) |
 | Accessibility | ✅ Complete | A- (93) |
@@ -382,12 +383,35 @@ Complete guide to all implemented features.
 
 ---
 
+## 📱 Saved Appliance Models
+
+### Model Management
+- **Save Appliance Models** - Save refrigerators, HVAC systems, water filters, etc.
+- **Model Search** - Search by model number to find compatible filters
+- **Nicknames & Locations** - Add custom names like "Kitchen Fridge" or "Master Bedroom AC"
+- **Quick Filter Finder** - Instantly find compatible filters for saved models
+- **My Models Page** - Full CRUD management of saved appliances
+- **Dashboard Widget** - Quick access to recent models
+- **Compatible Products** - See all filters that work with each model
+- **Edit & Delete** - Update model info or remove models anytime
+
+### Features
+- Search by model number with autocomplete
+- View compatible filters with pricing
+- Primary/recommended filter highlighting
+- Model types: Refrigerator, HVAC, Water Filter, Humidifier, Pool
+- Add location tags (Kitchen, Basement, etc.)
+- Model images and descriptions
+- Last used tracking
+
+---
+
 ## 🚀 Upcoming Features (Planned)
 
 ### Phase 4 (Future)
 - Wishlist/favorites functionality
 - Advanced product filtering
-- Model lookup tool (appliance finder)
+- Custom air filter builder (exact dimensions)
 - Admin dashboard
 - Analytics integration
 - Two-factor authentication (2FA)
