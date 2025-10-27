@@ -354,6 +354,7 @@ Complete guide to all implemented features.
 | Order Management | ✅ Complete | A- (91) |
 | **Quick Reorder** | ✅ Complete | A+ (95) |
 | **Saved Models** | ✅ Complete | A (93) |
+| **Custom Filters** | ✅ Complete | A+ (96) |
 | Product Reviews | ✅ Complete | A (92) |
 | Search | ✅ Complete | A- (90) |
 | Accessibility | ✅ Complete | A- (93) |
@@ -380,6 +381,34 @@ Complete guide to all implemented features.
 - `ReviewCard` - Individual review with company response
 - `ProductReviews` - Full review section for product pages
 - Integrated into `ProductCard` for inline ratings
+
+---
+
+## 🛠️ Custom Air Filter Builder
+
+### Build-Your-Own Filters
+- **Exact Dimensions** - Height (4"-30"), Width (4"-36"), Depth (1", 2", 4")
+- **MERV Rating Selection** - Choose MERV 8, 11, or 13 filtration
+- **Live Pricing** - Dynamic price calculation based on size and rating
+- **Visual Preview** - See your custom size as you build
+- **Double Size Detection** - Automatic detection for wide filters (>29.5")
+- **Case Pricing** - Bulk discount options displayed
+- **Detailed MERV Info** - Learn about each rating's efficiency and best uses
+
+### Components
+- `DimensionSelector` - Height, width, depth inputs with validation
+- `MervSelector` - Interactive MERV rating cards with details
+- `CustomFilterBuilder` - Complete builder with pricing summary
+
+### Features
+- Real-time price calculation API
+- Validation for all dimensions
+- Quarter-inch increments supported
+- Add directly to cart
+- Mobile-responsive design
+- Comprehensive FAQs
+- Trust indicators (Made in USA, 365-day returns)
+- Rate limiting for API protection
 
 ---
 
@@ -411,7 +440,6 @@ Complete guide to all implemented features.
 ### Phase 4 (Future)
 - Wishlist/favorites functionality
 - Advanced product filtering
-- Custom air filter builder (exact dimensions)
 - Admin dashboard
 - Analytics integration
 - Two-factor authentication (2FA)

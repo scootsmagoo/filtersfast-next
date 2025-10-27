@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-10-27
+- **Custom Air Filter Builder** 🛠️
+  - Build custom-sized air filters with exact dimensions
+  - DimensionSelector component (height, width, depth)
+  - MervSelector component with detailed rating info
+  - CustomFilterBuilder main component with live pricing
+  - Custom filter pricing API endpoint
+  - Support for MERV 8, 11, and 13 ratings
+  - Support for 1", 2", and 4" depths
+  - Dimensions: 4"-30" height, 4"-36" width
+  - Double-size filter detection (>29.5" width)
+  - Dynamic pricing calculation
+  - Case quantity pricing with bulk discounts
+  - Added to main navigation (desktop + mobile)
+  - Added to homepage Featured Categories with "NEW" badge
+  - Comprehensive FAQ section
+  - Rate limiting (60 requests/minute)
+
+### Added - 2025-10-27
 - **Saved Appliance Models** 📱
   - Save customer's appliance models (refrigerators, HVAC, etc.)
   - Model search/lookup with compatible filter display

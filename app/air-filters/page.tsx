@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FilterSidebar from '@/components/products/FilterSidebar';
 import ProductGrid from '@/components/products/ProductGrid';
+import CustomFilterBuilder from '@/components/custom-filters/CustomFilterBuilder';
 
 // Mock air filter products
 const airFilterProducts = [
@@ -146,13 +147,20 @@ export default function AirFiltersPage() {
 
   return (
     <div className="min-h-screen bg-brand-gray-50">
+      {/* Custom Filter Builder Section */}
+      <section className="bg-gradient-to-br from-green-50 to-blue-50 border-b-2 border-green-200 py-12">
+        <div className="container-custom">
+          <CustomFilterBuilder />
+        </div>
+      </section>
+
       {/* Page Header */}
       <div className="bg-white border-b">
         <div className="container-custom py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">Air Filters</h1>
-              <p className="text-brand-gray-600">Premium HVAC filters for cleaner air - MERV 8, 11, 13 ratings available</p>
+              <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">Standard Air Filters</h1>
+              <p className="text-brand-gray-600">Browse our selection of standard-size HVAC filters - MERV 8, 11, 13 ratings available</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-brand-gray-600">{filteredProducts.length} products</p>
