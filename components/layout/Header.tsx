@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingCart, Search, Phone, Menu, X, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
@@ -92,10 +93,14 @@ export default function Header() {
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <div className="text-2xl font-bold">
-              <span className="text-brand-orange">Filters</span>
-              <span className="text-brand-blue">Fast</span>
-            </div>
+            <Image
+              src="/filtersfast-logo.png"
+              alt="FiltersFast - Filter. Purify. Protect."
+              width={200}
+              height={60}
+              priority
+              className="h-auto w-auto max-h-14"
+            />
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -141,22 +146,20 @@ export default function Header() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
-            {!isPending && (
-              session ? (
-                <Link 
-                  href="/account" 
-                  className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                    {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium">{session.user.name?.split(' ')[0] || 'Account'}</span>
-                </Link>
-              ) : (
-                <Link href="/sign-in" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
-                  Sign In
-                </Link>
-              )
+            {session ? (
+              <Link 
+                href="/account" 
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                  {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium">{session.user.name?.split(' ')[0] || 'Account'}</span>
+              </Link>
+            ) : (
+              <Link href="/sign-in" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
+                Sign In
+              </Link>
             )}
             <Link 
               href="/checkout" 

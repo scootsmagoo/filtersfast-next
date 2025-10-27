@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "FiltersFast - America's Top Online Filtration Retailer",
   description: "Huge Selection. Unbeatable Quality. 365-Day Returns. Shop refrigerator water filters, air filters, pool filters, and more from trusted brands.",
   keywords: "water filters, air filters, refrigerator filters, HVAC filters, pool filters, FiltersFast",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
