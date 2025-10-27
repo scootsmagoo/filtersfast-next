@@ -45,14 +45,14 @@ export default function Header() {
   const handleSearchBlur = () => {
     setSearchFocused(false);
     // Delay hiding preview to allow clicks on suggestions
-    setTimeout(() => setShowSearchPreview(false), 200);
+    setTimeout(() => setShowSearchPreview(false), 300);
   };
 
   const closeSearchPreview = () => {
     setShowSearchPreview(false);
   };
 
-  // Close preview when clicking outside
+  // Close preview when clicking outside - use mouseup to allow clicks to complete
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -61,8 +61,9 @@ export default function Header() {
     };
 
     if (showSearchPreview) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Use mouseup instead of mousedown to allow button clicks to complete first
+      document.addEventListener('mouseup', handleClickOutside);
+      return () => document.removeEventListener('mouseup', handleClickOutside);
     }
   }, [showSearchPreview]);
 

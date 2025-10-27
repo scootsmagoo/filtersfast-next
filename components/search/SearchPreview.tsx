@@ -88,7 +88,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     setSelectedIndex(-1);
   }, [suggestions]);
 
-  // Handle click outside
+  // Handle click outside - use mouseup instead of mousedown to allow clicks to complete
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -97,8 +97,9 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     };
 
     if (isVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Use mouseup instead of mousedown to allow button clicks to complete first
+      document.addEventListener('mouseup', handleClickOutside);
+      return () => document.removeEventListener('mouseup', handleClickOutside);
     }
   }, [isVisible, onClose]);
 
@@ -121,7 +122,15 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion.product.id}
-              onClick={() => onSelectProduct(suggestion.product)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelectProduct(suggestion.product);
+              }}
+              onMouseDown={(e) => {
+                // Prevent the click-outside handler from firing
+                e.stopPropagation();
+              }}
               className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               } ${index === 0 ? 'rounded-t-lg' : ''} ${
@@ -185,8 +194,13 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
           {/* View All Results */}
           <div className="border-t border-gray-200 px-4 py-2">
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 window.location.href = `/search?q=${encodeURIComponent(query)}`;
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
               }}
               className="w-full text-left text-sm text-brand-orange hover:text-brand-orange-dark font-medium flex items-center gap-2"
             >
