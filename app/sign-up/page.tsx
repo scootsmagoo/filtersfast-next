@@ -14,7 +14,8 @@ import { Mail, Lock, User, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-re
 export default function SignUpPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -25,8 +26,8 @@ export default function SignUpPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Security: Sanitize name input
-    const sanitizedValue = name === 'name' ? sanitizeInput(value) : value;
+    // Security: Sanitize name inputs
+    const sanitizedValue = (name === 'firstName' || name === 'lastName') ? sanitizeInput(value) : value;
     
     setFormData({
       ...formData,
@@ -35,10 +36,17 @@ export default function SignUpPage() {
   };
 
   const validateForm = () => {
-    // Validate name with security checks
-    const nameValidation = validateName(formData.name);
-    if (!nameValidation.valid) {
-      setError(nameValidation.error || 'Invalid name');
+    // Validate first name
+    const firstNameValidation = validateName(formData.firstName);
+    if (!firstNameValidation.valid) {
+      setError('First name: ' + (firstNameValidation.error || 'Invalid'));
+      return false;
+    }
+
+    // Validate last name
+    const lastNameValidation = validateName(formData.lastName);
+    if (!lastNameValidation.valid) {
+      setError('Last name: ' + (lastNameValidation.error || 'Invalid'));
       return false;
     }
 
@@ -78,7 +86,7 @@ export default function SignUpPage() {
       await signUp.email({
         email: formData.email,
         password: formData.password,
-        name: formData.name,
+        name: `${formData.firstName} ${formData.lastName}`,
       }, {
         onSuccess: async () => {
           // Send verification email after successful signup
@@ -173,25 +181,44 @@ export default function SignUpPage() {
               </div>
             )}
 
-            {/* Name Field */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+            {/* Name Fields */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  First Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+                    placeholder="John"
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Last Name
+                </label>
                 <input
-                  id="name"
-                  name="name"
+                  id="lastName"
+                  name="lastName"
                   type="text"
-                  autoComplete="name"
+                  autoComplete="family-name"
                   required
-                  value={formData.name}
+                  value={formData.lastName}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
-                  placeholder="John Doe"
+                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+                  placeholder="Doe"
                 />
               </div>
             </div>
