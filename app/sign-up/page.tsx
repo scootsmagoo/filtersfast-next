@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth-client';
 import { sanitizeInput, validateEmail, validatePassword, validateName } from '@/lib/security';
+import { logger } from '@/lib/logger';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import SocialLoginButtons from '@/components/ui/SocialLoginButtons';
 import { Mail, Lock, User, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function SignUpPage() {
@@ -87,11 +89,16 @@ export default function SignUpPage() {
               body: JSON.stringify({ email: formData.email }),
             });
             
-            if (response.ok) {
-              console.log('✅ Verification email sent');
+            if (!response.ok) {
+              // Security: Log failure without exposing details to client
+              logger.warn('Verification email failed to send', { 
+                status: response.status,
+                email: formData.email.substring(0, 3) + '***' // Partially masked
+              });
             }
           } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+            // Security: Don't log full error which might contain sensitive info
+            logger.error('Verification email error', { type: 'email_send_failed' });
             // Don't block signup if email fails
           }
           
@@ -316,6 +323,19 @@ export default function SignUpPage() {
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Social Login Buttons */}
+          <SocialLoginButtons mode="signup" />
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">

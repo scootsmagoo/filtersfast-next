@@ -80,6 +80,70 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/filtersfast
 
 ---
 
+## 🔓 Social Authentication Setup (Optional)
+
+Enable sign-in with Google, Facebook, and Apple. Each provider is **optional** - only configure the ones you want to enable.
+
+### Quick Setup - Google OAuth (5 minutes)
+
+Google is the easiest and most popular. Start here:
+
+1. **Go to [Google Cloud Console](https://console.cloud.google.com/)**
+2. **Create a project** or select existing
+3. **Enable Google+ API** (APIs & Services → Library)
+4. **Configure OAuth consent screen** (APIs & Services → OAuth consent screen)
+   - User Type: External
+   - App name: FiltersFast
+   - Add your email
+5. **Create OAuth credentials** (APIs & Services → Credentials → Create Credentials → OAuth client ID)
+   - Application type: Web application
+   - Authorized JavaScript origins: `http://localhost:3000` (add production URL later)
+   - Authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
+6. **Copy credentials to `.env.local`:**
+
+```env
+# Google OAuth
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your-secret-here
+```
+
+7. **Restart dev server** and visit `/sign-in` to see the "Sign in with Google" button!
+
+### All OAuth Environment Variables
+
+Add any/all of these to `.env.local`:
+
+```env
+# === Social Authentication (Optional) ===
+
+# Google OAuth - https://console.cloud.google.com/
+# Callback: http://localhost:3000/api/auth/callback/google
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Facebook OAuth - https://developers.facebook.com/
+# Callback: http://localhost:3000/api/auth/callback/facebook  
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+
+# Apple Sign In - https://developer.apple.com/ (requires $99/year account)
+# Callback: http://localhost:3000/api/auth/callback/apple
+APPLE_CLIENT_ID=
+APPLE_CLIENT_SECRET=
+```
+
+### Detailed Provider Setup
+
+For step-by-step instructions for each provider, see **[SOCIAL_AUTH_SETUP.md](./SOCIAL_AUTH_SETUP.md)**:
+- Facebook setup (~10 minutes)
+- Apple Sign In setup (~15 minutes, requires paid Apple Developer account)
+- Troubleshooting guide
+- Production deployment checklist
+
+**Note:** Missing credentials automatically disable that provider. No code changes needed!
+
+---
+
 ## 💳 Payment Integration Setup
 
 ### Stripe Configuration

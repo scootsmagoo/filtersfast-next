@@ -7,6 +7,7 @@ import { signIn } from '@/lib/auth-client';
 import { validateEmail } from '@/lib/security';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import SocialLoginButtons from '@/components/ui/SocialLoginButtons';
 import { Mail, Lock, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function SignInPage() {
@@ -190,6 +191,19 @@ export default function SignInPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Social Login Buttons */}
+          <SocialLoginButtons mode="signin" />
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">

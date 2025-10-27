@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-10-27
+- **Social Authentication (OAuth)** 🔐
+  - Sign in with Google, Facebook, and Apple
+  - Better Auth social provider integration
+  - SocialLoginButtons reusable component
+  - Auto-enabled providers based on environment variables
+  - Automatic callback handling via Better Auth
+  - OAuth account linking to existing users
+  - Social login buttons on sign-in and sign-up pages
+  - Beautiful provider-branded buttons with icons
+  - Comprehensive setup documentation (SOCIAL_AUTH_SETUP.md)
+  - Environment variable templates
+  - Support for multiple OAuth providers per user
+  - Secure token handling and session management
+  - Production-ready with proper error handling
+  - WCAG 2.1 AA compliant with full accessibility support
+
+### Added - 2025-10-27
 - **Order Tracking System** 📦
   - Guest order tracking by order number + email
   - Track order page with search form
