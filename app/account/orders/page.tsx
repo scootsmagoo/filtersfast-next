@@ -13,10 +13,10 @@ import {
   Clock, 
   XCircle, 
   Eye,
-  RefreshCw,
   ArrowLeft,
   Loader2
 } from 'lucide-react';
+import ReorderButton from '@/components/orders/ReorderButton';
 
 interface Order {
   id: string;
@@ -332,12 +332,12 @@ export default function OrdersPage() {
                     </Link>
 
                     {order.status === 'delivered' && (
-                      <Link href={`/account/orders/${order.id}/reorder`}>
-                        <Button className="flex items-center gap-2">
-                          <RefreshCw className="w-4 h-4" />
-                          Reorder
-                        </Button>
-                      </Link>
+                      <ReorderButton
+                        orderId={order.id}
+                        orderNumber={order.orderNumber}
+                        itemCount={order.itemCount}
+                        variant="primary"
+                      />
                     )}
 
                     {order.trackingNumber && (

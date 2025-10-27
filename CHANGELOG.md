@@ -7,6 +7,19 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-10-27
+- **Quick Reorder Feature** ⚡
+  - One-click reorder from order history
+  - Batch add all items from previous orders to cart
+  - Reorder button on order cards (delivered orders)
+  - Reorder button on order detail pages
+  - QuickReorder component for homepage/dashboard
+  - Custom `useReorder` hook for reusable reorder logic
+  - Loading states, success feedback, and error handling
+  - Reorder API endpoint `/api/orders/[orderId]/reorder`
+  - Rate limiting (10 requests/minute)
+  - Screen reader announcements for accessibility
+
+### Added - 2025-10-27
 - **Trustpilot Review System Integration** 🌟
   - Complete Trustpilot API client with TypeScript types
   - `ReviewStars` component for displaying star ratings

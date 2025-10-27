@@ -20,6 +20,7 @@ interface CartState {
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
+  | { type: 'ADD_ITEMS_BATCH'; payload: CartItem[] }
   | { type: 'REMOVE_ITEM'; payload: number }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
   | { type: 'CLEAR_CART' }
@@ -58,6 +59,33 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         };
       }
+    }
+    
+    case 'ADD_ITEMS_BATCH': {
+      // Batch add multiple items (for reorder functionality)
+      let updatedItems = [...state.items];
+      
+      action.payload.forEach(newItem => {
+        const existingIndex = updatedItems.findIndex(item => item.id === newItem.id);
+        
+        if (existingIndex >= 0) {
+          // Item exists, add to quantity
+          updatedItems[existingIndex] = {
+            ...updatedItems[existingIndex],
+            quantity: updatedItems[existingIndex].quantity + newItem.quantity,
+          };
+        } else {
+          // New item, add to cart
+          updatedItems.push(newItem);
+        }
+      });
+      
+      return {
+        ...state,
+        items: updatedItems,
+        total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+      };
     }
     
     case 'REMOVE_ITEM': {
@@ -144,6 +172,10 @@ export function useCart() {
     context.dispatch({ type: 'ADD_ITEM', payload: item });
   };
   
+  const addItemsBatch = (items: CartItem[]) => {
+    context.dispatch({ type: 'ADD_ITEMS_BATCH', payload: items });
+  };
+  
   const removeItem = (id: number) => {
     context.dispatch({ type: 'REMOVE_ITEM', payload: id });
   };
@@ -169,6 +201,7 @@ export function useCart() {
     ...context.state,
     dispatch: context.dispatch,
     addItem,
+    addItemsBatch,
     removeItem,
     updateQuantity,
     clearCart,

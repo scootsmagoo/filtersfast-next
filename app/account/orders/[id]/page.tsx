@@ -8,7 +8,6 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { 
   ArrowLeft, 
-  Package, 
   MapPin, 
   CreditCard, 
   Truck,
@@ -19,6 +18,7 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
+import ReorderButton from '@/components/orders/ReorderButton';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -143,10 +143,12 @@ export default function OrderDetailsPage() {
                   <Download className="w-4 h-4" />
                   Download Invoice
                 </Button>
-                <Button className="flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Reorder
-                </Button>
+                <ReorderButton
+                  orderId={order.id}
+                  orderNumber={order.orderNumber}
+                  itemCount={order.items.length}
+                  variant="primary"
+                />
               </div>
             </div>
           </div>
