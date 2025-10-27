@@ -197,10 +197,10 @@ export default function AccountPage() {
                   <User className="w-5 h-5" />
                   Profile
                 </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/orders" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <ShoppingBag className="w-5 h-5" />
                   Orders
-                </button>
+                </Link>
                 <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <Heart className="w-5 h-5" />
                   Favorites
@@ -256,14 +256,73 @@ export default function AccountPage() {
 
             {/* Recent Orders */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Recent Orders
-              </h2>
-              <div className="text-center py-12">
-                <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">You haven't placed any orders yet</p>
-                <Link href="/refrigerator-filters">
-                  <Button>Start Shopping</Button>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Recent Orders
+                </h2>
+                <Link href="/account/orders">
+                  <Button variant="secondary" size="sm">
+                    View All
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Order 1 */}
+                <Link href="/account/orders/1" className="block">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
+                        <ShoppingBag className="w-8 h-8 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-gray-900">Order #FF-2025-001</p>
+                        <span className="text-sm font-medium text-green-600">Delivered</span>
+                      </div>
+                      <p className="text-sm text-gray-600">January 15, 2025 • 2 items</p>
+                      <p className="text-sm font-medium text-brand-orange mt-1">$89.99</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Order 2 */}
+                <Link href="/account/orders/2" className="block">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <ShoppingBag className="w-8 h-8 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-gray-900">Order #FF-2025-002</p>
+                        <span className="text-sm font-medium text-purple-600">Shipped</span>
+                      </div>
+                      <p className="text-sm text-gray-600">January 20, 2025 • 4 items</p>
+                      <p className="text-sm font-medium text-brand-orange mt-1">$159.98</p>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Order 3 */}
+                <Link href="/account/orders/3" className="block">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                    <div className="flex-shrink-0">
+                      <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <ShoppingBag className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold text-gray-900">Order #FF-2025-003</p>
+                        <span className="text-sm font-medium text-blue-600">Processing</span>
+                      </div>
+                      <p className="text-sm text-gray-600">January 22, 2025 • 1 item</p>
+                      <p className="text-sm font-medium text-brand-orange mt-1">$49.99</p>
+                    </div>
+                  </div>
                 </Link>
               </div>
             </Card>
