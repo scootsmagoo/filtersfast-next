@@ -118,6 +118,34 @@ PAYPAL_MODE=sandbox
 
 ---
 
+## ⭐ Trustpilot Reviews Setup (Optional)
+
+To enable product reviews from Trustpilot:
+
+```env
+# Trustpilot Configuration
+TRUSTPILOT_API_KEY=your_api_key_here
+TRUSTPILOT_BUSINESS_UNIT_ID=47783f490000640005020cf6
+NEXT_PUBLIC_TRUSTPILOT_ENABLED=true
+```
+
+**Getting Your API Key:**
+1. Log in to [Trustpilot Business](https://business.trustpilot.com/)
+2. Navigate to Settings → Integrations → API Access
+3. Generate or copy your API key
+4. Restart dev server after adding to `.env.local`
+
+**Features:**
+- Star ratings on product cards
+- Full review display on product pages
+- Company response support
+- Review summary with distribution
+- Automatic caching (1 hour)
+- Rate limiting (30 req/min)
+- Graceful fallback if not configured
+
+---
+
 ## 📧 Email Service Setup (Optional)
 
 For password reset and email verification to work in production:
@@ -225,6 +253,7 @@ Before going live:
 - [ ] Generate BETTER_AUTH_SECRET
 - [ ] Add Stripe keys (optional for testing)
 - [ ] Add PayPal keys (optional for testing)
+- [ ] Add Trustpilot API key (optional for reviews)
 - [ ] Run `npm run dev`
 - [ ] Visit http://localhost:3000
 - [ ] Create test account

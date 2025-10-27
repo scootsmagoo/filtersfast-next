@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { ShoppingCart, Search, Phone, Menu, X, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
@@ -17,6 +18,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
   const { data: session, isPending } = useSession();
+  const pathname = usePathname();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +71,11 @@ export default function Header() {
       return () => document.removeEventListener('mouseup', handleClickOutside);
     }
   }, [showSearchPreview]);
+
+  // Close mobile menu when navigating to a new page
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">

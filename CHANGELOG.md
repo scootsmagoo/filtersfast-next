@@ -6,6 +6,26 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-10-27
+- **Trustpilot Review System Integration** 🌟
+  - Complete Trustpilot API client with TypeScript types
+  - `ReviewStars` component for displaying star ratings
+  - `ReviewCard` component for individual reviews with company responses
+  - `ProductReviews` component for full product review pages
+  - API route `/api/reviews/[productId]` for fetching reviews
+  - Review summary with rating distribution
+  - Support for both regular and imported Trustpilot reviews
+  - Fallback to Trustpilot widget when API not configured
+  - Rating display on product cards with links to reviews
+  - Accessibility-compliant review displays
+  - Configuration file for easy API key management
+  - Rate limiting on review API endpoint (30 req/min)
+
+### Changed
+- Updated `ProductCard` component to use new `ReviewStars` component
+- Improved review display consistency across grid and list views
+- Review counts now link directly to product review section
+
 ### Security
 - 🚀 **CRITICAL**: Updated Next.js from 14.2.15 to 16.0.0 to fix 7 critical CVEs
 - Added centralized logging system with security event tracking
