@@ -2,88 +2,179 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useCart } from '@/lib/cart-context';
+import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import { CheckCircle, Package, Mail, Home, Printer } from 'lucide-react';
 
-export default function CheckoutSuccessPage() {
+export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
-  const { dispatch } = useCart();
-  const [sessionData, setSessionData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<string>('stripe');
+  const orderNumber = searchParams.get('order') || 'UNKNOWN';
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    const paymentMethodParam = searchParams.get('payment_method');
-    const orderId = searchParams.get('order_id');
-    
-    if (sessionId || orderId) {
-      // Clear the cart on successful payment
-      dispatch({ type: 'CLEAR_CART' });
-      
-      // Set payment method
-      if (paymentMethodParam) {
-        setPaymentMethod(paymentMethodParam);
-      }
-      
-      // In a real app, you might want to fetch session details from your backend
-      // For now, we'll just show a success message
-      setLoading(false);
-    } else {
-      setLoading(false);
+    // Get email from localStorage or session
+    const savedEmail = localStorage.getItem('checkout-email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      localStorage.removeItem('checkout-email');
     }
-  }, [searchParams, dispatch]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-brand-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange mx-auto mb-4"></div>
-          <p className="text-brand-gray-600">Processing your order...</p>
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
-      <div className="container-custom py-8">
-        <div className="max-w-2xl mx-auto">
-          <Card className="p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container-custom">
+        <div className="max-w-3xl mx-auto">
+          {/* Success Header */}
+          <div className="text-center mb-8">
+            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
             
-            <h1 className="text-3xl font-bold text-brand-gray-900 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Order Confirmed!
             </h1>
             
-            <p className="text-lg text-brand-gray-600 mb-6">
-              Thank you for your purchase. Your order has been successfully processed via {paymentMethod === 'paypal' ? 'PayPal' : 'Stripe'} and you will receive a confirmation email shortly.
+            <p className="text-lg text-gray-600 mb-4">
+              Thank you for your purchase
             </p>
-
-            <div className="bg-brand-gray-50 rounded-lg p-4 mb-6">
-              <h2 className="font-semibold text-brand-gray-900 mb-2">What's Next?</h2>
-              <ul className="text-sm text-brand-gray-600 space-y-1 text-left">
-                <li>• You'll receive an order confirmation email</li>
-                <li>• Your order will be processed within 1-2 business days</li>
-                <li>• You'll get a tracking number once shipped</li>
-                <li>• Expected delivery: 3-5 business days</li>
-              </ul>
+            
+            <div className="inline-flex items-center gap-2 bg-gray-100 px-6 py-3 rounded-lg">
+              <span className="text-sm text-gray-600">Order Number:</span>
+              <span className="text-lg font-bold text-brand-orange">#{orderNumber}</span>
             </div>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild variant="primary">
-                <a href="/">Continue Shopping</a>
-              </Button>
-              <Button asChild variant="outline">
-                <a href="/refrigerator-filters">Shop More Filters</a>
-              </Button>
+          {/* Order Details Card */}
+          <Card className="p-8 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">
+              What's Next?
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Email Confirmation */}
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Check Your Email
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    We've sent an order confirmation to {email || 'your email address'}. 
+                    You'll receive shipping updates as your order progresses.
+                  </p>
+                </div>
+              </div>
+
+              {/* Processing */}
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-brand-orange/10 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-brand-orange" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Order Processing
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    We're preparing your order for shipment. Most orders ship within 1-2 business days.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tracking */}
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    Track Your Order
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    You'll receive tracking information once your order ships. 
+                    Expected delivery: 3-5 business days.
+                  </p>
+                  <Link 
+                    href="/account/orders" 
+                    className="text-sm text-brand-orange hover:underline font-medium"
+                  >
+                    View order status →
+                  </Link>
+                </div>
+              </div>
             </div>
           </Card>
+
+          {/* Order Summary */}
+          <Card className="p-8 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">
+                Order Summary
+              </h2>
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 text-sm text-brand-orange hover:underline"
+              >
+                <Printer className="w-4 h-4" />
+                Print Receipt
+              </button>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Order Number:</span>
+                  <span className="font-medium">#{orderNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Order Date:</span>
+                  <span className="font-medium">{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Method:</span>
+                  <span className="font-medium">Credit Card</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/" className="flex-1">
+              <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+                <Home className="w-5 h-5" />
+                Continue Shopping
+              </Button>
+            </Link>
+            
+            <Link href="/account/orders" className="flex-1">
+              <Button className="w-full flex items-center justify-center gap-2">
+                <Package className="w-5 h-5" />
+                View Order Status
+              </Button>
+            </Link>
+          </div>
+
+          {/* Support Info */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600 mb-2">
+              Need help with your order?
+            </p>
+            <Link 
+              href="/support" 
+              className="text-sm text-brand-orange hover:underline font-medium"
+            >
+              Contact Customer Support
+            </Link>
+          </div>
         </div>
       </div>
     </div>
