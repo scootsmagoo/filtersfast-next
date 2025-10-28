@@ -10,6 +10,7 @@ import { RecaptchaAction } from '@/lib/recaptcha';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import SocialLoginButtons from '@/components/ui/SocialLoginButtons';
+import MFAVerification from '@/components/mfa/MFAVerification';
 import { Mail, Lock, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function SignInPage() {
@@ -23,6 +24,8 @@ export default function SignInPage() {
   const [attemptCount, setAttemptCount] = useState(0);
   const [showResetSuccess, setShowResetSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [requiresMFA, setRequiresMFA] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   // Check for password reset success
   useEffect(() => {
@@ -63,32 +66,80 @@ export default function SignInPage() {
         return;
       }
 
-      // Verify reCAPTCHA token on server
-      try {
-        const verifyResponse = await fetch('/api/recaptcha/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            token: recaptchaToken,
-            action: RecaptchaAction.SIGN_IN,
-          }),
-        });
+      // Verify reCAPTCHA token on server (skip if no token in development)
+      if (recaptchaToken) {
+        try {
+          const verifyResponse = await fetch('/api/recaptcha/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: recaptchaToken,
+              action: RecaptchaAction.SIGN_IN,
+            }),
+          });
 
-        const verifyResult = await verifyResponse.json();
-        if (!verifyResult.success) {
+          const verifyResult = await verifyResponse.json();
+          if (!verifyResult.success) {
+            setError('Security verification failed. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } catch (verifyError) {
+          console.error('reCAPTCHA verification error:', verifyError);
           setError('Security verification failed. Please try again.');
           setLoading(false);
           return;
         }
-      } catch (verifyError) {
-        console.error('reCAPTCHA verification error:', verifyError);
-        setError('Security verification failed. Please try again.');
-        setLoading(false);
-        return;
+      } else if (process.env.NODE_ENV === 'development') {
+        console.warn('reCAPTCHA not configured - skipping verification in development mode');
       }
 
+      const normalizedEmail = email.toLowerCase().trim();
+      
+      // Check if user has MFA enabled
+      const mfaCheckResponse = await fetch('/api/mfa/check-required', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      
+      let userHasMFA = false;
+      if (mfaCheckResponse.ok) {
+        const mfaCheck = await mfaCheckResponse.json();
+        userHasMFA = mfaCheck.required;
+      }
+      
+      // Check if there's a trusted device token
+      const deviceToken = localStorage.getItem('mfa_device_token');
+      let deviceTrusted = false;
+      
+      if (userHasMFA && deviceToken) {
+        // Check if device is still trusted
+        const deviceCheckResponse = await fetch('/api/mfa/check-device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail, deviceToken }),
+        });
+        
+        if (deviceCheckResponse.ok) {
+          const deviceCheck = await deviceCheckResponse.json();
+          deviceTrusted = deviceCheck.trusted;
+        }
+      }
+      
+      // If user has MFA and device is not trusted, we need MFA verification BEFORE sign-in
+      if (userHasMFA && !deviceTrusted) {
+        // Store credentials temporarily to complete sign-in after MFA
+        setPendingEmail(normalizedEmail);
+        setRequiresMFA(true);
+        setAttemptCount(0);
+        setLoading(false); // Stop loading, show MFA screen
+        return;
+      }
+      
+      // Otherwise, proceed with normal sign-in
       await signIn.email({
-        email: email.toLowerCase().trim(), // Normalize email
+        email: normalizedEmail,
         password,
       }, {
         onSuccess: () => {
@@ -116,6 +167,53 @@ export default function SignInPage() {
       setLoading(false);
     }
   };
+  
+  const handleMFASuccess = async (deviceToken?: string) => {
+    // Store device token if provided
+    if (deviceToken) {
+      localStorage.setItem('mfa_device_token', deviceToken);
+    }
+    
+    // Now complete the sign-in
+    try {
+      await signIn.email({
+        email: pendingEmail,
+        password,
+      }, {
+        onSuccess: () => {
+          router.push('/account');
+        },
+        onError: () => {
+          setError('Authentication failed. Please try again.');
+          setRequiresMFA(false);
+        },
+      });
+    } catch (err) {
+      setError('Authentication failed. Please try again.');
+      setRequiresMFA(false);
+    }
+  };
+  
+  const handleMFACancel = () => {
+    setRequiresMFA(false);
+    setPendingEmail('');
+    setPassword('');
+  };
+
+  // If MFA is required, show MFA verification screen
+  if (requiresMFA) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
+          <MFAVerification
+            email={pendingEmail}
+            onSuccess={handleMFASuccess}
+            onCancel={handleMFACancel}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

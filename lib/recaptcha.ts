@@ -78,7 +78,15 @@ export async function verifyRecaptchaToken(
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!secretKey) {
-    console.error('RECAPTCHA_SECRET_KEY is not configured');
+    console.warn('RECAPTCHA_SECRET_KEY is not configured - bypassing verification in development');
+    // In development, allow bypass if keys not configured
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        success: true,
+        score: 1.0,
+        message: 'reCAPTCHA bypassed (development mode)',
+      };
+    }
     return {
       success: false,
       message: 'reCAPTCHA is not properly configured',

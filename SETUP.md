@@ -48,6 +48,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # Database (Optional - defaults to SQLite)
 DATABASE_URL=./auth.db
 
+# Multi-Factor Authentication (MFA) - REQUIRED FOR PRODUCTION
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+MFA_ENCRYPTION_KEY=your-64-character-hex-key-for-encrypting-mfa-secrets
+
 # Node Environment
 NODE_ENV=development
 ```
@@ -177,6 +181,76 @@ NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id_here
 # Use sandbox for testing
 PAYPAL_MODE=sandbox
 ```
+
+---
+
+## 🔐 Multi-Factor Authentication (MFA) Setup
+
+### Required Configuration
+
+**Critical:** MFA requires an encryption key to secure TOTP secrets. Without this, MFA will break on server restart!
+
+```env
+# MFA Encryption Key (REQUIRED for production)
+MFA_ENCRYPTION_KEY=your-64-character-hex-key-here
+```
+
+### Generate Encryption Key
+
+Run this command to generate a secure key:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Copy the output to your `.env.local` file.
+
+### Features Enabled
+
+Once configured, users can:
+- Enable MFA in Account Settings (`/account/mfa`)
+- Scan QR code with any authenticator app (Google Authenticator, Authy, 1Password, etc.)
+- Generate and save backup codes
+- Manage trusted devices
+- View security audit logs
+
+### Supported Authenticator Apps
+
+- Google Authenticator (iOS, Android)
+- Microsoft Authenticator (iOS, Android)
+- Authy (iOS, Android, Desktop)
+- 1Password (iOS, Android, Desktop)
+- LastPass Authenticator
+- Any RFC 6238 TOTP-compatible app
+
+### Admin Dashboard
+
+Admins can monitor MFA adoption at `/admin/mfa`:
+- Total users with MFA enabled
+- Adoption rate percentage
+- Recent setup activity
+- Failed login attempts
+- Security recommendations
+
+### Security Features
+
+- **TOTP Standard:** RFC 6238 compliant (6-digit codes, 30-second period)
+- **Encrypted Secrets:** AES-256-CBC encryption at rest
+- **Hashed Backup Codes:** SHA-256, never stored in plaintext
+- **Rate Limiting:** Protection against brute force attacks
+- **Audit Logging:** Complete activity trail with IP tracking
+- **Device Trust:** Optional 30-day device exemption
+
+### Testing MFA
+
+1. Start dev server: `npm run dev`
+2. Sign up or sign in
+3. Go to Account → Security Settings (`/account/mfa`)
+4. Click "Enable Two-Factor Authentication"
+5. Scan QR code with authenticator app
+6. Enter 6-digit code to verify
+7. Save backup codes securely
+8. Sign out and test MFA login
 
 ---
 

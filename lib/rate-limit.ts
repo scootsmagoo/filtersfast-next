@@ -119,3 +119,21 @@ export const rateLimitPresets = {
   },
 };
 
+/**
+ * Simple rate limiter function
+ * @param identifier - Unique identifier (IP address)
+ * @param maxRequests - Maximum requests allowed
+ * @param windowSeconds - Time window in seconds
+ */
+export async function rateLimit(
+  identifier: string,
+  maxRequests: number,
+  windowSeconds: number
+): Promise<{ success: boolean; remaining: number; reset: number }> {
+  return checkRateLimit(identifier, {
+    interval: windowSeconds * 1000,
+    uniqueTokenPerInterval: 500,
+    maxRequests,
+  });
+}
+
