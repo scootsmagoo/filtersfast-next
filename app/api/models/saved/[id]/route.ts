@@ -1,177 +1,189 @@
 /**
- * Saved Model Operations API
- * 
- * PUT /api/models/saved/[id] - Update a saved model
- * DELETE /api/models/saved/[id] - Delete a saved model
+ * Individual Saved Model API Route
+ * Update or delete a specific saved model
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { RateLimiter } from '@/lib/security';
-import type { UpdateModelRequest } from '@/lib/types/models';
+import { getSavedModelById, updateSavedModel, deleteSavedModel } from '@/lib/db/models';
+import { UpdateSavedModelInput } from '@/lib/types/model';
+import { sanitizeInput } from '@/lib/security';
+import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
 
-// Rate limiter
-const rateLimiter = new RateLimiter(30, 60 * 1000);
-
-/**
- * PUT - Update a saved model (nickname, location)
- */
-export async function PUT(
+export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    // Rate limiting
-    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
-    
-    if (!rateLimiter.isAllowed(clientId)) {
-      const retryAfter = rateLimiter.getRemainingTime(clientId);
-      return NextResponse.json(
-        { error: 'Too many requests', retryAfter },
-        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-      );
-    }
-
-    // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: modelId } = await params;
+    const savedModel = await getSavedModelById(params.id, session.user.id);
 
-    // Parse request body
-    const body: UpdateModelRequest = await request.json();
-
-    // Sanitize inputs
-    const nickname = body.nickname?.trim().substring(0, 100);
-    const location = body.location?.trim().substring(0, 100);
-
-    // TODO: Replace with actual database update
-    // Verify user owns this model and update
-    const updated = await updateSavedModel(
-      modelId,
-      session.user.id,
-      nickname,
-      location
-    );
-
-    if (!updated) {
+    if (!savedModel) {
       return NextResponse.json(
-        { error: 'Model not found or access denied' },
+        { error: 'Saved model not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      model: updated,
-    });
-
+    return NextResponse.json({ savedModel });
   } catch (error) {
-    console.error('Error updating model:', error);
+    console.error('Get saved model error:', error);
     return NextResponse.json(
-      { error: 'Failed to update model' },
+      { error: 'Failed to get saved model' },
       { status: 500 }
     );
   }
 }
 
-/**
- * DELETE - Remove a saved model
- */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const identifier = getClientIdentifier(request);
+  
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Apply rate limiting
+    const rateLimitResult = await checkRateLimit(identifier, rateLimitPresets.standard);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429 }
+      );
+    }
+
+    const body: UpdateSavedModelInput = await request.json();
+
+    // Sanitize optional text fields
+    const sanitizedUpdates: UpdateSavedModelInput = {
+      ...(body.nickname !== undefined && { 
+        nickname: sanitizeInput(body.nickname).substring(0, 50) 
+      }),
+      ...(body.location !== undefined && { 
+        location: sanitizeInput(body.location).substring(0, 100) 
+      }),
+      ...(body.notes !== undefined && { 
+        notes: sanitizeInput(body.notes).substring(0, 500) 
+      }),
+      ...(body.reminderEnabled !== undefined && { 
+        reminderEnabled: body.reminderEnabled 
+      }),
+      ...(body.nextReminderDate !== undefined && { 
+        nextReminderDate: body.nextReminderDate 
+      }),
+    };
+
+    const updatedModel = await updateSavedModel(
+      params.id,
+      session.user.id,
+      sanitizedUpdates
+    );
+
+    logger.info('Saved model updated', {
+      customerId: session.user.id.substring(0, 8) + '***',
+      savedModelId: params.id,
+    });
+
+    return NextResponse.json({
+      savedModel: updatedModel,
+      message: 'Model updated successfully',
+    });
+  } catch (error) {
+    logger.error('Update saved model error', {
+      error: process.env.NODE_ENV === 'development' ? error : 'Update failed',
+      savedModelId: params.id,
+    });
+    
+    if (error instanceof Error && error.message === 'Saved model not found') {
+      return NextResponse.json(
+        { error: 'Saved model not found or you do not have access to it' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update saved model' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
+  const identifier = getClientIdentifier(request);
+  
   try {
-    // Rate limiting
-    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
-    
-    if (!rateLimiter.isAllowed(clientId)) {
-      const retryAfter = rateLimiter.getRemainingTime(clientId);
-      return NextResponse.json(
-        { error: 'Too many requests', retryAfter },
-        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-      );
-    }
-
-    // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { id: modelId } = await params;
-
-    // TODO: Replace with actual database delete
-    // Verify user owns this model and delete
-    const deleted = await deleteSavedModel(modelId, session.user.id);
-
-    if (!deleted) {
+    // Apply rate limiting
+    const rateLimitResult = await checkRateLimit(identifier, rateLimitPresets.standard);
+    
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Model not found or access denied' },
+        { error: 'Too many requests' },
+        { status: 429 }
+      );
+    }
+
+    await deleteSavedModel(params.id, session.user.id);
+
+    logger.info('Saved model deleted', {
+      customerId: session.user.id.substring(0, 8) + '***',
+      savedModelId: params.id,
+    });
+
+    return NextResponse.json({
+      message: 'Model removed from your saved list',
+    });
+  } catch (error) {
+    logger.error('Delete saved model error', {
+      error: process.env.NODE_ENV === 'development' ? error : 'Delete failed',
+      savedModelId: params.id,
+    });
+    
+    if (error instanceof Error && error.message === 'Saved model not found') {
+      return NextResponse.json(
+        { error: 'Saved model not found or you do not have access to it' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Model deleted successfully',
-    });
-
-  } catch (error) {
-    console.error('Error deleting model:', error);
     return NextResponse.json(
-      { error: 'Failed to delete model' },
+      { error: 'Failed to delete saved model' },
       { status: 500 }
     );
   }
 }
-
-/**
- * Update saved model
- * TODO: Replace with actual database update
- */
-async function updateSavedModel(
-  modelId: string,
-  userId: string,
-  nickname?: string,
-  location?: string
-): Promise<any | null> {
-  // Mock implementation
-  // In production: UPDATE customer_models SET ... WHERE id = ? AND userId = ?
-  return {
-    id: modelId,
-    userId,
-    nickname,
-    location,
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-/**
- * Delete saved model
- * TODO: Replace with actual database delete
- */
-async function deleteSavedModel(
-  modelId: string,
-  userId: string
-): Promise<boolean> {
-  // Mock implementation
-  // In production: DELETE FROM customer_models WHERE id = ? AND userId = ?
-  return true;
-}
-

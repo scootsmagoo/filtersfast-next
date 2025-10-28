@@ -246,6 +246,13 @@ export default function Header() {
       <nav className="bg-brand-blue text-white">
         <div className="container-custom">
           <div className="hidden md:flex items-center justify-center gap-8 py-3">
+            <Link 
+              href="/model-lookup" 
+              className="hover:text-brand-orange transition-colors font-medium bg-white/10 px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
+              aria-label="Find filter by appliance model"
+            >
+              <span role="img" aria-label="Search icon">🔍</span> Find My Filter
+            </Link>
             <Link href="/refrigerator-filters" className="hover:text-brand-orange transition-colors font-medium">
               Refrigerator Filters
             </Link>
@@ -277,6 +284,14 @@ export default function Header() {
           aria-label="Main navigation"
         >
           <div className="container-custom py-4 space-y-4">
+            <Link 
+              href="/model-lookup" 
+              className="block py-3 px-4 bg-brand-orange/10 rounded-lg text-brand-orange font-bold hover:bg-brand-orange/20 transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+              aria-label="Find filter by searching your appliance model number or brand"
+            >
+              <span role="img" aria-label="Search icon">🔍</span> Find My Filter by Model
+            </Link>
+            <hr />
             <Link href="/refrigerator-filters" className="block py-2 hover:text-brand-orange transition-colors">
               Refrigerator Filters
             </Link>

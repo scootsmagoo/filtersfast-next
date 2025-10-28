@@ -848,18 +848,6 @@ FiltersFast-Next includes a comprehensive charitable donations system that allow
 - **Multiple Candidates:** When multiple matches exist, user chooses
 - **Invalid Address Handling:** Clear options when address not found
 
-### Validation Scenarios
-1. **Single Exact Match** - Auto-accepted, checkout continues
-2. **Multiple Candidates** - Modal shows options to choose from
-3. **Invalid Address** - Modal shows option to use as-entered or edit
-
-### User Experience
-- Modal dialog with address suggestions
-- Visual indicators (Verified, Residential, Commercial, PO Box)
-- Confidence levels displayed
-- Option to use original address
-- Option to edit and re-enter
-
 ### Benefits
 - **20-30% reduction** in shipping errors
 - **Fewer failed deliveries** and returns
@@ -867,44 +855,127 @@ FiltersFast-Next includes a comprehensive charitable donations system that allow
 - **Better customer experience**
 - **Lower support tickets**
 
-### API Endpoint
-- `POST /api/address/validate` - Validate address and get suggestions
+---
 
-### Components
-- `AddressValidation` - Suggestion modal component
-- `useAddressValidation` - React hook for validation logic
+## 🔍 Model Lookup Tool
 
-### Mock Data
-Works without SmartyStreets credentials in development using realistic mock responses.
+### Overview
+Search for appliance models and find compatible filters - FiltersFast's signature feature!
 
-### Integration (TODO)
-- Add to checkout flow (shipping address step)
-- Update form with selected suggestion
-- Optional: Add to account settings for saved addresses
+### Features
+- **Smart Search** - Find by brand, model number, or keyword
+- **Save Models** - Save appliances to your account for quick reordering
+- **Compatible Filters** - See all filters that work with your appliance
+- **Quick Reorder** - One-click to order filters from saved models
+- **Custom Nicknames** - Label models like "Kitchen Fridge" or "Master Bedroom AC"
+- **Reminder Integration** - Auto-reminder setup for saved models
 
-### Configuration
-```bash
-# .env.local
-SMARTYSTREETS_AUTH_ID=your_auth_id
-SMARTYSTREETS_AUTH_TOKEN=your_token
+### Sample Models (Pre-loaded)
+- 4 Refrigerators (GE, Samsung, Whirlpool, LG)
+- 3 HVAC Systems (Honeywell, Carrier, Trane)
+- 2 Furnaces (Lennox, Goodman)
+- 2 Humidifiers (Aprilaire, Honeywell)
 
-# Free tier: 250 lookups/month
-# Sign up: https://www.smartystreets.com
-```
+### Pages
+- `/model-lookup` - Public search page
+- `/account/models` - Saved models management
 
-### Security & Accessibility
-- ✅ Input sanitization
-- ✅ Audit logging
-- ✅ WCAG 2.1 AA compliant
-- ✅ Keyboard navigation
-- ✅ Screen reader friendly
-- ✅ ARIA labels and roles
+### API Endpoints
+- `GET /api/models/search` - Search models
+- `GET /api/models/saved` - Get saved models
+- `POST /api/models/saved` - Save model
+- `DELETE /api/models/saved/[id]` - Remove saved model
+
+### Navigation
+- Header: "🔍 Find My Filter" (highlighted)
+- Homepage: Default tab in FilterTools
+- Mobile menu: Top position
+- Account dashboard: "My Models" section
 
 ---
 
-**For detailed setup instructions, see `SETUP.md`**  
-**For testing procedures, see `TESTING.md`**  
-**For security details, see `COMPREHENSIVE_SECURITY_AUDIT.md`**  
-**For accessibility details, see `ACCESSIBILITY_AUDIT.md`**  
-**For returns documentation, see `RETURNS.md`**
+## 🎟️ Promo Code System
+
+### Features
+- **Multiple Discount Types:** Percentage, fixed amount, free shipping
+- **Smart Validation:** Minimum order, usage limits, date ranges
+- **Customer Restrictions:** First-time customer codes
+- **Real-Time Application:** Instant discount calculation in checkout
+- **Admin Management:** Full CRUD in admin dashboard
+
+### Sample Codes
+- **SAVE20** - 20% off orders $50+
+- **WELCOME10** - 10% off first orders
+- **FREESHIP** - Free shipping
+- **FILTER25** - $25 off orders $100+
+
+### API Endpoints
+- `POST /api/checkout/validate-promo` - Validate code
+- `GET /api/admin/promo-codes` - Admin list
+- `POST /api/admin/promo-codes` - Create code
+- `PATCH /api/admin/promo-codes/[id]` - Update
+- `DELETE /api/admin/promo-codes/[id]` - Delete
+
+---
+
+## 🔄 Subscription System (Subscribe & Save)
+
+### Features
+- **5% Automatic Discount** on all subscriptions
+- **Flexible Frequencies** - Delivery every 1-12 months
+- **Full Management** - Pause, resume, cancel anytime
+- **Add/Remove Items** - Modify subscription contents
+- **Free Shipping** - On subscription orders $50+
+- **No Commitments** - Cancel anytime, no fees
+
+### Pages
+- `/auto-delivery` - Subscribe & Save landing page
+- `/account/subscriptions` - Management dashboard
+
+### API Endpoints
+- `GET /api/subscriptions` - List subscriptions
+- `POST /api/subscriptions` - Create subscription
+- `POST /api/subscriptions/[id]/pause` - Pause
+- `POST /api/subscriptions/[id]/resume` - Resume
+- `POST /api/subscriptions/[id]/cancel` - Cancel
+
+---
+
+## 🛡️ reCAPTCHA v3 Security
+
+### Overview
+Invisible bot protection on all critical forms - no annoying checkboxes!
+
+### Protected Forms
+- Sign Up
+- Sign In
+- Checkout
+- Returns Requests
+- Password Reset (both steps)
+
+### Features
+- **Score-Based Verification** - 0.0 (bot) to 1.0 (human)
+- **Action-Specific** - Different thresholds per form type
+- **Server Verification** - Never trust client-only
+- **Rate Limiting** - Prevents abuse
+- **Graceful Fallback** - Forms work without keys (dev mode)
+- **Production Ready** - Full logging and monitoring
+
+### Setup
+```env
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-site-key
+RECAPTCHA_SECRET_KEY=your-secret-key
+```
+Get keys: https://www.google.com/recaptcha/admin/create
+
+### Default Score Thresholds
+- Sign Up/Sign In: 0.5
+- Checkout: 0.5
+- Returns: 0.5
+- Password Reset: 0.5
+
+---
+
+**For setup instructions, see `SETUP.md`**  
+**For development guide, see `DEVELOPMENT.md`**
 

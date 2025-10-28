@@ -10,9 +10,10 @@ import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
-import { Package, ArrowRight, Plus } from 'lucide-react';
+import { Package, ArrowRight, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import type { SavedModel } from '@/lib/types/models';
+import type { SavedModel } from '@/lib/types/model';
+import { APPLIANCE_TYPE_ICONS } from '@/lib/types/model';
 
 export default function SavedModels() {
   const { data: session } = useSession();
@@ -31,7 +32,7 @@ export default function SavedModels() {
         const response = await fetch('/api/models/saved');
         if (response.ok) {
           const data = await response.json();
-          setModels(data.models?.slice(0, 3) || []); // Show max 3
+          setModels(data.savedModels?.slice(0, 3) || []); // Show max 3
         }
       } catch (error) {
         console.error('Error fetching models:', error);
@@ -70,47 +71,30 @@ export default function SavedModels() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="animate-pulse flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-              <div className="w-12 h-12 bg-gray-200 rounded"></div>
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            </div>
-          ))}
+        <div className="space-y-3" role="status" aria-label="Loading saved models">
+          <Loader2 className="w-6 h-6 animate-spin text-brand-orange mx-auto" aria-hidden="true" />
+          <p className="text-sm text-gray-500 text-center">Loading your models...</p>
         </div>
       ) : (
         <div className="space-y-3">
           {models.map((model) => (
             <button
               key={model.id}
-              onClick={() => router.push(`/search?model=${encodeURIComponent(model.model.modelNumber)}`)}
+              onClick={() => router.push(`/products?model=${model.modelId}`)}
               className="w-full flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all text-left"
+              aria-label={`View filters for ${model.brand} ${model.modelNumber}`}
             >
-              {model.model.imageUrl ? (
-                <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                  <img
-                    src={model.model.imageUrl}
-                    alt={model.model.modelNumber}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">📱</span>
-                </div>
-              )}
+              <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl" role="img" aria-hidden="true">
+                  {APPLIANCE_TYPE_ICONS[model.applianceType]}
+                </span>
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 line-clamp-1">
-                  {model.nickname || model.model.modelNumber}
+                  {model.nickname || `${model.brand} ${model.modelNumber}`}
                 </p>
                 <p className="text-sm text-gray-600 line-clamp-1">
-                  {model.model.brand} • {model.location || 'Find Filters'}
+                  {model.location || 'Saved model'}
                 </p>
               </div>
             </button>

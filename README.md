@@ -16,26 +16,38 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## ✨ Features
 
-### Implemented in This Demo
+### Implemented Features
 
-- ✅ Modern, responsive homepage design
-- ✅ Component-based architecture
-- ✅ FiltersFast brand color scheme
-- ✅ Sticky header with search functionality
-- ✅ Interactive filter finder tools (Water & Air)
-- ✅ Featured categories grid
-- ✅ Home Filter Club subscription showcase
-- ✅ Trust indicators and social proof
-- ✅ Mobile-responsive navigation
-- ✅ Tailwind utility-first CSS (replacing 4,000+ line CSS files)
-- ✅ TypeScript type safety
-- ✅ Optimized performance with Next.js 16 (Turbopack)
-- ✅ Complete authentication system (Better Auth)
+**Core E-Commerce:**
+- ✅ Modern, responsive homepage with hero section
+- ✅ Complete authentication (email + OAuth: Google, Facebook, Apple)
 - ✅ Shopping cart with persistence
-- ✅ Multi-step checkout flow
-- ✅ Order management system
+- ✅ Multi-step checkout flow with guest checkout
+- ✅ Order management and tracking
+- ✅ **Model Lookup Tool** - Find filters by appliance model 🆕
+- ✅ Product search with real-time preview
+- ✅ Custom air filter builder
+
+**Customer Features:**
+- ✅ **Filter Reminders** - Never forget to replace filters
+- ✅ **Subscriptions** (Subscribe & Save with 5% discount)
+- ✅ **Saved Models** - Quick reorder for your appliances
+- ✅ **Quick Reorder** - One-click from previous orders
+- ✅ **Returns System** - Full 365-day return workflow
+- ✅ **Charitable Donations** - Support causes at checkout
+
+**Business Features:**
+- ✅ **Promo Code System** - Discounts, free shipping, usage limits
+- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations
+- ✅ **Address Validation** - SmartyStreets integration
+
+**Security & Quality:**
+- ✅ **reCAPTCHA v3** - Invisible bot protection 🆕
+- ✅ **Password Visibility Toggle** - Enhanced UX 🆕
 - ✅ WCAG 2.1 AA accessibility compliant
 - ✅ OWASP Top 10 security hardened
+- ✅ Rate limiting on all endpoints
+- ✅ Comprehensive audit logging
 
 ### Key Improvements Over Original
 
@@ -213,6 +225,29 @@ Color schemes, brand elements, and key features are extracted from the original 
 ## 📝 License
 
 This is a demo/proof-of-concept. All FiltersFast branding and intellectual property belongs to FiltersFast.
+
+## 📚 Documentation
+
+### Core Documentation (5 Files)
+
+1. **[README.md](./README.md)** (You are here) - Project overview and quick start
+2. **[FEATURES.md](./FEATURES.md)** - Complete feature documentation
+   - All implemented features with API endpoints
+   - Model Lookup, reCAPTCHA, Promo Codes, Subscriptions, Returns, etc.
+3. **[SETUP.md](./SETUP.md)** - Setup and configuration guide
+   - Environment variables
+   - OAuth setup
+   - reCAPTCHA configuration
+   - Payment integration
+4. **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
+   - Project structure
+   - Coding standards
+   - Testing procedures
+5. **[CHANGELOG.md](./CHANGELOG.md)** - Version history
+
+**Start here:** Read [SETUP.md](./SETUP.md) to get the app running locally.
+
+---
 
 ## 💡 Questions?
 

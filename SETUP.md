@@ -132,15 +132,13 @@ APPLE_CLIENT_ID=
 APPLE_CLIENT_SECRET=
 ```
 
-### Detailed Provider Setup
-
-For step-by-step instructions for each provider, see **[SOCIAL_AUTH_SETUP.md](./SOCIAL_AUTH_SETUP.md)**:
-- Facebook setup (~10 minutes)
-- Apple Sign In setup (~15 minutes, requires paid Apple Developer account)
-- Troubleshooting guide
-- Production deployment checklist
-
 **Note:** Missing credentials automatically disable that provider. No code changes needed!
+
+### Test Account
+For testing sign-in:
+- **Email:** `falonya@gmail.com`
+- **Password:** `Admin123!`
+- **Role:** Admin (access to `/admin`)
 
 ---
 

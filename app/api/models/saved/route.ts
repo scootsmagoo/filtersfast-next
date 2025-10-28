@@ -1,204 +1,143 @@
 /**
- * Saved Models API Routes
- * 
- * GET /api/models/saved - Get all saved models for current user
- * POST /api/models/saved - Save a new model
+ * Saved Models API Route
+ * Manage customer's saved appliance models
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { RateLimiter } from '@/lib/security';
-import type { SavedModel, SaveModelRequest } from '@/lib/types/models';
+import { getSavedModels, saveModel, isModelSaved } from '@/lib/db/models';
+import { SaveModelInput } from '@/lib/types/model';
+import { sanitizeInput } from '@/lib/security';
+import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
 
-// Rate limiters
-const getRateLimiter = new RateLimiter(60, 60 * 1000); // 60/min for GET
-const postRateLimiter = new RateLimiter(20, 60 * 1000); // 20/min for POST
-
-/**
- * GET - Fetch all saved models for current user
- */
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting
-    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
-    
-    if (!getRateLimiter.isAllowed(clientId)) {
-      const retryAfter = getRateLimiter.getRemainingTime(clientId);
-      return NextResponse.json(
-        { error: 'Too many requests', retryAfter },
-        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-      );
-    }
-
-    // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized. Please sign in.' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // TODO: Replace with actual database query
     const savedModels = await getSavedModels(session.user.id);
 
-    return NextResponse.json({
-      success: true,
-      models: savedModels,
+    logger.info('Retrieved saved models', {
+      customerId: session.user.id.substring(0, 8) + '***',
       count: savedModels.length,
     });
 
+    return NextResponse.json({
+      savedModels,
+      total: savedModels.length,
+    });
   } catch (error) {
-    console.error('Error fetching saved models:', error);
+    logger.error('Get saved models error', {
+      error: process.env.NODE_ENV === 'development' ? error : 'Fetch failed',
+    });
     return NextResponse.json(
-      { error: 'Failed to fetch saved models' },
+      { error: 'Failed to get saved models' },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST - Save a new model
- */
 export async function POST(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  
   try {
-    // Rate limiting
-    const clientId = request.headers.get('x-forwarded-for') || 'unknown';
-    
-    if (!postRateLimiter.isAllowed(clientId)) {
-      const retryAfter = postRateLimiter.getRemainingTime(clientId);
-      return NextResponse.json(
-        { error: 'Too many requests', retryAfter },
-        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
-      );
-    }
-
-    // Get authenticated user
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json(
-        { error: 'Unauthorized. Please sign in.' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Parse request body
-    const body: SaveModelRequest = await request.json();
-
-    // Validate model number
-    if (!body.modelNumber || body.modelNumber.trim().length === 0) {
+    // Apply rate limiting
+    const rateLimitResult = await checkRateLimit(identifier, rateLimitPresets.standard);
+    
+    if (!rateLimitResult.success) {
+      logger.warn('Save model rate limit exceeded', {
+        customerId: session.user.id.substring(0, 8) + '***',
+      });
       return NextResponse.json(
-        { error: 'Model number is required' },
+        { error: 'Too many requests' },
+        { status: 429 }
+      );
+    }
+
+    const body: SaveModelInput = await request.json();
+
+    // Validate and sanitize input
+    if (!body.modelId || typeof body.modelId !== 'string') {
+      return NextResponse.json(
+        { error: 'Model ID is required' },
         { status: 400 }
       );
     }
 
-    // Sanitize inputs
-    const modelNumber = body.modelNumber.trim().toUpperCase().substring(0, 50);
-    const nickname = body.nickname?.trim().substring(0, 100);
-    const location = body.location?.trim().substring(0, 100);
+    // Sanitize optional text fields
+    const sanitizedInput: SaveModelInput = {
+      modelId: body.modelId,
+      nickname: body.nickname ? sanitizeInput(body.nickname).substring(0, 50) : undefined,
+      location: body.location ? sanitizeInput(body.location).substring(0, 100) : undefined,
+      notes: body.notes ? sanitizeInput(body.notes).substring(0, 500) : undefined,
+      reminderEnabled: body.reminderEnabled ?? true,
+    };
 
-    // TODO: Replace with actual database insert
+    // Check if already saved
+    const alreadySaved = await isModelSaved(body.modelId, session.user.id);
+    if (alreadySaved) {
+      logger.info('Duplicate model save attempt', {
+        customerId: session.user.id.substring(0, 8) + '***',
+        modelId: body.modelId,
+      });
+      return NextResponse.json(
+        { error: 'Model already saved to your account' },
+        { status: 409 }
+      );
+    }
+
     const savedModel = await saveModel(
       session.user.id,
-      modelNumber,
-      nickname,
-      location
+      session.user.email,
+      sanitizedInput
     );
 
-    return NextResponse.json({
-      success: true,
-      model: savedModel,
-    }, { status: 201 });
+    logger.info('Model saved successfully', {
+      customerId: session.user.id.substring(0, 8) + '***',
+      modelId: body.modelId,
+      savedModelId: savedModel.id,
+    });
 
+    return NextResponse.json({
+      savedModel,
+      message: 'Model saved successfully',
+    }, { status: 201 });
   } catch (error) {
-    console.error('Error saving model:', error);
+    logger.error('Save model error', {
+      error: process.env.NODE_ENV === 'development' ? error : 'Save failed',
+      identifier: identifier.substring(0, 8) + '***',
+    });
+    
+    if (error instanceof Error && error.message === 'Model not found') {
+      return NextResponse.json(
+        { error: 'Model not found. Please try searching again.' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Failed to save model' },
       { status: 500 }
     );
   }
 }
-
-/**
- * Get saved models for user
- * TODO: Replace with actual database query
- */
-async function getSavedModels(userId: string): Promise<SavedModel[]> {
-  // Mock data for development
-  return [
-    {
-      id: '1',
-      userId: userId,
-      modelId: '1',
-      model: {
-        id: '1',
-        modelNumber: 'RF28R7351SR',
-        brand: 'Samsung',
-        type: 'refrigerator',
-        description: 'Samsung 28 cu. ft. 4-Door French Door Refrigerator',
-        imageUrl: '/images/appliances/samsung-rf28r7351sr.jpg',
-      },
-      nickname: 'Kitchen Fridge',
-      location: 'Kitchen',
-      dateAdded: '2025-01-15T10:00:00Z',
-      lastUsed: '2025-01-20T14:30:00Z',
-    },
-    {
-      id: '2',
-      userId: userId,
-      modelId: '2',
-      model: {
-        id: '2',
-        modelNumber: 'MZFD30X',
-        brand: 'Honeywell',
-        type: 'hvac',
-        description: 'Honeywell 16x25x4 MERV 11 Filter',
-      },
-      nickname: 'Home AC',
-      location: 'Basement',
-      dateAdded: '2024-12-10T08:00:00Z',
-      lastUsed: '2025-01-18T09:15:00Z',
-    },
-  ];
-}
-
-/**
- * Save a new model
- * TODO: Replace with actual database insert
- */
-async function saveModel(
-  userId: string,
-  modelNumber: string,
-  nickname?: string,
-  location?: string
-): Promise<SavedModel> {
-  // Mock implementation
-  // In production, this would:
-  // 1. Look up the model in tFridgeModelLookup or create new entry
-  // 2. Insert into customer_models table
-  // 3. Return the saved model
-  
-  return {
-    id: Date.now().toString(),
-    userId: userId,
-    modelId: '1',
-    model: {
-      id: '1',
-      modelNumber: modelNumber,
-      brand: 'Samsung',
-      type: 'refrigerator',
-      description: 'Appliance Model',
-    },
-    nickname: nickname,
-    location: location,
-    dateAdded: new Date().toISOString(),
-  };
-}
-
