@@ -716,8 +716,130 @@ FiltersFast-Next includes a comprehensive charitable donations system that allow
 
 ---
 
+## 📦 Returns & Exchanges System
+
+### Customer Features
+- **Return Eligibility Check:**
+  - Automatic validation (365-day window)
+  - Excluded items detection (custom filters)
+  - Clear eligibility messaging
+  
+- **Easy Return Request:**
+  - Select items to return
+  - Choose quantity for partial returns
+  - Multiple return reasons available
+  - Add detailed notes
+  
+- **Return Reasons:**
+  - Defective or Not Working
+  - Wrong Item Received
+  - Wrong Size/Dimensions
+  - Damaged During Shipping
+  - Not as Described
+  - No Longer Needed
+  - Ordered by Mistake
+  - Found Better Price
+  - Other (with notes)
+
+- **Refund Methods:**
+  - Original payment method (3-5 days)
+  - Store credit (instant)
+
+- **Return Tracking:**
+  - Real-time status updates
+  - Timeline view with dates
+  - Tracking number display
+  - Email notifications at each stage
+
+- **Free Return Shipping:**
+  - Prepaid return labels
+  - Automatic label generation
+  - Download from account
+  - UPS/USPS/FedEx support
+
+### Return Statuses
+1. **Pending** - Awaiting approval
+2. **Approved** - Return approved, ready for label
+3. **Label Sent** - Return label sent to customer
+4. **In Transit** - Package on the way back
+5. **Received** - Package received at warehouse
+6. **Inspecting** - Items being inspected
+7. **Completed** - Refund processed
+8. **Rejected** - Return request denied
+9. **Cancelled** - Cancelled by customer
+
+### Admin Features
+- **Returns Dashboard:**
+  - All returns with filtering by status
+  - Real-time statistics
+  - Pending returns highlighted
+  - Quick actions for common tasks
+
+- **Statistics & Analytics:**
+  - Total returns processed
+  - Pending returns count
+  - Returns in process
+  - Total refund amount
+  - Average processing time
+  - Return rate percentage
+  - Top return reasons with charts
+
+- **Return Processing:**
+  - Detailed return view
+  - Status management workflow
+  - Add tracking numbers
+  - Inspection notes
+  - Adjust refund amounts
+  - Admin notes (internal)
+  - Customer communication
+
+- **Email Automation:**
+  - Return request received
+  - Return label ready
+  - Return received confirmation
+  - Refund processed notification
+  - Return rejection notice
+
+### Return Policy
+- **365-day return window** from ship date
+- **Free return shipping** on all eligible items
+- **No restocking fees**
+- **Original packaging not required**
+- **Inspection required** before refund
+- **Custom filters excluded** from returns
+- **Installation damage excluded**
+
+### API Endpoints
+- `GET /api/returns` - Get customer returns
+- `POST /api/returns` - Create return request
+- `GET /api/returns/:id` - Get return details
+- `DELETE /api/returns/:id` - Cancel return (pending only)
+- `GET /api/returns/eligibility` - Check eligibility
+- `GET /api/returns/:id/label` - Download return label
+- `GET /api/admin/returns` - Admin: All returns
+- `PATCH /api/admin/returns/:id` - Admin: Update status
+- `GET /api/admin/returns/stats` - Admin: Statistics
+
+### Future Enhancements (Phase 2)
+- Exchanges (swap for different product)
+- Automated approvals (rules-based)
+- Return fraud detection
+- Photo upload for damage claims
+- Automatic inventory restocking
+- International returns support
+- Return pickup scheduling
+- AI-powered return reasons analysis
+
+### Integration Points (TODO)
+- **EasyPost/ShipStation** - Automatic label generation
+- **Stripe/PayPal Refunds API** - Automatic refund processing
+- **SQL Server** - Production database
+
+---
+
 **For detailed setup instructions, see `SETUP.md`**  
 **For testing procedures, see `TESTING.md`**  
 **For security details, see `COMPREHENSIVE_SECURITY_AUDIT.md`**  
-**For accessibility details, see `ACCESSIBILITY_AUDIT.md`**
+**For accessibility details, see `ACCESSIBILITY_AUDIT.md`**  
+**For returns documentation, see `RETURNS.md`**
 
