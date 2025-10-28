@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { validateEmail } from '@/lib/security';
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha';
+import { RecaptchaAction } from '@/lib/recaptcha';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
+  const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -26,6 +29,41 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     
     try {
+      // Execute reCAPTCHA verification to prevent automated password reset attacks
+      let recaptchaToken = '';
+      try {
+        recaptchaToken = await executeRecaptcha(RecaptchaAction.FORGOT_PASSWORD);
+      } catch (recaptchaError) {
+        console.error('reCAPTCHA error:', recaptchaError);
+        setError('Security verification failed. Please refresh and try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Verify reCAPTCHA token on server
+      try {
+        const verifyResponse = await fetch('/api/recaptcha/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: RecaptchaAction.FORGOT_PASSWORD,
+          }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResult.success) {
+          setError('Security verification failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+      } catch (verifyError) {
+        console.error('reCAPTCHA verification error:', verifyError);
+        setError('Security verification failed. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
@@ -163,10 +201,10 @@ export default function ForgotPasswordPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !recaptchaReady}
                 className="w-full py-3 text-lg"
               >
-                {loading ? 'Sending reset link...' : 'Send reset link'}
+                {loading ? 'Sending reset link...' : !recaptchaReady ? 'Loading security...' : 'Send reset link'}
               </Button>
 
               {/* Help Text */}
@@ -186,9 +224,12 @@ export default function ForgotPasswordPage() {
         </Card>
 
         {/* Security Notice */}
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-xs text-gray-500">
             🔒 For security reasons, we don't reveal whether an email is registered
+          </p>
+          <p className="text-xs text-gray-400">
+            Protected by reCAPTCHA • <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy</a> • <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms</a>
           </p>
         </div>
       </div>

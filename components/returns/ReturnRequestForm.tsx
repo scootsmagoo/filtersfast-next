@@ -8,6 +8,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReturnReason, RefundMethod, ReturnEligibility } from '@/lib/types/returns';
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha';
+import { RecaptchaAction } from '@/lib/recaptcha';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 
@@ -42,6 +44,7 @@ export function ReturnRequestForm({
   onSuccess
 }: ReturnRequestFormProps) {
   const router = useRouter();
+  const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   const [eligibility, setEligibility] = useState<ReturnEligibility | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
   const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItem>>(new Map());
@@ -157,6 +160,41 @@ export function ReturnRequestForm({
     setError('');
 
     try {
+      // Execute reCAPTCHA verification to prevent fraudulent returns
+      let recaptchaToken = '';
+      try {
+        recaptchaToken = await executeRecaptcha(RecaptchaAction.RETURN_REQUEST);
+      } catch (recaptchaError) {
+        console.error('reCAPTCHA error:', recaptchaError);
+        setError('Security verification failed. Please refresh and try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Verify reCAPTCHA token on server
+      try {
+        const verifyResponse = await fetch('/api/recaptcha/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: RecaptchaAction.RETURN_REQUEST,
+          }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResult.success) {
+          setError('Security verification failed. Please try again.');
+          setSubmitting(false);
+          return;
+        }
+      } catch (verifyError) {
+        console.error('reCAPTCHA verification error:', verifyError);
+        setError('Security verification failed. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
       const response = await fetch('/api/returns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -449,16 +487,18 @@ export function ReturnRequestForm({
               <Button
                 type="submit"
                 variant="primary"
-                disabled={submitting || selectedItems.size === 0}
+                disabled={submitting || selectedItems.size === 0 || !recaptchaReady}
                 className="flex-1"
-                aria-label={submitting ? 'Submitting return request' : 'Submit return request'}
-                aria-disabled={submitting || selectedItems.size === 0}
+                aria-label={submitting ? 'Submitting return request' : !recaptchaReady ? 'Loading security verification' : 'Submit return request'}
+                aria-disabled={submitting || selectedItems.size === 0 || !recaptchaReady}
               >
                 {submitting ? (
                   <>
                     <span className="sr-only">Submitting return request, please wait</span>
                     <span aria-hidden="true">Submitting...</span>
                   </>
+                ) : !recaptchaReady ? (
+                  'Loading security...'
                 ) : (
                   'Submit Return Request'
                 )}

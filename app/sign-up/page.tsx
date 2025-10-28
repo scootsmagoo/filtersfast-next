@@ -6,13 +6,16 @@ import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/auth-client';
 import { sanitizeInput, validateEmail, validatePassword, validateName } from '@/lib/security';
 import { logger } from '@/lib/logger';
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha';
+import { RecaptchaAction } from '@/lib/recaptcha';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import SocialLoginButtons from '@/components/ui/SocialLoginButtons';
-import { Mail, Lock, User, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -22,6 +25,8 @@ export default function SignUpPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -83,6 +88,35 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
+      // Execute reCAPTCHA verification (if configured)
+      const recaptchaToken = await executeRecaptcha(RecaptchaAction.SIGN_UP);
+
+      // Verify reCAPTCHA token on server (skip if not configured)
+      if (recaptchaToken) {
+        try {
+          const verifyResponse = await fetch('/api/recaptcha/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: recaptchaToken,
+              action: RecaptchaAction.SIGN_UP,
+            }),
+          });
+
+          const verifyResult = await verifyResponse.json();
+          if (!verifyResult.success) {
+            setError('Security verification failed. Please try again.');
+            setLoading(false);
+            return;
+          }
+        } catch (verifyError) {
+          console.error('reCAPTCHA verification error:', verifyError);
+          setError('Security verification failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+      }
+
       await signUp.email({
         email: formData.email,
         password: formData.password,
@@ -173,10 +207,19 @@ export default function SignUpPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div 
+                className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+                role="alert"
+                aria-live="assertive"
+              >
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
                   <p className="text-sm text-red-800">{error}</p>
+                  {error.includes('Security verification') && (
+                    <p className="text-xs text-red-700 mt-2">
+                      <strong>Suggestion:</strong> Try refreshing the page and submitting again. If the problem persists, please contact support.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -258,14 +301,28 @@ export default function SignUpPage() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" aria-hidden="true" />
+                  )}
+                </button>
               </div>
               {/* Password Strength Indicator */}
               {formData.password && (
@@ -300,16 +357,30 @@ export default function SignUpPage() {
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded"
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  aria-pressed={showConfirmPassword}
+                  title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" aria-hidden="true" />
+                  )}
+                </button>
                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <div className="absolute inset-y-0 right-12 pr-3 flex items-center pointer-events-none">
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   </div>
                 )}
@@ -344,10 +415,25 @@ export default function SignUpPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !recaptchaReady}
               className="w-full py-3 text-lg"
+              aria-busy={loading}
+              aria-live="polite"
+              aria-label={loading ? 'Creating your account, please wait' : !recaptchaReady ? 'Loading security verification' : 'Create account'}
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? (
+                <>
+                  <span className="sr-only">Creating your account, please wait</span>
+                  <span aria-hidden="true">Creating account...</span>
+                </>
+              ) : !recaptchaReady ? (
+                <>
+                  <span className="sr-only">Loading security verification</span>
+                  <span aria-hidden="true">Loading security...</span>
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
           </form>
 
@@ -379,9 +465,12 @@ export default function SignUpPage() {
         </Card>
 
         {/* Trust Indicators */}
-        <div className="text-center">
+        <div className="text-center space-y-2" role="contentinfo" aria-label="Security and privacy information">
           <p className="text-xs text-gray-500">
-            🔒 Secure SSL encryption • Your data is safe with us
+            <span role="img" aria-label="Lock icon">🔒</span> Secure SSL encryption • Your data is safe with us
+          </p>
+          <p className="text-xs text-gray-400">
+            Protected by reCAPTCHA • <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a> • <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</a>
           </p>
         </div>
       </div>

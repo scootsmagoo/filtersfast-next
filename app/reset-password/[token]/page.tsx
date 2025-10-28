@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { validatePassword } from '@/lib/security';
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha';
+import { RecaptchaAction } from '@/lib/recaptcha';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { Lock, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
@@ -11,6 +13,7 @@ import { Lock, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-r
 export default function ResetPasswordPage() {
   const params = useParams();
   const router = useRouter();
+  const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   const token = params.token as string;
   
   const [formData, setFormData] = useState({
@@ -74,6 +77,41 @@ export default function ResetPasswordPage() {
     setLoading(true);
     
     try {
+      // Execute reCAPTCHA verification to prevent automated password resets
+      let recaptchaToken = '';
+      try {
+        recaptchaToken = await executeRecaptcha(RecaptchaAction.RESET_PASSWORD);
+      } catch (recaptchaError) {
+        console.error('reCAPTCHA error:', recaptchaError);
+        setError('Security verification failed. Please refresh and try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Verify reCAPTCHA token on server
+      try {
+        const verifyResponse = await fetch('/api/recaptcha/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: RecaptchaAction.RESET_PASSWORD,
+          }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResult.success) {
+          setError('Security verification failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+      } catch (verifyError) {
+        console.error('reCAPTCHA verification error:', verifyError);
+        setError('Security verification failed. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -317,19 +355,22 @@ export default function ResetPasswordPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !recaptchaReady}
                 className="w-full py-3 text-lg"
               >
-                {loading ? 'Resetting password...' : 'Reset password'}
+                {loading ? 'Resetting password...' : !recaptchaReady ? 'Loading security...' : 'Reset password'}
               </Button>
             </form>
           )}
         </Card>
 
         {/* Security Notice */}
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-xs text-gray-500">
             🔒 Your password is encrypted and secure
+          </p>
+          <p className="text-xs text-gray-400">
+            Protected by reCAPTCHA • <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">Privacy</a> • <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms</a>
           </p>
         </div>
       </div>

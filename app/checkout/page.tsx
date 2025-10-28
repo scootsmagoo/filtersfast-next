@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
 import { useSession } from '@/lib/auth-client';
+import { useRecaptcha } from '@/lib/hooks/useRecaptcha';
+import { RecaptchaAction } from '@/lib/recaptcha';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CharityDonation from '@/components/checkout/CharityDonation';
@@ -41,6 +43,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, itemCount, clearCart } = useCart();
   const { data: session } = useSession();
+  const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('account');
   const [isGuest, setIsGuest] = useState(false);
@@ -115,6 +118,41 @@ export default function CheckoutPage() {
     setError('');
     
     try {
+      // Execute reCAPTCHA verification to prevent bot orders
+      let recaptchaToken = '';
+      try {
+        recaptchaToken = await executeRecaptcha(RecaptchaAction.CHECKOUT);
+      } catch (recaptchaError) {
+        console.error('reCAPTCHA error:', recaptchaError);
+        setError('Security verification failed. Please refresh and try again.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Verify reCAPTCHA token on server
+      try {
+        const verifyResponse = await fetch('/api/recaptcha/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: RecaptchaAction.CHECKOUT,
+          }),
+        });
+
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResult.success) {
+          setError('Security verification failed. Please try again.');
+          setIsProcessing(false);
+          return;
+        }
+      } catch (verifyError) {
+        console.error('reCAPTCHA verification error:', verifyError);
+        setError('Security verification failed. Please try again.');
+        setIsProcessing(false);
+        return;
+      }
+
       // Create checkout session with Stripe (including donation if present)
       const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -567,13 +605,18 @@ export default function CheckoutPage() {
                     
                     <Button
                       onClick={handlePlaceOrder}
-                      disabled={isProcessing}
+                      disabled={isProcessing || !recaptchaReady}
                       className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
                     >
                       {isProcessing ? (
                         <>
                           <Loader2 className="w-5 h-5 animate-spin" />
                           Processing...
+                        </>
+                      ) : !recaptchaReady ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Loading security...
                         </>
                       ) : (
                         <>
