@@ -13,7 +13,7 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function POST(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -62,7 +63,7 @@ export async function POST(
     }
     
     // Add item
-    const item = addSubscriptionItemMock(params.id, {
+    const item = addSubscriptionItemMock(id, {
       productId: body.productId,
       productName: body.productName,
       productImage: body.productImage,
@@ -83,4 +84,7 @@ export async function POST(
     )
   }
 }
+
+
+
 

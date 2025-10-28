@@ -13,7 +13,7 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function POST(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -54,7 +55,7 @@ export async function POST(
     const body = await req.json().catch(() => ({}))
     const reason = body.reason || 'Customer requested cancellation'
     
-    const cancelled = cancelSubscriptionMock(params.id, reason)
+    const cancelled = cancelSubscriptionMock(id, reason)
     
     if (!cancelled) {
       return NextResponse.json(
@@ -75,4 +76,7 @@ export async function POST(
     )
   }
 }
+
+
+
 

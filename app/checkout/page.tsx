@@ -7,8 +7,6 @@ import { useCart } from '@/lib/cart-context';
 import { useSession } from '@/lib/auth-client';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import PromoCodeInput from '@/components/checkout/PromoCodeInput';
-import { PromoCode, CartItem } from '@/lib/types/promo';
 import { 
   ShoppingBag, 
   User, 
@@ -46,10 +44,6 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   
-  // Promo code state
-  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
-  const [promoDiscount, setPromoDiscount] = useState(0);
-  
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
     lastName: '',
@@ -81,41 +75,9 @@ export default function CheckoutPage() {
     }
   }, [items, router, isProcessing]);
 
-  // Calculate totals with promo discount
-  const subtotalAfterPromo = total - promoDiscount;
-  const freeShippingFromPromo = appliedPromo?.discountType === 'free_shipping';
-  const shippingCost = (total >= 50 || freeShippingFromPromo) ? 0 : 9.99;
-  const tax = subtotalAfterPromo * 0.08; // 8% tax (would be calculated by TaxJar in production)
-  const orderTotal = subtotalAfterPromo + shippingCost + tax;
-  
-  // Handle promo code application
-  const handlePromoApplied = (promoCode: PromoCode, discountAmount: number) => {
-    setAppliedPromo(promoCode);
-    setPromoDiscount(discountAmount);
-    
-    // Show success message
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.className = 'sr-only';
-    announcement.textContent = `Promo code ${promoCode.code} applied successfully. You saved $${discountAmount.toFixed(2)}!`;
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
-  };
-  
-  // Handle promo code removal
-  const handlePromoRemoved = () => {
-    setAppliedPromo(null);
-    setPromoDiscount(0);
-  };
-  
-  // Convert cart items to promo cart items
-  const cartItemsForPromo: CartItem[] = items.map(item => ({
-    productId: item.id,
-    quantity: item.quantity,
-    price: item.price,
-    categoryId: undefined // Add category logic if needed
-  }));
+  const shippingCost = total >= 50 ? 0 : 9.99;
+  const tax = total * 0.08; // 8% tax (would be calculated by TaxJar in production)
+  const orderTotal = total + shippingCost + tax;
 
   // Step navigation
   const handleContinueAsGuest = () => {
@@ -575,42 +537,15 @@ export default function CheckoutPage() {
                   ))}
                 </div>
                 
-                {/* Promo Code Input */}
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <PromoCodeInput
-                    cartTotal={total}
-                    cartItems={cartItemsForPromo}
-                    customerId={session?.user?.id}
-                    isFirstTimeCustomer={false} // TODO: Add logic to check if first-time customer
-                    onPromoApplied={handlePromoApplied}
-                    onPromoRemoved={handlePromoRemoved}
-                    appliedPromo={appliedPromo}
-                  />
-                </div>
-                
                 <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
                     <span className="font-medium">${total.toFixed(2)}</span>
                   </div>
-                  
-                  {promoDiscount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-600 font-medium">Promo Discount</span>
-                      <span className="text-green-600 font-medium">
-                        -${promoDiscount.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                  
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping</span>
                     <span className="font-medium">
-                      {shippingCost === 0 ? (
-                        <span className="text-green-600">FREE</span>
-                      ) : (
-                        `$${shippingCost.toFixed(2)}`
-                      )}
+                      {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -624,13 +559,7 @@ export default function CheckoutPage() {
                   <span className="text-brand-orange">${orderTotal.toFixed(2)}</span>
                 </div>
                 
-                {promoDiscount > 0 && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 mb-4">
-                    🎉 You saved ${promoDiscount.toFixed(2)} with promo code {appliedPromo?.code}!
-                  </div>
-                )}
-                
-                {!freeShippingFromPromo && total < 50 && (
+                {total < 50 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
                     Add ${(50 - total).toFixed(2)} more for free shipping!
                   </div>

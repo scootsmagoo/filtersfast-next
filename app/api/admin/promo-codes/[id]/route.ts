@@ -17,7 +17,7 @@ import {
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -33,8 +33,9 @@ export async function PATCH(
     
     // TODO: Check if user is admin
     
+    const { id } = await params
     const body = await req.json()
-    const updated = updatePromoCode(params.id, body)
+    const updated = updatePromoCode(id, body)
     
     if (!updated) {
       return NextResponse.json(
@@ -61,7 +62,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -77,7 +78,8 @@ export async function DELETE(
     
     // TODO: Check if user is admin
     
-    const deleted = deletePromoCode(params.id)
+    const { id } = await params
+    const deleted = deletePromoCode(id)
     
     if (!deleted) {
       return NextResponse.json(
@@ -98,4 +100,5 @@ export async function DELETE(
     )
   }
 }
+
 

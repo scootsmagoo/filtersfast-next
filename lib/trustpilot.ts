@@ -152,7 +152,7 @@ function transformReview(review: TrustpilotReview): ProductReview {
     companyResponse: companyResponse
       ? {
           message: companyResponse.message,
-          date: companyResponse.createdAt || companyResponse.date || '',
+          date: ('createdAt' in companyResponse ? companyResponse.createdAt : companyResponse.date) || '',
         }
       : undefined,
   };

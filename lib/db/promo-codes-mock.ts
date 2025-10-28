@@ -123,3 +123,6 @@ export function isFirstTimeCustomerMock(customerId: string): boolean {
   return false // Mock: treat all customers as returning
 }
 
+
+
+

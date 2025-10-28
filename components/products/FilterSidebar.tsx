@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 
-const brands = ['GE', 'Whirlpool', 'LG', 'Samsung', 'Frigidaire', 'Kenmore', 'KitchenAid', 'Maytag', 'Bosch', 'FiltersFast'];
+const defaultBrands = ['GE', 'Whirlpool', 'LG', 'Samsung', 'Frigidaire', 'Kenmore', 'KitchenAid', 'Maytag', 'Bosch', 'FiltersFast'];
 const priceRanges = [
   { label: 'Under $25', value: '0-25' },
   { label: '$25 - $50', value: '25-50' },
@@ -18,7 +18,14 @@ interface FilterSection {
   expanded: boolean;
 }
 
-export default function FilterSidebar() {
+interface FilterSidebarProps {
+  onFilterChange?: (filters: any) => void;
+  availableBrands?: string[];
+  priceRange?: number[];
+}
+
+export default function FilterSidebar({ onFilterChange, availableBrands, priceRange }: FilterSidebarProps = {}) {
+  const brands = availableBrands || defaultBrands;
   const [sections, setSections] = useState<Record<string, boolean>>({
     brand: true,
     price: true,
@@ -45,6 +52,17 @@ export default function FilterSidebar() {
     setSelectedPrice('');
     setSelectedRating(null);
   };
+
+  // Notify parent of filter changes
+  useEffect(() => {
+    if (onFilterChange) {
+      onFilterChange({
+        brands: selectedBrands,
+        price: selectedPrice,
+        rating: selectedRating,
+      });
+    }
+  }, [selectedBrands, selectedPrice, selectedRating, onFilterChange]);
 
   const hasFilters = selectedBrands.length > 0 || selectedPrice || selectedRating !== null;
 

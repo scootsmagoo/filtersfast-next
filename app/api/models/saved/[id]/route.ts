@@ -18,7 +18,7 @@ const rateLimiter = new RateLimiter(30, 60 * 1000);
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -44,7 +44,7 @@ export async function PUT(
       );
     }
 
-    const modelId = params.id;
+    const { id: modelId } = await params;
 
     // Parse request body
     const body: UpdateModelRequest = await request.json();
@@ -88,7 +88,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -114,7 +114,7 @@ export async function DELETE(
       );
     }
 
-    const modelId = params.id;
+    const { id: modelId } = await params;
 
     // TODO: Replace with actual database delete
     // Verify user owns this model and delete

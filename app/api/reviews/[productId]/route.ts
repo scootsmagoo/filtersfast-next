@@ -13,7 +13,7 @@ const reviewsRateLimiter = new RateLimiter(30, 60 * 1000);
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     // Rate limiting
@@ -35,7 +35,7 @@ export async function GET(
       );
     }
 
-    const productId = params.productId;
+    const { productId } = await params;
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1', 10);
 

@@ -13,7 +13,7 @@ import {
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; itemId: string } }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function DELETE(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id, itemId } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -44,7 +45,7 @@ export async function DELETE(
       )
     }
     
-    const removed = removeSubscriptionItemMock(params.itemId)
+    const removed = removeSubscriptionItemMock(itemId)
     
     if (!removed) {
       return NextResponse.json(
@@ -65,4 +66,7 @@ export async function DELETE(
     )
   }
 }
+
+
+
 

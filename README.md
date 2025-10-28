@@ -5,12 +5,14 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🚀 Tech Stack
 
 - **Framework:** Next.js 16 (Turbopack, App Router)
+- **UI Library:** React 19.2.0
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
 - **Package Manager:** npm
 - **Authentication:** Better Auth
 - **Database:** SQLite (Better SQLite3)
+- **Payments:** Stripe + PayPal (replacing CyberSource/Authorize.Net)
 
 ## ✨ Features
 
@@ -218,5 +220,5 @@ Contact the development team for more information about migrating to this modern
 
 ---
 
-**Built with ❤️ using Next.js 16 (Turbopack)**
+**Built with ❤️ using Next.js 16 (Turbopack) + React 19**
 

@@ -32,7 +32,7 @@ interface ReorderResponse {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     // Rate limiting
@@ -66,7 +66,7 @@ export async function POST(
       );
     }
 
-    const orderId = params.orderId;
+    const { orderId } = await params;
 
     // Validate order ID format
     if (!orderId || !/^\d+$/.test(orderId)) {

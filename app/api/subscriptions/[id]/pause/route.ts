@@ -13,7 +13,7 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function POST(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -54,7 +55,7 @@ export async function POST(
     const body = await req.json().catch(() => ({}))
     const pausedUntil = body.pausedUntil ? new Date(body.pausedUntil) : undefined
     
-    const paused = pauseSubscriptionMock(params.id, pausedUntil)
+    const paused = pauseSubscriptionMock(id, pausedUntil)
     
     if (!paused) {
       return NextResponse.json(
@@ -77,4 +78,7 @@ export async function POST(
     )
   }
 }
+
+
+
 

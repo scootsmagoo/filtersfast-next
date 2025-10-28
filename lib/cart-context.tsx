@@ -19,7 +19,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
+  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> & { quantity?: number } }
   | { type: 'ADD_ITEMS_BATCH'; payload: CartItem[] }
   | { type: 'REMOVE_ITEM'; payload: number }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
@@ -36,11 +36,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
+      const quantityToAdd = action.payload.quantity || 1;
       
       if (existingItem) {
         const updatedItems = state.items.map(item =>
           item.id === action.payload.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
         return {
@@ -50,7 +51,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         };
       } else {
-        const newItem = { ...action.payload, quantity: 1 };
+        const newItem = { ...action.payload, quantity: quantityToAdd };
         const updatedItems = [...state.items, newItem];
         return {
           ...state,

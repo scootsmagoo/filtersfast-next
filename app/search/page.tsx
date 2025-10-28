@@ -160,8 +160,7 @@ export default function SearchPage() {
         brand: product.brand,
         sku: product.sku,
         price: product.price,
-        image: product.image,
-        quantity: 1
+        image: product.image
       }
     });
   };

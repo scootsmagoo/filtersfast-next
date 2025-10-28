@@ -13,7 +13,7 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function POST(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -51,7 +52,7 @@ export async function POST(
       )
     }
     
-    const resumed = resumeSubscriptionMock(params.id)
+    const resumed = resumeSubscriptionMock(id)
     
     if (!resumed) {
       return NextResponse.json(
@@ -72,4 +73,7 @@ export async function POST(
     )
   }
 }
+
+
+
 

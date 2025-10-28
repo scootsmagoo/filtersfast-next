@@ -19,7 +19,7 @@ import {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -33,7 +33,8 @@ export async function GET(
       )
     }
     
-    const summary = getSubscriptionSummaryMock(params.id)
+    const { id } = await params
+    const summary = getSubscriptionSummaryMock(id)
     
     if (!summary) {
       return NextResponse.json(
@@ -65,7 +66,7 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -79,7 +80,8 @@ export async function PATCH(
       )
     }
     
-    const subscription = getSubscriptionMock(params.id)
+    const { id } = await params
+    const subscription = getSubscriptionMock(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -106,7 +108,7 @@ export async function PATCH(
       )
     }
     
-    const updated = updateSubscriptionMock(params.id, body)
+    const updated = updateSubscriptionMock(id, body)
     
     if (!updated) {
       return NextResponse.json(
@@ -127,4 +129,7 @@ export async function PATCH(
     )
   }
 }
+
+
+
 
