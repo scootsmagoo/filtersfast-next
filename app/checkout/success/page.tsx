@@ -5,12 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import DonationSummary from '@/components/checkout/DonationSummary';
 import { CheckCircle, Package, Mail, Home, Printer } from 'lucide-react';
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
-  const orderNumber = searchParams.get('order') || 'UNKNOWN';
+  const orderNumber = searchParams.get('order') || searchParams.get('session_id') || 'UNKNOWN';
   const [email, setEmail] = useState('');
+  const [donation, setDonation] = useState<{ charityName: string; amount: number } | null>(null);
 
   useEffect(() => {
     // Get email from localStorage or session
@@ -18,6 +20,17 @@ export default function OrderSuccessPage() {
     if (savedEmail) {
       setEmail(savedEmail);
       localStorage.removeItem('checkout-email');
+    }
+    
+    // Get donation from localStorage
+    const savedDonation = localStorage.getItem('checkout-donation');
+    if (savedDonation) {
+      try {
+        setDonation(JSON.parse(savedDonation));
+        localStorage.removeItem('checkout-donation');
+      } catch (e) {
+        console.error('Error parsing donation:', e);
+      }
     }
   }, []);
 
@@ -44,6 +57,16 @@ export default function OrderSuccessPage() {
               <span className="text-lg font-bold text-brand-orange">#{orderNumber}</span>
             </div>
           </div>
+
+          {/* Donation Thank You */}
+          {donation && (
+            <div className="mb-6">
+              <DonationSummary 
+                charityName={donation.charityName}
+                amount={donation.amount}
+              />
+            </div>
+          )}
 
           {/* Order Details Card */}
           <Card className="p-8 mb-6">

@@ -7,6 +7,8 @@ import { useCart } from '@/lib/cart-context';
 import { useSession } from '@/lib/auth-client';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import CharityDonation from '@/components/checkout/CharityDonation';
+import { DonationSelection } from '@/lib/types/charity';
 import { 
   ShoppingBag, 
   User, 
@@ -16,7 +18,8 @@ import {
   ArrowRight, 
   ArrowLeft,
   Loader2,
-  Lock
+  Lock,
+  Heart
 } from 'lucide-react';
 
 type CheckoutStep = 'account' | 'shipping' | 'payment' | 'review';
@@ -43,6 +46,7 @@ export default function CheckoutPage() {
   const [isGuest, setIsGuest] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [donation, setDonation] = useState<DonationSelection | null>(null);
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -77,7 +81,8 @@ export default function CheckoutPage() {
 
   const shippingCost = total >= 50 ? 0 : 9.99;
   const tax = total * 0.08; // 8% tax (would be calculated by TaxJar in production)
-  const orderTotal = total + shippingCost + tax;
+  const donationAmount = donation?.amount || 0;
+  const orderTotal = total + shippingCost + tax + donationAmount;
 
   // Step navigation
   const handleContinueAsGuest = () => {
@@ -110,14 +115,41 @@ export default function CheckoutPage() {
     setError('');
     
     try {
-      // Simulate order processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create checkout session with Stripe (including donation if present)
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            brand: item.brand,
+            sku: item.sku,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          donation: donation || null,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+      
+      const { sessionId } = await response.json();
+      
+      // In production, redirect to Stripe checkout
+      // For now, simulate success
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Clear cart
       clearCart();
       
       // Redirect to success page
-      router.push('/checkout/success?order=' + Math.random().toString(36).substr(2, 9).toUpperCase());
+      router.push('/checkout/success?session_id=' + sessionId);
     } catch (err) {
       setError('Failed to process order. Please try again.');
       setIsProcessing(false);
@@ -390,49 +422,59 @@ export default function CheckoutPage() {
 
               {/* Payment Step */}
               {currentStep === 'payment' && (
-                <Card className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Payment Method
-                  </h2>
+                <div className="space-y-6">
+                  {/* Charity Donation Section */}
+                  <CharityDonation
+                    orderSubtotal={total + shippingCost + tax}
+                    onDonationChange={setDonation}
+                    initialDonation={donation}
+                  />
                   
-                  <div className="space-y-4 mb-6">
-                    <div className="border-2 border-brand-orange rounded-lg p-4 bg-brand-orange/5">
-                      <div className="flex items-center gap-3 mb-4">
-                        <CreditCard className="w-6 h-6 text-brand-orange" />
-                        <h3 className="font-semibold text-gray-900">Credit/Debit Card</h3>
+                  {/* Payment Method Section */}
+                  <Card className="p-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                      Payment Method
+                    </h2>
+                    
+                    <div className="space-y-4 mb-6">
+                      <div className="border-2 border-brand-orange rounded-lg p-4 bg-brand-orange/5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <CreditCard className="w-6 h-6 text-brand-orange" />
+                          <h3 className="font-semibold text-gray-900">Credit/Debit Card</h3>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          Payment processing will be handled securely through Stripe.
+                          You'll be redirected to complete your payment.
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        Payment processing will be handled securely through Stripe.
-                        You'll be redirected to complete your payment.
-                      </p>
+                      
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Lock className="w-4 h-4" />
+                        <span>Secure SSL encrypted payment</span>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Lock className="w-4 h-4" />
-                      <span>Secure SSL encrypted payment</span>
+                    <div className="flex gap-4">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setCurrentStep('shipping')}
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back
+                      </Button>
+                      
+                      <Button
+                        onClick={() => setCurrentStep('review')}
+                        className="flex-1 flex items-center justify-center gap-2"
+                      >
+                        Review Order
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setCurrentStep('shipping')}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      Back
-                    </Button>
-                    
-                    <Button
-                      onClick={() => setCurrentStep('review')}
-                      className="flex-1 flex items-center justify-center gap-2"
-                    >
-                      Review Order
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </Card>
+                  </Card>
+                </div>
               )}
 
               {/* Review Step */}
@@ -485,6 +527,32 @@ export default function CheckoutPage() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Donation Review */}
+                  {donation && (
+                    <div className="mb-6 pb-6 border-b border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <Heart className="w-5 h-5 text-red-500" />
+                          Charitable Donation
+                        </h3>
+                        <button
+                          onClick={() => setCurrentStep('payment')}
+                          className="text-sm text-brand-orange hover:underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="font-medium text-green-800">
+                          Thank you for your ${donationAmount.toFixed(2)} donation!
+                        </p>
+                        <p className="text-green-700 mt-1">
+                          Your generosity helps make a difference.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex gap-4">
                     <Button
@@ -552,6 +620,15 @@ export default function CheckoutPage() {
                     <span className="text-gray-600">Tax (estimated)</span>
                     <span className="font-medium">${tax.toFixed(2)}</span>
                   </div>
+                  {donation && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 flex items-center gap-1">
+                        <Heart className="w-3 h-3 text-red-500" />
+                        Donation
+                      </span>
+                      <span className="font-medium text-green-600">${donationAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-between text-lg font-bold mb-4">

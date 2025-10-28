@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { formatAmountForStripe } from '@/lib/stripe';
+import { DonationSelection } from '@/lib/types/charity';
 
 export async function POST(request: NextRequest) {
   try {
-    const { items } = await request.json();
+    const { items, donation } = await request.json();
 
     if (!items || items.length === 0) {
       return NextResponse.json(
@@ -46,6 +47,21 @@ export async function POST(request: NextRequest) {
         quantity: 1,
       });
     }
+    
+    // Add donation as a line item if applicable
+    if (donation && donation.amount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Charitable Donation',
+            description: `Donation to ${donation.charityId}`,
+          },
+          unit_amount: formatAmountForStripe(donation.amount, 'usd'),
+        },
+        quantity: 1,
+      });
+    }
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -56,6 +72,7 @@ export async function POST(request: NextRequest) {
       cancel_url: `${request.nextUrl.origin}/checkout`,
       metadata: {
         items: JSON.stringify(items),
+        donation: donation ? JSON.stringify(donation) : '',
       },
       shipping_address_collection: {
         allowed_countries: ['US', 'CA'],

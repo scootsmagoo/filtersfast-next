@@ -136,6 +136,17 @@ Complete guide to all implemented features.
 - Print receipt option
 - Continue shopping / View orders CTAs
 
+### Charitable Donations
+- **Optional donations** during checkout
+- **Multiple charities** with campaign scheduling
+- **Flexible options:** Round-up, fixed amounts ($1-$10), or custom
+- **Featured charity system** (Wine to Water primary)
+- **Seasonal campaigns** (e.g., Cystic Fibrosis Sept-Oct)
+- **Real-time validation** with min/max limits
+- **Integrated pricing** - included in Stripe checkout
+- **Thank-you display** on order success page
+- **Admin dashboard** for tracking donations and impact
+
 ---
 
 ## 📦 Order Management
@@ -378,6 +389,7 @@ Complete guide to all implemented features.
 | **Saved Models** | ✅ Complete | A (93) |
 | **Custom Filters** | ✅ Complete | A+ (96) |
 | **Order Tracking** | ✅ Complete | A (92) |
+| **Charitable Donations** | ✅ Complete | A (95) |
 | Product Reviews | ✅ Complete | A (92) |
 | Search | ✅ Complete | A- (90) |
 | Accessibility | ✅ Complete | A- (93) |
@@ -458,17 +470,112 @@ Complete guide to all implemented features.
 
 ---
 
+## 🎁 Charitable Donations System
+
+### Overview
+FiltersFast-Next includes a comprehensive charitable donations system that allows customers to support partner charities during checkout.
+
+### Customer Features
+- **Charity Selection** - Choose from active charitable partners
+- **Flexible Donation Options:**
+  - **No Donation** - Skip donation (default)
+  - **Round-Up** - Round order total to next whole dollar
+  - **Fixed Amounts** - Quick select $1, $2, $5, or $10
+  - **Custom Amount** - Enter any amount (with min/max validation)
+- **Featured Charities** - Primary charity highlighted with logo and description
+- **Campaign Scheduling** - Seasonal charities appear automatically (date-based)
+- **Real-Time Validation** - Min/max limits enforced with helpful error messages
+- **Order Integration** - Donation included in Stripe checkout as separate line item
+- **Thank-You Messages** - Donation acknowledged on success page
+
+### Pre-Configured Charities
+
+**Wine to Water** (Featured)
+- Water charity ending global water crisis
+- Active year-round
+- Partnership since 2011
+- Category: Water
+
+**Cystic Fibrosis Foundation - Xtreme Hike**
+- Fighting for a cure for Cystic Fibrosis
+- Active: September 1 - October 18
+- CEO Ray participates in Xtreme Hike
+- Category: Health
+
+**Habitat for Humanity**
+- Building homes, communities, and hope
+- Active year-round
+- Category: Housing
+
+### Admin Features
+- **Charity Dashboard** (`/admin/charities`)
+  - View all charities with logos and descriptions
+  - Total donations raised across all charities
+  - Number of contributions per charity
+  - Average donation amounts
+  - Campaign period tracking
+  - Active/inactive status display
+- **Per-Charity Analytics:**
+  - Total raised
+  - Donation count
+  - Average donation
+  - Campaign dates
+  - Donation settings
+- **Configuration Options:**
+  - Enable/disable charities
+  - Set featured charity
+  - Configure suggested amounts
+  - Set min/max donation limits
+  - Enable round-up option
+  - Schedule campaigns with start/end dates
+
+### Technical Details
+- **API Routes:**
+  - `GET /api/charities` - List active charities
+  - `GET /api/charities?featured=true` - Get featured charity
+  - `GET /api/charities/[id]` - Get specific charity details
+  - `POST /api/charities/validate` - Validate donation amount
+  - `POST /api/donations` - Create donation record
+- **Components:**
+  - `CharityDonation` - Main donation selector in checkout
+  - `DonationSummary` - Thank-you message component
+- **Database Schema:**
+  - Charities table with campaign scheduling
+  - Donations table linked to orders
+  - Historical charity name preservation
+  - Tax receipt tracking ready
+
+### Data Tracking
+- Total donations per charity
+- Donation count tracking
+- Average donation calculations
+- Order linkage for audit trail
+- Customer donation history (optional)
+- Tax receipt preparation (EIN included)
+
+### Business Impact
+- Brand differentiation through social responsibility
+- Customer loyalty and goodwill
+- Tax benefits for the company
+- Community engagement
+- Feel-good checkout experience
+
+---
+
 ## 🚀 Upcoming Features (Planned)
 
 ### Phase 4 (Future)
 - Wishlist/favorites functionality
 - Advanced product filtering
-- Admin dashboard
+- Full admin dashboard expansion
 - Analytics integration
 - Two-factor authentication (2FA)
 - Live chat support
 - Product recommendations
 - Subscription management (Home Filter Club)
+- Address validation (SmartyStreets)
+- SMS marketing (Attentive)
+- Military discounts (ID.me)
 
 ---
 
