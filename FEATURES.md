@@ -198,6 +198,17 @@ Complete guide to all implemented features.
 - Screen reader announcements
 - Navigate to cart after reorder (optional)
 
+### Filter Replacement Reminders
+- **Smart scheduling** based on filter lifespan
+- **Multiple frequencies:** Monthly, quarterly, biannual, annual, or custom
+- **Email notifications** when it's time to replace
+- **Reminder preferences** - Set notification timing and methods
+- **Pause/resume** reminders anytime
+- **Reminder statistics** - Track sent reminders and reorders
+- **One-click reorder** from reminder emails
+- **Admin dashboard** for monitoring all reminders
+- **Customer dashboard** for managing their reminders
+
 ### Order Status System
 - **Pending:** Yellow - Clock icon
 - **Processing:** Blue - Package icon
@@ -390,6 +401,7 @@ Complete guide to all implemented features.
 | **Custom Filters** | ✅ Complete | A+ (96) |
 | **Order Tracking** | ✅ Complete | A (92) |
 | **Charitable Donations** | ✅ Complete | A (95) |
+| **Filter Reminders** | ✅ Complete | A (94) |
 | Product Reviews | ✅ Complete | A (92) |
 | Search | ✅ Complete | A- (90) |
 | Accessibility | ✅ Complete | A- (93) |
@@ -467,6 +479,109 @@ Complete guide to all implemented features.
 - Add location tags (Kitchen, Basement, etc.)
 - Model images and descriptions
 - Last used tracking
+
+---
+
+## 🔔 Filter Replacement Reminders
+
+### Overview
+Never forget to replace your filters with intelligent, automated reminders based on filter lifespan and customer preferences.
+
+### Customer Features
+- **Smart Scheduling** - Automatic reminder calculation based on filter type
+  - Air filters: Default 3 months
+  - Water filters: Default 6 months
+  - Refrigerator filters: Default 6 months
+  - Pool filters: Default 12 months
+  - Humidifier filters: Default 6 months
+- **Flexible Frequencies:**
+  - Monthly (1 month)
+  - Quarterly (3 months)
+  - Biannual (6 months)
+  - Annual (12 months)
+  - Custom (1-24 months)
+- **Reminder Management** (`/account/reminders`)
+  - View all active reminders
+  - Pause/resume reminders anytime
+  - Edit reminder frequency
+  - Delete reminders
+  - Add custom notes
+- **Statistics Dashboard**
+  - Active reminder count
+  - Total reorders from reminders
+  - Conversion rate tracking
+- **Email Notifications**
+  - Reminder emails with product details
+  - One-click reorder links
+  - Manage reminders link
+- **Notification Preferences**
+  - Choose notification method (email, SMS, both)
+  - Set days before replacement to notify
+  - Quiet hours configuration
+  - Default frequency settings
+
+### Technical Details
+- **API Routes:**
+  - `GET /api/reminders` - List customer reminders
+  - `POST /api/reminders` - Create new reminder
+  - `GET /api/reminders/[id]` - Get reminder details
+  - `PUT /api/reminders/[id]` - Update reminder
+  - `DELETE /api/reminders/[id]` - Delete reminder
+  - `POST /api/reminders/[id]/pause` - Pause reminder
+  - `POST /api/reminders/[id]/resume` - Resume reminder
+  - `GET /api/reminders/preferences` - Get customer preferences
+  - `PUT /api/reminders/preferences` - Update preferences
+  - `GET /api/reminders/stats` - Get customer statistics
+- **Components:**
+  - Customer reminders page with full CRUD
+  - Admin dashboard for monitoring
+  - Accessible delete confirmation modal
+  - Stats cards with analytics
+- **Security:**
+  - Authentication required for all routes
+  - Authorization checks (user owns reminder)
+  - Rate limiting (5-10 req/min)
+  - Audit logging for all actions
+  - Input sanitization (XSS prevention)
+- **Accessibility:**
+  - WCAG 2.1 AA compliant
+  - Screen reader friendly modals
+  - ARIA labels on all actions
+  - Error announcements
+  - Loading state announcements
+  - Keyboard navigation (Escape to close modal)
+  - Focus management
+
+### Admin Features
+- **Admin Dashboard** (`/admin/reminders`)
+  - View all customer reminders
+  - Total reminders across system
+  - Active reminder count
+  - Reminders sent statistics
+  - Overall conversion rate
+  - Customer email and product details
+  - Filter by status
+- **Analytics:**
+  - Track reminder effectiveness
+  - Monitor conversion rates
+  - Identify most popular frequencies
+  - Customer engagement metrics
+
+### Data Tracking
+- Last purchase date
+- Next reminder date
+- Reminders sent count
+- Reorders from reminders
+- Status changes (audit trail)
+- Customer preferences
+
+### Business Impact
+- Drives repeat purchases
+- Increases customer lifetime value
+- Reduces decision fatigue
+- Improves customer retention
+- Provides valuable service
+- Builds customer relationships
 
 ---
 

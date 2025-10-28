@@ -62,7 +62,8 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
         rating: selectedRating,
       });
     }
-  }, [selectedBrands, selectedPrice, selectedRating, onFilterChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBrands, selectedPrice, selectedRating]);
 
   const hasFilters = selectedBrands.length > 0 || selectedPrice || selectedRating !== null;
 
