@@ -156,6 +156,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-4">Customer Service</h4>
             <ul className="space-y-2 text-brand-gray-300">
+              <li><Link href="/support" className="hover:text-brand-orange transition-colors">Support Center</Link></li>
               <li><Link href="/track-order" className="hover:text-brand-orange transition-colors">Track Order</Link></li>
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
               <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>

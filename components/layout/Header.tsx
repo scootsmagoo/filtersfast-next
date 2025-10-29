@@ -88,6 +88,9 @@ export default function Header() {
               <span className="hidden md:inline">Free Shipping on Orders $99+</span>
             </div>
             <div className="flex items-center gap-4">
+              <Link href="/support" className="hidden md:inline hover:underline font-medium">
+                Support
+              </Link>
               <Link href="/track-order" className="hidden sm:inline hover:underline font-medium">
                 Track Order
               </Link>
