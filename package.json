@@ -9,12 +9,14 @@
     "lint": "next lint",
     "cron:abandoned-carts": "tsx scripts/send-abandoned-cart-emails.ts",
     "cron:cancel-old-orders": "tsx scripts/cancel-old-pending-orders.ts",
-    "init:abandoned-carts": "tsx scripts/init-abandoned-carts.ts"
+    "init:abandoned-carts": "tsx scripts/init-abandoned-carts.ts",
+    "init:payment-methods": "tsx scripts/init-payment-methods.ts"
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.0.1",
     "@paypal/react-paypal-js": "^8.9.2",
-    "@stripe/stripe-js": "^8.1.0",
+    "@stripe/react-stripe-js": "^2.8.0",
+    "@stripe/stripe-js": "^4.10.0",
     "@types/qrcode": "^1.5.6",
     "@types/stripe": "^8.0.416",
     "bcryptjs": "^3.0.2",
