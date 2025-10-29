@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useSession } from '@/lib/auth-client';
 
 export interface CartItem {
   id: number;
@@ -136,24 +137,48 @@ const CartContext = createContext<{
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const { data: session, isPending } = useSession();
+  
+  // Get the appropriate cart key based on user authentication
+  const getCartKey = (userId?: string) => {
+    if (userId) {
+      return `filtersfast-cart-user-${userId}`;
+    }
+    return 'filtersfast-cart-anonymous';
+  };
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage when user session changes
   useEffect(() => {
-    const savedCart = localStorage.getItem('filtersfast-cart');
+    // Wait for session to be loaded
+    if (isPending) return;
+
+    const currentUserId = session?.user?.id;
+    const cartKey = getCartKey(currentUserId);
+    
+    const savedCart = localStorage.getItem(cartKey);
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
         dispatch({ type: 'LOAD_CART', payload: cartItems });
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
+        dispatch({ type: 'CLEAR_CART' });
       }
+    } else {
+      // Clear cart if no saved cart exists for this user
+      dispatch({ type: 'CLEAR_CART' });
     }
-  }, []);
+  }, [session?.user?.id, isPending]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('filtersfast-cart', JSON.stringify(state.items));
-  }, [state.items]);
+    // Don't save until session is loaded
+    if (isPending) return;
+    
+    const currentUserId = session?.user?.id;
+    const cartKey = getCartKey(currentUserId);
+    localStorage.setItem(cartKey, JSON.stringify(state.items));
+  }, [state.items, session?.user?.id, isPending]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

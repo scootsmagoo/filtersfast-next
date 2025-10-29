@@ -63,9 +63,9 @@ export const auth = betterAuth({
   
   // Security: Rate limiting configuration
   rateLimit: {
-    enabled: true,
+    enabled: process.env.NODE_ENV === 'production',
     window: 60, // 1 minute window
-    max: 5, // Max 5 requests per window
+    max: process.env.NODE_ENV === 'production' ? 5 : 100, // More lenient in development
     // Storage will use in-memory by default, use Redis in production
   },
   

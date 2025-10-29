@@ -69,6 +69,7 @@ export default function AccountPage() {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
+      // Cart will automatically switch to anonymous cart when session ends
       await signOut({
         fetchOptions: {
           onSuccess: () => {

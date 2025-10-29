@@ -88,10 +88,25 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Execute reCAPTCHA verification (if configured)
-      const recaptchaToken = await executeRecaptcha(RecaptchaAction.SIGN_UP);
+      // Execute reCAPTCHA verification
+      let recaptchaToken = '';
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      try {
+        recaptchaToken = await executeRecaptcha(RecaptchaAction.SIGN_UP);
+      } catch (recaptchaError) {
+        console.warn('reCAPTCHA execution failed:', recaptchaError);
+        
+        // In production with reCAPTCHA configured, this is a security concern
+        if (isProduction && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+          setError('Security verification failed. Please refresh the page and try again.');
+          setLoading(false);
+          return;
+        }
+        // In development or if reCAPTCHA not configured, allow signup
+      }
 
-      // Verify reCAPTCHA token on server (skip if not configured)
+      // Verify reCAPTCHA token on server if we have one
       if (recaptchaToken) {
         try {
           const verifyResponse = await fetch('/api/recaptcha/verify', {
@@ -105,15 +120,25 @@ export default function SignUpPage() {
 
           const verifyResult = await verifyResponse.json();
           if (!verifyResult.success) {
+            console.warn('reCAPTCHA verification failed:', verifyResult.message);
+            
+            // In production, block suspicious activity
+            if (isProduction) {
+              setError('Security verification failed. Please try again.');
+              setLoading(false);
+              return;
+            }
+            // In development, allow it
+          }
+        } catch (verifyError) {
+          console.warn('reCAPTCHA verification error:', verifyError);
+          
+          // In production, be safe and block
+          if (isProduction) {
             setError('Security verification failed. Please try again.');
             setLoading(false);
             return;
           }
-        } catch (verifyError) {
-          console.error('reCAPTCHA verification error:', verifyError);
-          setError('Security verification failed. Please try again.');
-          setLoading(false);
-          return;
         }
       }
 
@@ -415,21 +440,16 @@ export default function SignUpPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={loading || !recaptchaReady}
+              disabled={loading}
               className="w-full py-3 text-lg"
               aria-busy={loading}
               aria-live="polite"
-              aria-label={loading ? 'Creating your account, please wait' : !recaptchaReady ? 'Loading security verification' : 'Create account'}
+              aria-label={loading ? 'Creating your account, please wait' : 'Create account'}
             >
               {loading ? (
                 <>
                   <span className="sr-only">Creating your account, please wait</span>
                   <span aria-hidden="true">Creating account...</span>
-                </>
-              ) : !recaptchaReady ? (
-                <>
-                  <span className="sr-only">Loading security verification</span>
-                  <span aria-hidden="true">Loading security...</span>
                 </>
               ) : (
                 'Create Account'
