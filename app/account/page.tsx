@@ -6,9 +6,10 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard } from 'lucide-react';
+import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard, Shield } from 'lucide-react';
 import SavedModels from '@/components/models/SavedModels';
 import QuickReorder from '@/components/orders/QuickReorder';
+import { isAdmin } from '@/lib/auth-admin';
 
 function AccountPageContent() {
   const router = useRouter();
@@ -224,6 +225,18 @@ function AccountPageContent() {
                   <Settings className="w-5 h-5" />
                   Settings
                 </Link>
+                
+                {/* Admin Portal Link - Only shown for admin users */}
+                {isAdmin(user.email) && (
+                  <>
+                    <hr className="my-4" />
+                    <Link href="/admin" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-purple-50 transition-colors text-purple-600 font-medium border border-purple-200 bg-purple-50/50">
+                      <Shield className="w-5 h-5" />
+                      Admin Portal
+                    </Link>
+                  </>
+                )}
+                
                 <hr className="my-4" />
                 <button
                   onClick={handleSignOut}
@@ -245,9 +258,11 @@ function AccountPageContent() {
                 <h2 className="text-xl font-semibold text-gray-900">
                   Account Information
                 </h2>
-                <Button variant="secondary" size="sm">
-                  Edit
-                </Button>
+                <Link href="/account/settings">
+                  <Button variant="secondary" size="sm">
+                    Edit
+                  </Button>
+                </Link>
               </div>
 
               <div className="space-y-4">
