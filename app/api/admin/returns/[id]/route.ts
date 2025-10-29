@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { isAdmin } from '@/lib/auth-admin';
 import { getReturnById, updateReturnStatus } from '@/lib/db/returns-mock';
 import { UpdateReturnStatus } from '@/lib/types/returns';
@@ -20,12 +20,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
 
-    if (!user || !isAdmin(user)) {
+    if (!session?.user) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (!isAdmin(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
         { status: 403 }
       );
     }
@@ -59,12 +65,18 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
 
-    if (!user || !isAdmin(user)) {
+    if (!session?.user) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (!isAdmin(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
         { status: 403 }
       );
     }
@@ -99,7 +111,7 @@ export async function PATCH(
 
     // Log audit event
     await logAuditEvent({
-      userId: user.id,
+      userId: session.user.id || session.user.email,
       action: 'return_updated',
       resourceType: 'return',
       resourceId: returnRequest.id,

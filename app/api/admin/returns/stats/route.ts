@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { isAdmin } from '@/lib/auth-admin';
 import { getReturnStatistics } from '@/lib/db/returns-mock';
 
@@ -14,12 +14,18 @@ import { getReturnStatistics } from '@/lib/db/returns-mock';
  */
 export async function GET(request: NextRequest) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
 
-    if (!user || !isAdmin(user)) {
+    if (!session?.user) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (!isAdmin(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin access required' },
         { status: 403 }
       );
     }
