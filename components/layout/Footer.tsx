@@ -1,9 +1,92 @@
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Headset, UserCircle, Home, Key } from 'lucide-react';
 
 export default function Footer() {
   return (
     <footer className="bg-brand-gray-800 text-white">
+      {/* Top Banner: Reorder, Home Filter Club, Additional Questions */}
+      <div className="bg-brand-gray-900 py-8 border-b border-brand-gray-700">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Reorder Filters */}
+            <Link 
+              href="/account"
+              className="flex items-center gap-4 p-4 rounded-lg hover:bg-brand-gray-800 transition-colors group"
+              aria-label="Reorder filters - Login, confirm order, done"
+            >
+              <div className="relative flex-shrink-0">
+                <UserCircle className="w-12 h-12 text-white" aria-hidden="true" />
+                <Key className="w-6 h-6 text-white absolute -bottom-1 -right-1" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-brand-orange transition-colors">
+                  REORDER FILTERS
+                </h3>
+                <p className="text-brand-gray-300 text-sm">
+                  Login. Confirm Order. Done
+                </p>
+              </div>
+            </Link>
+
+            {/* Home Filter Club */}
+            <Link 
+              href="/auto-delivery"
+              className="flex items-center gap-4 p-4 rounded-lg hover:bg-brand-gray-800 transition-colors group"
+              aria-label="Home Filter Club - Filtration essentials delivered on a customizable schedule"
+            >
+              <Home className="w-12 h-12 text-white flex-shrink-0" aria-hidden="true" />
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-brand-orange transition-colors">
+                  HOME FILTER CLUB
+                </h3>
+                <p className="text-brand-gray-300 text-sm">
+                  Filtration essentials delivered on a customizable schedule.
+                </p>
+              </div>
+            </Link>
+
+            {/* Additional Questions */}
+            <div className="flex items-center gap-4 p-4">
+              <Headset className="w-12 h-12 text-white flex-shrink-0" aria-hidden="true" />
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1">
+                  ADDITIONAL QUESTIONS?
+                </h3>
+                <div className="text-brand-gray-300 text-sm space-y-1">
+                  <p>
+                    <a 
+                      href="mailto:support@filtersfast.com" 
+                      className="hover:text-brand-orange transition-colors underline"
+                      aria-label="Email us at support@filtersfast.com"
+                    >
+                      Email us
+                    </a>
+                    {' '}or call{' '}
+                    <a 
+                      href="tel:+18664383458" 
+                      className="text-brand-orange font-bold hover:text-brand-orange-dark transition-colors whitespace-nowrap"
+                      aria-label="Call us at 866-438-3458"
+                    >
+                      (866) 438-3458
+                    </a>
+                  </p>
+                  <p>
+                    Text us:{' '}
+                    <a 
+                      href="sms:+17042289166" 
+                      className="text-brand-orange font-bold hover:text-brand-orange-dark transition-colors whitespace-nowrap"
+                      aria-label="Text us at 704-228-9166"
+                    >
+                      (704) 228-9166
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer */}
       <div className="container-custom py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -17,17 +100,41 @@ export default function Footer() {
               America&apos;s Top Online Filtration Retailer. Huge Selection. Unbeatable Quality. 365-Day Returns.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="hover:text-brand-orange transition-colors">
-                <Facebook className="w-5 h-5" />
+              <a 
+                href="https://www.facebook.com/filtersfast" 
+                className="hover:text-brand-orange transition-colors"
+                aria-label="Visit our Facebook page"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Facebook className="w-5 h-5" aria-hidden="true" />
               </a>
-              <a href="#" className="hover:text-brand-orange transition-colors">
-                <Twitter className="w-5 h-5" />
+              <a 
+                href="https://twitter.com/filtersfast" 
+                className="hover:text-brand-orange transition-colors"
+                aria-label="Visit our Twitter page"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Twitter className="w-5 h-5" aria-hidden="true" />
               </a>
-              <a href="#" className="hover:text-brand-orange transition-colors">
-                <Instagram className="w-5 h-5" />
+              <a 
+                href="https://www.instagram.com/filtersfast" 
+                className="hover:text-brand-orange transition-colors"
+                aria-label="Visit our Instagram page"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram className="w-5 h-5" aria-hidden="true" />
               </a>
-              <a href="#" className="hover:text-brand-orange transition-colors">
-                <Youtube className="w-5 h-5" />
+              <a 
+                href="https://www.youtube.com/filtersfast" 
+                className="hover:text-brand-orange transition-colors"
+                aria-label="Visit our YouTube channel"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Youtube className="w-5 h-5" aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -51,7 +158,6 @@ export default function Footer() {
             <ul className="space-y-2 text-brand-gray-300">
               <li><Link href="/track-order" className="hover:text-brand-orange transition-colors">Track Order</Link></li>
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
-              <li><Link href="/support" className="hover:text-brand-orange transition-colors">Help & Support</Link></li>
               <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/contact" className="hover:text-brand-orange transition-colors">Contact Us</Link></li>
             </ul>
