@@ -12,7 +12,13 @@ import {
   TrendingUp,
   Settings,
   ShoppingBag,
-  Lock
+  Lock,
+  ShoppingCart,
+  RotateCcw,
+  Bell,
+  Shield,
+  HelpCircle,
+  Heart
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -70,11 +76,54 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Abandoned Carts',
+      description: 'View cart recovery metrics and analytics',
+      icon: ShoppingCart,
+      href: '/admin/abandoned-carts',
+      color: 'red',
+      badge: 'NEW'
+    },
+    {
+      title: 'Returns & Exchanges',
+      description: 'Manage customer return requests',
+      icon: RotateCcw,
+      href: '/admin/returns',
+      color: 'blue'
+    },
+    {
+      title: 'Filter Reminders',
+      description: 'Monitor replacement reminder system',
+      icon: Bell,
+      href: '/admin/reminders',
+      color: 'green'
+    },
+    {
+      title: 'Multi-Factor Auth',
+      description: 'MFA adoption and security metrics',
+      icon: Shield,
+      href: '/admin/mfa',
+      color: 'purple'
+    },
+    {
+      title: 'Support Articles',
+      description: 'Knowledge base analytics',
+      icon: HelpCircle,
+      href: '/admin/support',
+      color: 'teal'
+    },
+    {
+      title: 'Charitable Donations',
+      description: 'Track donations and impact',
+      icon: Heart,
+      href: '/admin/charities',
+      color: 'pink'
+    },
+    {
       title: 'Customers',
       description: 'View and manage customer accounts',
       icon: Users,
       href: '/admin/customers',
-      color: 'blue',
+      color: 'indigo',
       comingSoon: true
     },
     {
@@ -82,7 +131,7 @@ export default function AdminDashboard() {
       description: 'Manage product catalog',
       icon: Package,
       href: '/admin/products',
-      color: 'green',
+      color: 'cyan',
       comingSoon: true
     },
     {
@@ -90,7 +139,7 @@ export default function AdminDashboard() {
       description: 'View and process orders',
       icon: ShoppingBag,
       href: '/admin/orders',
-      color: 'purple',
+      color: 'yellow',
       comingSoon: true
     },
     {
@@ -98,7 +147,7 @@ export default function AdminDashboard() {
       description: 'Sales reports and insights',
       icon: TrendingUp,
       href: '/admin/analytics',
-      color: 'pink',
+      color: 'emerald',
       comingSoon: true
     },
     {
@@ -136,10 +185,16 @@ export default function AdminDashboard() {
                   <div className="flex items-start gap-4">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                       section.color === 'orange' ? 'bg-orange-100 text-brand-orange' :
+                      section.color === 'red' ? 'bg-red-100 text-red-600' :
                       section.color === 'blue' ? 'bg-blue-100 text-blue-600' :
                       section.color === 'green' ? 'bg-green-100 text-green-600' :
                       section.color === 'purple' ? 'bg-purple-100 text-purple-600' :
                       section.color === 'pink' ? 'bg-pink-100 text-pink-600' :
+                      section.color === 'teal' ? 'bg-teal-100 text-teal-600' :
+                      section.color === 'indigo' ? 'bg-indigo-100 text-indigo-600' :
+                      section.color === 'cyan' ? 'bg-cyan-100 text-cyan-600' :
+                      section.color === 'yellow' ? 'bg-yellow-100 text-yellow-600' :
+                      section.color === 'emerald' ? 'bg-emerald-100 text-emerald-600' :
                       'bg-gray-100 text-gray-600'
                     }`}>
                       <Icon className="w-6 h-6" />
@@ -151,6 +206,11 @@ export default function AdminDashboard() {
                         {section.comingSoon && (
                           <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
                             Coming Soon
+                          </span>
+                        )}
+                        {section.badge === 'NEW' && (
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded font-semibold">
+                            NEW
                           </span>
                         )}
                       </div>
