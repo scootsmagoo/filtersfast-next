@@ -2,6 +2,13 @@
 
 A modern, performant redesign of the FiltersFast e-commerce platform built with Next.js 16, TypeScript, and Tailwind CSS.
 
+## 🆕 Latest Updates (October 29, 2025)
+
+**Recent Improvements:**
+- ✅ **Admin Portal Access** - Admin users now have a visible link to the admin portal in their account sidebar (no more manual URL editing!)
+- ✅ **Account Edit Button Fixed** - The "Edit" button in Account Information now properly navigates to settings
+- ✅ **Enhanced Admin UX** - Purple-themed admin portal link with Shield icon for easy identification
+
 ## 🚀 Tech Stack
 
 - **Framework:** Next.js 16 (Turbopack, App Router)
@@ -29,6 +36,9 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ Custom air filter builder
 
 **Customer Features:**
+- ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
+- ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
+- ✅ **ID.me Verification** - Military & first responder discounts (10% off)
 - ✅ **Filter Reminders** - Never forget to replace filters
 - ✅ **Subscriptions** (Subscribe & Save with 5% discount)
 - ✅ **Saved Models** - Quick reorder for your appliances
@@ -37,8 +47,9 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Charitable Donations** - Support causes at checkout
 
 **Business Features:**
+- ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
 - ✅ **Promo Code System** - Discounts, free shipping, usage limits
-- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations
+- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats
 - ✅ **Address Validation** - SmartyStreets integration
 
 **Customer Support:**
@@ -155,37 +166,27 @@ npm run start    # Start production server
 npm run lint     # Run ESLint
 ```
 
-## 🎯 Next Steps for Full Implementation
+## 🎯 Upcoming Features (Roadmap)
 
-To complete the migration from ASP Classic to Next.js:
+Based on legacy FiltersFast features and business priorities:
 
-### Phase 1: Frontend (3-6 months)
-- [ ] Product listing pages
-- [ ] Product detail pages with custom filter builder
-- [ ] Search functionality (integrate with existing backend or Algolia)
-- [ ] Shopping cart UI
-- [ ] Checkout flow UI
+### High Priority (Next 3-6 months)
+- [ ] **Browse Filters by Size** - Dedicated page for size-based filter search (e.g., "16x20x1")
+- [ ] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!)
+- [ ] **Giveaways & Sweepstakes** - Promotional contests for email list growth
 
-### Phase 2: API Layer (6-12 months)
-- [ ] Next.js API routes for cart management
-- [ ] Session management (convert ASP sessions)
-- [ ] Product data API (proxy to SQL Server)
-- [ ] Customer authentication API
-- [ ] Order submission API
+### Medium Priority (6-12 months)
+- [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
+- [ ] **Shipping Insurance** - Optional insurance for high-value orders
+- [ ] **Newsletter Preferences** - Granular email subscription settings
+- [ ] **Multi-Currency Support** - CAD, GBP, EUR, AUD for international customers
 
-### Phase 3: Integration (6-12 months)
-- [ ] Payment processor integration (Stripe recommended)
-- [ ] Klaviyo email marketing integration
-- [ ] Shipping calculator API
-- [ ] OrderGroove subscription system
-- [ ] TaxJar integration
-- [ ] Analytics (Google Analytics 4, etc.)
+### Future Considerations
+- [ ] **B2B Portal** - Wholesale/business customer portal with custom pricing
+- [ ] **WebAuthn/Passkeys** - Passwordless authentication
+- [ ] **Multi-Language Support** - Spanish, French translations
 
-### Phase 4: Data Migration
-- [ ] Keep existing SQL Server database
-- [ ] Use Prisma ORM for type-safe queries
-- [ ] Migrate session data to Redis
-- [ ] Preserve all customer data and order history
+**Note:** All core e-commerce features are complete. The above are enhancements from the legacy system.
 
 ## 🚢 Deployment Options
 
