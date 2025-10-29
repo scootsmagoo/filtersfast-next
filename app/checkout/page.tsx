@@ -10,6 +10,8 @@ import { RecaptchaAction } from '@/lib/recaptcha';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CharityDonation from '@/components/checkout/CharityDonation';
+import SavedPaymentSelector from '@/components/checkout/SavedPaymentSelector';
+import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
 import { DonationSelection } from '@/lib/types/charity';
 import { 
   ShoppingBag, 
@@ -21,7 +23,8 @@ import {
   ArrowLeft,
   Loader2,
   Lock,
-  Heart
+  Heart,
+  Plus
 } from 'lucide-react';
 
 type CheckoutStep = 'account' | 'shipping' | 'payment' | 'review';
@@ -50,6 +53,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [donation, setDonation] = useState<DonationSelection | null>(null);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+  const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
+  const [savePaymentMethod, setSavePaymentMethod] = useState(false);
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -474,43 +480,89 @@ export default function CheckoutPage() {
                       Payment Method
                     </h2>
                     
-                    <div className="space-y-4 mb-6">
-                      <div className="border-2 border-brand-orange rounded-lg p-4 bg-brand-orange/5">
-                        <div className="flex items-center gap-3 mb-4">
-                          <CreditCard className="w-6 h-6 text-brand-orange" />
-                          <h3 className="font-semibold text-gray-900">Credit/Debit Card</h3>
+                    {/* Show saved cards for logged-in users */}
+                    {session && !showAddPaymentForm ? (
+                      <SavedPaymentSelector
+                        selectedPaymentMethodId={selectedPaymentMethodId}
+                        onSelectPaymentMethod={setSelectedPaymentMethodId}
+                        onAddNew={() => setShowAddPaymentForm(true)}
+                      />
+                    ) : session && showAddPaymentForm ? (
+                      <AddPaymentMethod
+                        onSuccess={() => {
+                          setShowAddPaymentForm(false);
+                          setError('');
+                          // Payment method saved, user can now select it
+                        }}
+                        onCancel={() => setShowAddPaymentForm(false)}
+                      />
+                    ) : (
+                      /* Guest checkout - Stripe Hosted Checkout */
+                      <div className="space-y-4">
+                        <div className="border-2 border-brand-orange rounded-lg p-4 bg-brand-orange/5">
+                          <div className="flex items-center gap-3 mb-4">
+                            <CreditCard className="w-6 h-6 text-brand-orange" />
+                            <h3 className="font-semibold text-gray-900">Secure Checkout with Stripe</h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Click "Review Order" to continue. You'll be redirected to Stripe's secure checkout page to enter your payment details.
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                            <span className="flex items-center gap-1 bg-white px-2 py-1 rounded">
+                              <Lock className="w-3 h-3" />
+                              PCI Compliant
+                            </span>
+                            <span className="bg-white px-2 py-1 rounded">💳 Visa</span>
+                            <span className="bg-white px-2 py-1 rounded">💳 Mastercard</span>
+                            <span className="bg-white px-2 py-1 rounded">💳 Amex</span>
+                            <span className="bg-white px-2 py-1 rounded">💳 Discover</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          Payment processing will be handled securely through Stripe.
-                          You'll be redirected to complete your payment.
-                        </p>
+                        
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <p className="text-sm text-blue-800 mb-2">
+                            💡 <strong>Want faster checkout next time?</strong>
+                          </p>
+                          <p className="text-sm text-blue-700">
+                            <Link href="/sign-up" className="text-blue-600 hover:underline font-medium">
+                              Create an account
+                            </Link>
+                            {' '}to save your payment methods for 1-click checkout on future orders.
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Lock className="w-4 h-4" />
-                        <span>Secure SSL encrypted payment</span>
-                      </div>
-                    </div>
+                    )}
                     
-                    <div className="flex gap-4">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => setCurrentStep('shipping')}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back
-                      </Button>
-                      
-                      <Button
-                        onClick={() => setCurrentStep('review')}
-                        className="flex-1 flex items-center justify-center gap-2"
-                      >
-                        Review Order
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {!showAddPaymentForm && (
+                      <div className="flex gap-4 mt-6">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setCurrentStep('shipping')}
+                          className="flex items-center gap-2"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                          Back
+                        </Button>
+                        
+                        <Button
+                          onClick={() => {
+                            // Validate payment method is selected for logged-in users
+                            if (session && !selectedPaymentMethodId) {
+                              setError('Please select a payment method or add a new one');
+                              return;
+                            }
+                            setError('');
+                            setCurrentStep('review');
+                          }}
+                          className="flex-1 flex items-center justify-center gap-2"
+                          disabled={session && !selectedPaymentMethodId || false}
+                        >
+                          {session ? 'Review Order' : 'Review & Pay'}
+                          <ArrowRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </Card>
                 </div>
               )}

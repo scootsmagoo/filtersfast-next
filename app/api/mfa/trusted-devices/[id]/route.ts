@@ -8,7 +8,7 @@ import { removeTrustedDevice, logMFAAction } from '@/lib/db/mfa';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authentication: Require logged-in user
@@ -18,7 +18,8 @@ export async function DELETE(
     }
 
     const userId = session.user.email!;
-    const deviceId = params.id;
+    const { id } = await params;
+    const deviceId = id;
 
     if (!deviceId) {
       return NextResponse.json(

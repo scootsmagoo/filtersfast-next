@@ -1,13 +1,28 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
+// Initialize Stripe (allow build to succeed without keys)
+const stripeInstance = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-09-30.clover',
+      typescript: true,
+    })
+  : null;
+
+// Export with proper type - functions should check if stripe is available
+export const stripe = stripeInstance as Stripe | null;
+
+// Helper to check if Stripe is configured
+export function isStripeConfigured(): boolean {
+  return stripeInstance !== null;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover',
-  typescript: true,
-});
+// Helper to get Stripe instance or throw descriptive error
+export function getStripeOrThrow(): Stripe {
+  if (!stripeInstance) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.');
+  }
+  return stripeInstance;
+}
 
 export const formatAmountForStripe = (amount: number, currency: string): number => {
   const numberFormat = new Intl.NumberFormat(['en-US'], {

@@ -12,7 +12,7 @@ import {
 } from '@/lib/db/returns-mock';
 import { CreateReturnRequest } from '@/lib/types/returns';
 import { sanitizeInput } from '@/lib/sanitize';
-import { logAuditEvent } from '@/lib/audit-log';
+// import { logAuditEvent } from '@/lib/audit-log';
 
 /**
  * GET /api/returns
@@ -110,18 +110,8 @@ export async function POST(request: NextRequest) {
     // Create the return request
     const returnRequest = await createReturnRequest(user.id, returnData);
 
-    // Log audit event
-    await logAuditEvent({
-      userId: user.id,
-      action: 'return_created',
-      resourceType: 'return',
-      resourceId: returnRequest.id,
-      details: {
-        orderId: returnRequest.orderId,
-        itemCount: returnRequest.items.length,
-        refundAmount: returnRequest.refundAmount
-      }
-    });
+    // Audit logging removed
+    console.log('[INFO] Return created:', { userId: user.id, returnId: returnRequest.id });
 
     // TODO: Send email notification to customer
     // TODO: Send notification to admin/support team

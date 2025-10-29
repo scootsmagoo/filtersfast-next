@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, X, Star, ShoppingCart } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -9,7 +9,7 @@ import { useCart } from '@/lib/cart-context';
 import { SearchResponse, SearchResult } from '@/lib/types';
 import { formatPrice } from '@/lib/utils';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { dispatch } = useCart();
@@ -463,6 +463,14 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
 

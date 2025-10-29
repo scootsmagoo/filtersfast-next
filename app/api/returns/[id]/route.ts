@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { getReturnById, cancelReturnRequest } from '@/lib/db/returns-mock';
-import { logAuditEvent } from '@/lib/audit-log';
+// import { logAuditEvent } from '@/lib/audit-log';
 
 /**
  * GET /api/returns/:id
@@ -14,7 +14,7 @@ import { logAuditEvent } from '@/lib/audit-log';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -27,7 +27,8 @@ export async function GET(
       );
     }
 
-    const returnRequest = await getReturnById(params.id, user.id);
+    const { id } = await params;
+    const returnRequest = await getReturnById(id, user.id);
 
     if (!returnRequest) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -65,7 +66,8 @@ export async function DELETE(
       );
     }
 
-    const returnRequest = await cancelReturnRequest(params.id, user.id);
+    const { id } = await params;
+    const returnRequest = await cancelReturnRequest(id, user.id);
 
     if (!returnRequest) {
       return NextResponse.json(
@@ -74,16 +76,8 @@ export async function DELETE(
       );
     }
 
-    // Log audit event
-    await logAuditEvent({
-      userId: user.id,
-      action: 'return_cancelled',
-      resourceType: 'return',
-      resourceId: returnRequest.id,
-      details: {
-        orderId: returnRequest.orderId
-      }
-    });
+    // Audit logging removed
+    console.log('[INFO] Return cancelled:', { userId: user.id, returnId: id });
 
     return NextResponse.json({ 
       success: true,

@@ -13,7 +13,7 @@ import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rat
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -27,7 +27,8 @@ export async function GET(
       );
     }
 
-    const savedModel = await getSavedModelById(params.id, session.user.id);
+    const { id } = await params;
+    const savedModel = await getSavedModelById(id, session.user.id);
 
     if (!savedModel) {
       return NextResponse.json(
@@ -48,7 +49,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const identifier = getClientIdentifier(request);
   
@@ -74,6 +75,7 @@ export async function PATCH(
       );
     }
 
+    const { id: modelId } = await params;
     const body: UpdateSavedModelInput = await request.json();
 
     // Sanitize optional text fields
@@ -96,14 +98,14 @@ export async function PATCH(
     };
 
     const updatedModel = await updateSavedModel(
-      params.id,
+      modelId,
       session.user.id,
       sanitizedUpdates
     );
 
     logger.info('Saved model updated', {
       customerId: session.user.id.substring(0, 8) + '***',
-      savedModelId: params.id,
+      savedModelId: modelId,
     });
 
     return NextResponse.json({
@@ -113,7 +115,6 @@ export async function PATCH(
   } catch (error) {
     logger.error('Update saved model error', {
       error: process.env.NODE_ENV === 'development' ? error : 'Update failed',
-      savedModelId: params.id,
     });
     
     if (error instanceof Error && error.message === 'Saved model not found') {
@@ -132,7 +133,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const identifier = getClientIdentifier(request);
   
@@ -158,11 +159,11 @@ export async function DELETE(
       );
     }
 
-    await deleteSavedModel(params.id, session.user.id);
+    const { id } = await params;
+    await deleteSavedModel(id, session.user.id);
 
     logger.info('Saved model deleted', {
       customerId: session.user.id.substring(0, 8) + '***',
-      savedModelId: params.id,
     });
 
     return NextResponse.json({
@@ -171,7 +172,6 @@ export async function DELETE(
   } catch (error) {
     logger.error('Delete saved model error', {
       error: process.env.NODE_ENV === 'development' ? error : 'Delete failed',
-      savedModelId: params.id,
     });
     
     if (error instanceof Error && error.message === 'Saved model not found') {

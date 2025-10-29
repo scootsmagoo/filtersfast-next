@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Loader2, BookmarkPlus, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ApplianceModel, ApplianceType, APPLIANCE_TYPE_LABELS, APPLIANCE_TYPE_ICONS } from '@/lib/types/model';
@@ -336,4 +336,5 @@ export default function ModelLookup({
     </div>
   );
 }
+
 

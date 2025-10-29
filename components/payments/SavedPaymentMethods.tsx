@@ -260,10 +260,11 @@ export default function SavedPaymentMethods() {
                 )}
                 
                 <Button
-                  variant="danger"
+                  variant="outline"
                   size="sm"
                   onClick={() => setDeleteId(method.id)}
                   aria-label="Delete payment method"
+                  className="text-red-600 hover:bg-red-50 hover:border-red-300"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
                   Remove
@@ -310,10 +311,9 @@ export default function SavedPaymentMethods() {
               </Button>
               <Button
                 ref={deleteButtonRef}
-                variant="danger"
                 onClick={() => handleDelete(deleteId)}
                 disabled={deleting}
-                className="flex-1"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                 aria-label={deleting ? 'Deleting payment method' : 'Confirm deletion'}
                 aria-disabled={deleting}
               >

@@ -25,7 +25,7 @@ import { rateLimit } from '@/lib/rate-limit';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -51,7 +51,8 @@ export async function GET(
       );
     }
 
-    const paymentMethodId = parseInt(params.id, 10);
+    const { id } = await params;
+    const paymentMethodId = parseInt(id, 10);
     
     if (isNaN(paymentMethodId)) {
       return NextResponse.json(
@@ -99,7 +100,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -125,7 +126,8 @@ export async function PATCH(
       );
     }
 
-    const paymentMethodId = parseInt(params.id, 10);
+    const { id } = await params;
+    const paymentMethodId = parseInt(id, 10);
     
     if (isNaN(paymentMethodId)) {
       return NextResponse.json(
@@ -161,7 +163,6 @@ export async function PATCH(
     }
 
     // Audit log
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
     console.log('[SECURITY] Payment method updated:', {
       user_id: session.user.id,
       payment_method_id: paymentMethodId,
@@ -175,14 +176,7 @@ export async function PATCH(
       message: 'Payment method updated successfully',
     });
   } catch (error: any) {
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    console.error('[ERROR] Payment method update failed:', {
-      user_id: session?.user?.id,
-      payment_method_id: params.id,
-      error: error.message,
-      ip,
-      timestamp: new Date().toISOString(),
-    });
+    console.error('[ERROR] Payment method update failed:', error.message);
     return NextResponse.json(
       { error: 'Failed to update payment method' },
       { status: 500 }
@@ -195,7 +189,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -221,7 +215,8 @@ export async function DELETE(
       );
     }
 
-    const paymentMethodId = parseInt(params.id, 10);
+    const { id } = await params;
+    const paymentMethodId = parseInt(id, 10);
     
     if (isNaN(paymentMethodId) || paymentMethodId <= 0) {
       return NextResponse.json(
@@ -262,7 +257,6 @@ export async function DELETE(
     }
 
     // Audit log
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
     console.log('[SECURITY] Payment method deleted:', {
       user_id: session.user.id,
       payment_method_id: paymentMethodId,
@@ -277,14 +271,7 @@ export async function DELETE(
       message: 'Payment method deleted successfully',
     });
   } catch (error: any) {
-    const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    console.error('[ERROR] Payment method deletion failed:', {
-      user_id: session?.user?.id,
-      payment_method_id: params.id,
-      error: error.message,
-      ip,
-      timestamp: new Date().toISOString(),
-    });
+    console.error('[ERROR] Payment method deletion failed:', error.message);
     return NextResponse.json(
       { error: 'Failed to delete payment method' },
       { status: 500 }

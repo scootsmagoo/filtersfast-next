@@ -7,30 +7,25 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAbandonedCartByToken } from '@/lib/db/abandoned-carts';
-import { rateLimit } from '@/lib/rate-limit';
-
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
+import { rateLimit as rateLimitFn } from '@/lib/rate-limit';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     // Rate limiting
     const identifier = request.headers.get('x-forwarded-for') || 'anonymous';
-    try {
-      await limiter.check(20, identifier); // 20 requests per minute
-    } catch {
+    const rateLimitResult = await rateLimitFn(identifier, 20, 60); // 20 requests per minute
+    
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
         { status: 429 }
       );
     }
 
-    const { token } = params;
+    const { token } = await params;
 
     // Validate token format (64 hex characters)
     if (!token || !/^[a-f0-9]{64}$/.test(token)) {

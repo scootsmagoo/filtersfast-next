@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
       productImage || '',
       sanitizeText(filterType),
       {
+        productId,
         frequency,
         customMonths,
         notificationMethod,

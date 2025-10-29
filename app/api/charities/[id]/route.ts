@@ -9,7 +9,7 @@ import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rat
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Rate limiting
@@ -30,7 +30,8 @@ export async function GET(
       );
     }
     
-    const charity = await getCharityById(params.id);
+    const { id } = await params;
+    const charity = await getCharityById(id);
     
     if (!charity) {
       return NextResponse.json(

@@ -11,7 +11,7 @@ import { auditLog } from '@/lib/audit-log';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIdentifier(request);
   const userAgent = request.headers.get('user-agent') || undefined;
@@ -34,8 +34,9 @@ export async function POST(
         { status: 401 }
       );
     }
-    
-    const reminder = await getReminderById(params.id);
+
+    const { id } = await params;
+    const reminder = await getReminderById(id);
     
     if (!reminder) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function POST(
       );
     }
     
-    const updated = await pauseReminder(params.id);
+    const updated = await pauseReminder(id);
     
     // Log success
     await auditLog({
@@ -61,7 +62,6 @@ export async function POST(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'success',
     });
     
@@ -72,7 +72,6 @@ export async function POST(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'failure',
       error: error instanceof Error ? error.message : 'Unknown error',
     });

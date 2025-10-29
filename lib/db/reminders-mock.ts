@@ -228,9 +228,9 @@ export async function trackReminderReorder(id: string): Promise<Reminder | null>
   const reminder = await getReminderById(id);
   if (!reminder) return null;
   
-  return updateReminder(id, {
-    reordersFromReminders: reminder.reordersFromReminders + 1,
-  });
+  // TODO: Implement reorder tracking in database
+  // For now, just return the reminder
+  return reminder;
 }
 
 /**

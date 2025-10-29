@@ -3,7 +3,16 @@
  * Public-facing page for finding appliance models
  */
 
-import ModelLookup from '@/components/models/ModelLookup';
+import ModelLookupBase from '@/components/models/ModelLookup';
+import { Suspense } from 'react';
+
+function ModelLookup() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <ModelLookupBase />
+    </Suspense>
+  );
+}
 import { Bookmark, Search, CheckCircle2 } from 'lucide-react';
 
 export const metadata = {

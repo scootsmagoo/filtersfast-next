@@ -20,7 +20,7 @@ import {
   isCardExpired,
 } from '@/lib/stripe-payment-methods';
 import { rateLimit } from '@/lib/rate-limit';
-import { sanitize } from '@/lib/sanitize';
+import { sanitizeText } from '@/lib/sanitize';
 import type { PaymentMethodResponse } from '@/lib/types/payment-methods';
 
 /**
@@ -173,20 +173,20 @@ export async function POST(request: NextRequest) {
       card_exp_year: stripePaymentMethod.card.exp_year,
       is_default: is_default || false,
       billing_name: stripePaymentMethod.billing_details.name 
-        ? sanitize(stripePaymentMethod.billing_details.name) 
-        : null,
-      billing_email: stripePaymentMethod.billing_details.email || null,
+        ? sanitizeText(stripePaymentMethod.billing_details.name) 
+        : undefined,
+      billing_email: stripePaymentMethod.billing_details.email || undefined,
       billing_address_line1: stripePaymentMethod.billing_details.address?.line1 
-        ? sanitize(stripePaymentMethod.billing_details.address.line1) 
-        : null,
+        ? sanitizeText(stripePaymentMethod.billing_details.address.line1) 
+        : undefined,
       billing_address_line2: stripePaymentMethod.billing_details.address?.line2 
-        ? sanitize(stripePaymentMethod.billing_details.address.line2) 
-        : null,
+        ? sanitizeText(stripePaymentMethod.billing_details.address.line2) 
+        : undefined,
       billing_address_city: stripePaymentMethod.billing_details.address?.city 
-        ? sanitize(stripePaymentMethod.billing_details.address.city) 
-        : null,
-      billing_address_state: stripePaymentMethod.billing_details.address?.state || null,
-      billing_address_zip: stripePaymentMethod.billing_details.address?.postal_code || null,
+        ? sanitizeText(stripePaymentMethod.billing_details.address.city) 
+        : undefined,
+      billing_address_state: stripePaymentMethod.billing_details.address?.state || undefined,
+      billing_address_zip: stripePaymentMethod.billing_details.address?.postal_code || undefined,
       billing_address_country: stripePaymentMethod.billing_details.address?.country || 'US',
     });
 
@@ -209,14 +209,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    // Security: Don't expose internal error details
-    console.error('[ERROR] Payment method creation failed:', {
-      user_id: session?.user?.id,
-      error: error.message,
-      type: error.type,
-      ip,
-      timestamp: new Date().toISOString(),
-    });
+    console.error('[ERROR] Payment method creation failed:', error.message);
     
     // Handle Stripe errors without exposing internal details
     if (error.type === 'StripeInvalidRequestError') {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
-import { formatAmountForStripe } from '@/lib/stripe';
+import { getStripeOrThrow, formatAmountForStripe } from '@/lib/stripe';
 import { DonationSelection } from '@/lib/types/charity';
 
 export async function POST(request: NextRequest) {
@@ -64,6 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Stripe checkout session
+    const stripe = getStripeOrThrow();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,

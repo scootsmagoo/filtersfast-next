@@ -5,7 +5,7 @@
  * PCI compliant - all card data handled by Stripe
  */
 
-import { stripe } from './stripe';
+import { getStripeOrThrow } from './stripe';
 import { getStripeCustomerIdByUserId } from './db/payment-methods';
 import Stripe from 'stripe';
 
@@ -17,6 +17,8 @@ export async function getOrCreateStripeCustomer(
   email: string,
   name?: string
 ): Promise<string> {
+  const stripe = getStripeOrThrow();
+  
   // Check if user already has a Stripe customer ID
   const existingCustomerId = getStripeCustomerIdByUserId(userId);
   
@@ -50,6 +52,7 @@ export async function attachPaymentMethodToCustomer(
   paymentMethodId: string,
   customerId: string
 ): Promise<Stripe.PaymentMethod> {
+  const stripe = getStripeOrThrow();
   return await stripe.paymentMethods.attach(paymentMethodId, {
     customer: customerId,
   });
@@ -61,6 +64,7 @@ export async function attachPaymentMethodToCustomer(
 export async function detachPaymentMethodFromCustomer(
   paymentMethodId: string
 ): Promise<Stripe.PaymentMethod> {
+  const stripe = getStripeOrThrow();
   return await stripe.paymentMethods.detach(paymentMethodId);
 }
 
@@ -70,6 +74,7 @@ export async function detachPaymentMethodFromCustomer(
 export async function getStripePaymentMethod(
   paymentMethodId: string
 ): Promise<Stripe.PaymentMethod> {
+  const stripe = getStripeOrThrow();
   return await stripe.paymentMethods.retrieve(paymentMethodId);
 }
 
@@ -80,6 +85,7 @@ export async function listCustomerPaymentMethods(
   customerId: string,
   type: 'card' = 'card'
 ): Promise<Stripe.PaymentMethod[]> {
+  const stripe = getStripeOrThrow();
   const paymentMethods = await stripe.paymentMethods.list({
     customer: customerId,
     type,
@@ -95,6 +101,7 @@ export async function setDefaultPaymentMethod(
   customerId: string,
   paymentMethodId: string
 ): Promise<Stripe.Customer> {
+  const stripe = getStripeOrThrow();
   return await stripe.customers.update(customerId, {
     invoice_settings: {
       default_payment_method: paymentMethodId,
@@ -112,6 +119,7 @@ export async function createPaymentIntentWithSavedMethod(
   paymentMethodId: string,
   metadata?: Record<string, string>
 ): Promise<Stripe.PaymentIntent> {
+  const stripe = getStripeOrThrow();
   return await stripe.paymentIntents.create({
     amount,
     currency,
@@ -134,6 +142,7 @@ export async function validatePaymentMethodOwnership(
   customerId: string
 ): Promise<boolean> {
   try {
+    const stripe = getStripeOrThrow();
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
     return paymentMethod.customer === customerId;
   } catch (error) {
@@ -201,6 +210,7 @@ export async function createSetupIntent(
   customerId: string,
   metadata?: Record<string, string>
 ): Promise<Stripe.SetupIntent> {
+  const stripe = getStripeOrThrow();
   return await stripe.setupIntents.create({
     customer: customerId,
     payment_method_types: ['card'],

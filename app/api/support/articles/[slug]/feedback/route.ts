@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getArticleBySlug, recordArticleFeedback } from '@/lib/db/support';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimit as rateLimitFn } from '@/lib/rate-limit';
 import { sanitizeText } from '@/lib/sanitize';
-
-// Rate limiter: 3 feedback submissions per 10 minutes per IP
-const limiter = rateLimit({
-  interval: 10 * 60 * 1000, // 10 minutes
-  uniqueTokenPerInterval: 500,
-});
 
 export async function POST(
   request: NextRequest,
@@ -21,9 +15,9 @@ export async function POST(
                 request.headers.get('x-real-ip') || 
                 'unknown';
     
-    try {
-      await limiter.check(3, ip);
-    } catch {
+    const rateLimitResult = await rateLimitFn(ip, 3, 600); // 3 requests per 10 minutes
+    
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         {
           success: false,

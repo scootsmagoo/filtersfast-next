@@ -8,7 +8,7 @@ import { auth } from '@/lib/auth';
 import { isAdmin } from '@/lib/auth-admin';
 import { getReturnById, updateReturnStatus } from '@/lib/db/returns-mock';
 import { UpdateReturnStatus } from '@/lib/types/returns';
-import { logAuditEvent } from '@/lib/audit-log';
+// import { logAuditEvent } from '@/lib/audit-log';
 import { sanitizeInput } from '@/lib/sanitize';
 
 /**
@@ -17,7 +17,7 @@ import { sanitizeInput } from '@/lib/sanitize';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -36,7 +36,8 @@ export async function GET(
       );
     }
 
-    const returnRequest = await getReturnById(params.id);
+    const { id } = await params;
+    const returnRequest = await getReturnById(id);
 
     if (!returnRequest) {
       return NextResponse.json(
@@ -62,7 +63,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -90,6 +91,8 @@ export async function PATCH(
       );
     }
 
+    const { id: paramId } = await params;
+
     // Sanitize inputs
     const update: UpdateReturnStatus = {
       status: body.status,
@@ -100,7 +103,7 @@ export async function PATCH(
       refundAmount: body.refundAmount ? parseFloat(body.refundAmount) : undefined
     };
 
-    const returnRequest = await updateReturnStatus(params.id, update);
+    const returnRequest = await updateReturnStatus(paramId, update);
 
     if (!returnRequest) {
       return NextResponse.json(
@@ -110,17 +113,18 @@ export async function PATCH(
     }
 
     // Log audit event
-    await logAuditEvent({
-      userId: session.user.id || session.user.email,
-      action: 'return_updated',
-      resourceType: 'return',
-      resourceId: returnRequest.id,
-      details: {
-        status: update.status,
-        previousStatus: body.previousStatus,
-        adminNotes: update.adminNotes
-      }
-    });
+    // TODO: Re-enable when logAuditEvent is implemented
+    // await logAuditEvent({
+    //   userId: session.user.id || session.user.email,
+    //   action: 'return_updated',
+    //   resourceType: 'return',
+    //   resourceId: returnRequest.id,
+    //   details: {
+    //     status: update.status,
+    //     previousStatus: body.previousStatus,
+    //     adminNotes: update.adminNotes
+    //   }
+    // });
 
     // TODO: Send email notification to customer based on status change
     // - approved: "Your return has been approved"

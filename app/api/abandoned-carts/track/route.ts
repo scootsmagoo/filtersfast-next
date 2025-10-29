@@ -8,13 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createAbandonedCart, getActiveAbandonedCartByEmail } from '@/lib/db/abandoned-carts';
-import { rateLimit } from '@/lib/rate-limit';
-import { sanitize } from '@/lib/sanitize';
-
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
+import { rateLimit as rateLimitFn } from '@/lib/rate-limit';
+import { sanitizeText } from '@/lib/sanitize';
 
 // Security constants
 const MAX_CART_DATA_SIZE = 50000; // 50KB max
@@ -27,9 +22,9 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const identifier = request.headers.get('x-forwarded-for') || 'anonymous';
-    try {
-      await limiter.check(10, identifier); // 10 requests per minute
-    } catch {
+    const rateLimitResult = await rateLimitFn(identifier, 10, 60); // 10 requests per minute
+    
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
         { status: 429 }
@@ -65,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize and validate email
-    const sanitizedEmail = sanitize(email.trim().toLowerCase());
+    const sanitizedEmail = sanitizeText(email.trim().toLowerCase());
     if (sanitizedEmail.length > MAX_EMAIL_LENGTH) {
       return NextResponse.json(
         { error: 'Email address too long' },
@@ -104,8 +99,8 @@ export async function POST(request: NextRequest) {
         throw new Error('Invalid cart item format');
       }
       return {
-        id: sanitize(String(item.id)),
-        name: sanitize(String(item.name)),
+        id: sanitizeText(String(item.id)),
+        name: sanitizeText(String(item.name)),
         quantity: Math.max(1, Math.min(999, Math.floor(item.quantity))),
         price: Math.max(0, Math.min(999999.99, parseFloat(item.price))),
       };

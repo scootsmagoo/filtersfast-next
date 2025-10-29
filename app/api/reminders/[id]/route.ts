@@ -14,7 +14,7 @@ import { sanitizeText } from '@/lib/sanitize';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIdentifier(request);
   
@@ -37,7 +37,8 @@ export async function GET(
       );
     }
     
-    const reminder = await getReminderById(params.id);
+    const { id: reminderId } = await params;
+    const reminder = await getReminderById(reminderId);
     
     if (!reminder) {
       return NextResponse.json(
@@ -69,7 +70,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIdentifier(request);
   const userAgent = request.headers.get('user-agent') || undefined;
@@ -93,7 +94,8 @@ export async function PUT(
       );
     }
     
-    const reminder = await getReminderById(params.id);
+    const { id: reminderId } = await params;
+    const reminder = await getReminderById(reminderId);
     
     if (!reminder) {
       return NextResponse.json(
@@ -125,7 +127,7 @@ export async function PUT(
       body.notes = sanitizeText(body.notes);
     }
     
-    const updated = await updateReminder(params.id, body);
+    const updated = await updateReminder(reminderId, body);
     
     // Log success
     await auditLog({
@@ -134,7 +136,6 @@ export async function PUT(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'success',
       details: body,
     });
@@ -146,7 +147,6 @@ export async function PUT(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'failure',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -164,7 +164,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const ip = getClientIdentifier(request);
   const userAgent = request.headers.get('user-agent') || undefined;
@@ -188,7 +188,8 @@ export async function DELETE(
       );
     }
     
-    const reminder = await getReminderById(params.id);
+    const { id: reminderId } = await params;
+    const reminder = await getReminderById(reminderId);
     
     if (!reminder) {
       return NextResponse.json(
@@ -205,7 +206,7 @@ export async function DELETE(
       );
     }
     
-    await deleteReminder(params.id);
+    await deleteReminder(reminderId);
     
     // Log success
     await auditLog({
@@ -214,7 +215,6 @@ export async function DELETE(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'success',
     });
     
@@ -225,7 +225,6 @@ export async function DELETE(
       ip,
       userAgent,
       resource: 'reminder',
-      resourceId: params.id,
       status: 'failure',
       error: error instanceof Error ? error.message : 'Unknown error',
     });

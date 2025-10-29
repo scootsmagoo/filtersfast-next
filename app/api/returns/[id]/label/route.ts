@@ -16,7 +16,7 @@ import { getReturnById } from '@/lib/db/returns-mock';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -29,7 +29,8 @@ export async function GET(
       );
     }
 
-    const returnRequest = await getReturnById(params.id, user.id);
+    const { id } = await params;
+    const returnRequest = await getReturnById(id, user.id);
 
     if (!returnRequest) {
       return NextResponse.json(
