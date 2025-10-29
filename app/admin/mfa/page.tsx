@@ -13,7 +13,8 @@ export const metadata = {
 
 export default async function AdminMFAPage() {
   // Check authentication
-  const session = await auth.api.getSession({ headers: headers() });
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
   
   if (!session?.user) {
     redirect('/sign-in?redirect=/admin/mfa');

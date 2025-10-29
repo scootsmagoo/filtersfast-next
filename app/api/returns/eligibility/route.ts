@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { checkReturnEligibility, getReturnPolicy } from '@/lib/db/returns-mock';
 
 /**
@@ -13,8 +13,8 @@ import { checkReturnEligibility, getReturnPolicy } from '@/lib/db/returns-mock';
  */
 export async function GET(request: NextRequest) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
+    const user = session?.user;
 
     if (!user) {
       return NextResponse.json(

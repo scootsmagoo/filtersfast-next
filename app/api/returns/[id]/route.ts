@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { getReturnById, cancelReturnRequest } from '@/lib/db/returns-mock';
 import { logAuditEvent } from '@/lib/audit-log';
 
@@ -17,8 +17,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
+    const user = session?.user;
 
     if (!user) {
       return NextResponse.json(
@@ -55,8 +55,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await getAuth();
-    const user = auth?.user;
+    const session = await auth.api.getSession({ headers: request.headers });
+    const user = session?.user;
 
     if (!user) {
       return NextResponse.json(
