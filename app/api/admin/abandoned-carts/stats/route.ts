@@ -7,25 +7,34 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAbandonedCartStats } from '@/lib/db/abandoned-carts';
-import { auth } from '@/lib/auth-admin';
+import { auth } from '@/lib/auth';
+import { isAdmin } from '@/lib/auth-admin';
 
 export async function GET(request: NextRequest) {
   let session: any = null;
   
   try {
-    // Check authentication and admin role
-    session = await auth();
-    if (!session?.user || session.user.role !== 'admin') {
+    // Check authentication
+    session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Check admin role
+    if (!isAdmin(session.user.email)) {
       // Audit log - unauthorized access attempt
       console.warn('[SECURITY] Unauthorized abandoned cart stats access attempt', {
         ip: request.headers.get('x-forwarded-for') || 'unknown',
-        user_id: session?.user?.id || 'none',
+        user_email: session.user.email,
         timestamp: new Date().toISOString(),
       });
       
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Forbidden: Admin access required' },
+        { status: 403 }
       );
     }
 
@@ -65,7 +74,7 @@ export async function GET(request: NextRequest) {
     console.error('[ERROR] Failed to fetch abandoned cart stats:', {
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      admin_id: session?.user?.id,
+      admin_email: session?.user?.email,
       timestamp: new Date().toISOString(),
     });
     
