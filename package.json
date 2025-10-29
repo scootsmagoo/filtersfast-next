@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cron:abandoned-carts": "tsx scripts/send-abandoned-cart-emails.ts",
+    "cron:cancel-old-orders": "tsx scripts/cancel-old-pending-orders.ts",
+    "init:abandoned-carts": "tsx scripts/init-abandoned-carts.ts"
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.0.1",
