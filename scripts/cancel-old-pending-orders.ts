@@ -30,8 +30,37 @@ async function cancelOldPendingOrders() {
   let cancelledCount = 0;
 
   try {
+    // Check if orders table exists first
+    const tableExists = db.prepare(`
+      SELECT name FROM sqlite_master WHERE type='table' AND name='orders'
+    `).get();
+
+    if (!tableExists) {
+      console.log('⚠️  Orders table not found. Creating placeholder...\n');
+      
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id TEXT PRIMARY KEY,
+          order_number TEXT NOT NULL UNIQUE,
+          user_id TEXT,
+          email TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending',
+          total REAL NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          cancelled_at DATETIME,
+          cancellation_reason TEXT,
+          FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
+        )
+      `);
+      
+      console.log('✅ Orders table created');
+      console.log('ℹ️  No orders to process yet\n');
+      console.log('✨ Script completed successfully\n');
+      return;
+    }
+
     // Find orders pending for 60+ days
-    // Note: This assumes you have an orders table - adjust as needed
     const findStmt = db.prepare(`
       SELECT id, order_number, created_at, status, email
       FROM orders
@@ -73,32 +102,6 @@ async function cancelOldPendingOrders() {
 
   } catch (error: any) {
     console.error('\n❌ Fatal error:', error);
-    
-    // If orders table doesn't exist yet, create a placeholder
-    if (error.message.includes('no such table')) {
-      console.log('\n⚠️  Orders table not found. Creating placeholder...');
-      
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS orders (
-          id TEXT PRIMARY KEY,
-          order_number TEXT NOT NULL UNIQUE,
-          user_id TEXT,
-          email TEXT NOT NULL,
-          status TEXT NOT NULL DEFAULT 'pending',
-          total REAL NOT NULL,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          cancelled_at DATETIME,
-          cancellation_reason TEXT,
-          FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
-        )
-      `);
-      
-      console.log('✅ Orders table created');
-      console.log('ℹ️  No orders to process yet\n');
-      return;
-    }
-    
     process.exit(1);
   }
 
