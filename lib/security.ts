@@ -221,19 +221,35 @@ export function verifyOrigin(request: Request): boolean {
     return true;
   }
   
-  const trustedOrigins = [
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    process.env.BETTER_AUTH_URL || 'http://localhost:3000',
-  ];
+  // OWASP CSRF Protection: Validate origin against trusted list
+  // In development: allow any localhost port for flexibility
+  // In production: strict validation against environment variables
+  const isOriginAllowed = (testOrigin: string): boolean => {
+    if (process.env.NODE_ENV === 'development') {
+      // Allow any localhost or 127.0.0.1 port in development
+      return testOrigin.startsWith('http://localhost:') || 
+             testOrigin.startsWith('http://127.0.0.1:') ||
+             testOrigin.startsWith('https://localhost:') ||
+             testOrigin.startsWith('https://127.0.0.1:');
+    }
+    
+    // Production: strict whitelist
+    const trustedOrigins = [
+      process.env.NEXT_PUBLIC_APP_URL,
+      process.env.BETTER_AUTH_URL,
+    ].filter(Boolean) as string[];
+    
+    return trustedOrigins.some(trusted => testOrigin === trusted || testOrigin.startsWith(trusted));
+  };
   
   // Check origin header
   if (origin) {
-    const isAllowed = trustedOrigins.some(trusted => origin === trusted || origin.startsWith(trusted));
+    const isAllowed = isOriginAllowed(origin);
     if (!isAllowed) {
       logger.security('CSRF attempt detected - invalid origin', { 
         origin, 
         referer,
-        trustedOrigins 
+        env: process.env.NODE_ENV
       });
     }
     return isAllowed;
@@ -241,12 +257,12 @@ export function verifyOrigin(request: Request): boolean {
   
   // Check referer header as fallback
   if (referer) {
-    const isAllowed = trustedOrigins.some(trusted => referer.startsWith(trusted));
+    const isAllowed = isOriginAllowed(new URL(referer).origin);
     if (!isAllowed) {
       logger.security('CSRF attempt detected - invalid referer', { 
         origin, 
         referer,
-        trustedOrigins 
+        env: process.env.NODE_ENV
       });
     }
     return isAllowed;

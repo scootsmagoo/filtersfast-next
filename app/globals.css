@@ -116,3 +116,303 @@ textarea:focus-visible {
   }
 }
 
+/* ========================================
+   Support Article Enhancements
+   ======================================== */
+
+/* Improve link visibility in article content */
+.prose {
+  --tw-prose-links: #f26722;
+  --tw-prose-links-hover: #d35a1a;
+}
+
+/* ========================================
+   WCAG 2.1 AA Compliant Article Styles
+   ======================================== */
+
+/* Enhanced article content styling - Make headings really stand out! */
+/* Force heading styles to apply to dynamically inserted HTML content */
+.prose h2,
+.support-article-content h2,
+article[role="article"] h2 {
+  font-size: 1.875rem !important; /* 3xl - 30px = large text */
+  font-weight: 800 !important; /* extrabold */
+  color: #111827 !important; /* gray-900 - WCAG AAA: 16.1:1 contrast */
+  margin-top: 4rem !important;
+  margin-bottom: 2rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 2px solid #ea580c !important; /* orange-600 - decorative */
+  scroll-margin-top: 2rem;
+  position: relative;
+}
+
+.prose h2::after,
+.support-article-content h2::after,
+article[role="article"] h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, #ea580c, #f59e0b);
+}
+
+.prose h3,
+.support-article-content h3,
+article[role="article"] h3 {
+  font-size: 1.5rem !important; /* 2xl - 24px = large text */
+  font-weight: 700 !important; /* bold */
+  color: #111827 !important; /* gray-900 - WCAG AAA: 16.1:1 contrast */
+  margin-top: 3rem !important;
+  margin-bottom: 1.5rem !important;
+  padding-left: 1rem !important;
+  border-left: 4px solid #f97316 !important; /* orange-500 - decorative */
+  scroll-margin-top: 2rem;
+  position: relative;
+}
+
+.prose h4,
+.support-article-content h4,
+article[role="article"] h4 {
+  font-size: 1.25rem !important; /* xl - 20px = large text */
+  font-weight: 600 !important; /* semibold */
+  color: #111827 !important; /* gray-900 - WCAG AAA: 16.1:1 contrast */
+  margin-top: 2.5rem !important;
+  margin-bottom: 1.25rem !important;
+  padding: 0.5rem 1rem !important;
+  background-color: #f9fafb !important; /* gray-50 */
+  border-left: 2px solid #6b7280 !important; /* gray-500 - decorative */
+  border-radius: 0.375rem !important; /* rounded-md */
+  scroll-margin-top: 2rem;
+}
+
+/* Paragraph styling for contrast with headings - WCAG AAA compliant */
+.prose p,
+.support-article-content p,
+article[role="article"] p {
+  font-size: 1.125rem !important; /* text-lg - 18px */
+  line-height: 1.75 !important; /* leading-relaxed */
+  color: #1f2937 !important; /* gray-800 - WCAG AAA: 12.6:1 contrast */
+  margin-bottom: 1.5rem !important;
+}
+
+/* Better list spacing in articles - WCAG AAA compliant */
+.prose ul li,
+.prose ol li,
+.support-article-content ul li,
+.support-article-content ol li,
+article[role="article"] ul li,
+article[role="article"] ol li {
+  font-size: 1.125rem !important; /* text-lg - 18px */
+  line-height: 1.75 !important;
+  color: #1f2937 !important; /* gray-800 - WCAG AAA: 12.6:1 contrast */
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Nested lists */
+article[role="article"] ul ul,
+article[role="article"] ol ul,
+article[role="article"] ul ol,
+article[role="article"] ol ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Enhanced link styling in article content - WCAG AA compliant */
+.prose a,
+.support-article-content a,
+article[role="article"] a {
+  color: #c2410c !important; /* orange-700 - WCAG AA: 4.89:1 contrast */
+  font-weight: 500 !important; /* medium */
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+  transition: all 0.2s ease;
+}
+
+.prose a:hover,
+.support-article-content a:hover,
+article[role="article"] a:hover {
+  color: #9a3412 !important; /* orange-800 - WCAG AAA: 7.48:1 contrast */
+  text-decoration-thickness: 2px;
+  background-color: #ffedd5; /* orange-100 */
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 2px;
+}
+
+.prose a:focus-visible,
+.support-article-content a:focus-visible,
+article[role="article"] a:focus-visible {
+  outline: 2px solid #ea580c !important; /* orange-600 */
+  outline-offset: 2px !important;
+  border-radius: 2px;
+}
+
+/* Strong/bold text styling - WCAG AAA compliant */
+.prose strong,
+.support-article-content strong,
+article[role="article"] strong {
+  font-weight: 700 !important; /* bold */
+  color: #000000 !important; /* black - WCAG AAA: 21:1 contrast */
+}
+
+/* Better blockquote styling - WCAG compliant */
+.prose blockquote,
+.support-article-content blockquote,
+article[role="article"] blockquote {
+  font-style: italic;
+  color: #1f2937 !important; /* gray-800 - WCAG AAA: 12.6:1 */
+  background-color: #fff7ed !important; /* orange-50 */
+  border-left: 4px solid #ea580c !important; /* orange-600 */
+  padding: 1rem 1.5rem !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 0.375rem;
+}
+
+.prose blockquote footer,
+.support-article-content blockquote footer,
+article[role="article"] blockquote footer {
+  font-style: normal;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  color: #111827 !important; /* gray-900 */
+}
+
+/* Code styling - WCAG AA compliant */
+.prose code,
+.support-article-content code,
+article[role="article"] code {
+  font-size: 0.9em !important;
+  font-weight: 500 !important;
+  font-family: 'Courier New', monospace !important;
+  color: #9a3412 !important; /* orange-800 - WCAG AA: 7.48:1 */
+  background-color: #f3f4f6 !important; /* gray-100 */
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+}
+
+.prose pre,
+.support-article-content pre,
+article[role="article"] pre {
+  background-color: #1f2937 !important; /* gray-800 */
+  color: #f9fafb !important; /* gray-50 - WCAG AAA: 16.1:1 on dark bg */
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto !important;
+  margin: 1.5rem 0 !important;
+}
+
+/* Improve readability - generous spacing after headings */
+article[role="article"] h2 + p,
+article[role="article"] h3 + p,
+article[role="article"] h4 + p {
+  margin-top: 0rem; /* Headings already have bottom margin */
+}
+
+/* Add visual breathing room */
+article[role="article"] > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Extra space before major headings for clear sections */
+article[role="article"] h2:not(:first-child) {
+  margin-top: 4rem;
+}
+
+article[role="article"] h3:not(:first-child) {
+  margin-top: 3rem;
+}
+
+/* Keyboard navigation focus indicators - WCAG 2.1 compliant */
+.prose a:focus,
+.prose button:focus,
+article[role="article"] a:focus,
+article[role="article"] button:focus {
+  outline: 2px solid #ea580c !important; /* orange-600 - visible focus indicator */
+  outline-offset: 2px !important;
+  border-radius: 2px;
+}
+
+/* High contrast mode support - WCAG compliance */
+@media (prefers-contrast: high) {
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .support-article-content h2,
+  .support-article-content h3,
+  .support-article-content h4,
+  article[role="article"] h2,
+  article[role="article"] h3,
+  article[role="article"] h4 {
+    color: #000000 !important;
+  }
+  
+  .prose p,
+  .prose li,
+  .support-article-content p,
+  .support-article-content li,
+  article[role="article"] p,
+  article[role="article"] li {
+    color: #000000 !important;
+  }
+  
+  .prose a,
+  .support-article-content a,
+  article[role="article"] a {
+    color: #0000EE !important; /* Standard link blue for high contrast */
+    text-decoration: underline !important;
+  }
+}
+
+/* Reduced motion support - WCAG compliance */
+@media (prefers-reduced-motion: reduce) {
+  .prose a,
+  .support-article-content a,
+  article[role="article"] a,
+  .prose *,
+  .support-article-content *,
+  article[role="article"] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Smooth scroll behavior for article navigation */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Large text for accessibility - minimum 18px for body text */
+.prose,
+.support-article-content,
+article[role="article"] {
+  font-size: 18px !important;
+  line-height: 1.75 !important;
+}
+
+/* Print styles for articles - WCAG compliance */
+@media print {
+  .support-article-content,
+  article[role="article"] {
+    color: #000000 !important;
+  }
+  
+  .support-article-content a,
+  article[role="article"] a {
+    color: #000000 !important;
+    text-decoration: underline !important;
+  }
+  
+  .support-article-content a[href]:after,
+  article[role="article"] a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666666;
+  }
+}
+

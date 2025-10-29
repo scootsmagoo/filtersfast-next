@@ -2,8 +2,24 @@
 
 import { createAuthClient } from "better-auth/react";
 
+// Dynamically determine the base URL to support any port during development
+const getBaseURL = () => {
+  // Use environment variable if set
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  
+  // In browser, use current origin (supports any port)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Fallback for SSR (use port 3001 which is the current dev port)
+  return "http://localhost:3001";
+};
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  baseURL: getBaseURL(),
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;

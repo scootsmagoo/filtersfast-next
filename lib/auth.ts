@@ -70,9 +70,13 @@ export const auth = betterAuth({
   },
   
   // Security: Trust proxy for correct IP detection behind load balancers
+  // OWASP CSRF Protection: Dynamic localhost in dev (any port), strict in production
   trustedOrigins: process.env.NODE_ENV === 'production' 
     ? [process.env.BETTER_AUTH_URL!]
-    : ["http://localhost:3000"],
+    : (origin: string) => {
+        // In development, allow any localhost port
+        return origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+      },
   
   socialProviders: {
     google: {

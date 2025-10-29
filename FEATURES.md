@@ -903,26 +903,32 @@ Comprehensive self-service support system with searchable articles, organized ca
 
 ### Pre-Loaded Content
 
-**Categories (7):**
-1. 🚀 **Getting Started** - New customer onboarding
-2. 📦 **Orders & Shipping** - Tracking, delivery, shipping info
-3. 🔄 **Returns & Exchanges** - 365-day policy details
-4. 🔍 **Products & Filters** - MERV ratings, sizing, compatibility
-5. 👤 **Account & Settings** - Password, profile, security
-6. 💰 **Subscribe & Save** - Auto-delivery program details
-7. 💳 **Payment & Billing** - Payment methods, invoices
+**✅ 20 Comprehensive Articles Migrated from Legacy System**
 
-**Featured Articles (Sample):**
-- How do I create an account?
-- How do I track my order?
-- What is your return policy?
-- How do I find the right filter?
-- What do MERV ratings mean?
-- How often should I replace filters?
-- How do I reset my password?
-- What is two-factor authentication?
-- How does Subscribe & Save work?
-- What payment methods do you accept?
+**Categories (7):**
+1. 🚀 **Getting Started** (3 articles) - Company story, mission, account creation
+2. 📦 **Orders & Shipping** (2 articles) - Tracking, free shipping policy
+3. 🔄 **Returns & Exchanges** (2 articles) - 365-day policy, exceptions
+4. 🔍 **Products & Filters** (3 articles) - FiltersFast® brand, NSF certification, custom filters
+5. 👤 **Account & Settings** (2 articles) - Password reset, order history
+6. 💰 **Subscribe & Save** (6 articles) - Home Filter Club complete guide
+7. 💳 **Payment & Billing** (2 articles) - Payment methods, charge timing
+
+**Content Sources (Legacy FiltersFast):**
+- Company history from `our-story.asp` (Founded 2003, Charlotte NC)
+- Mission & values from `our-mission.asp`
+- FiltersFast® brand details from `our-brand.asp` (Made in USA, MERV 13)
+- NSF certification explanation (42, 53, 401 ratings)
+- Complete Home Filter Club guide from `auto-delivery.asp`
+- 365-day return policy from `returns.asp`
+- Order tracking procedures from `TrackOrder.asp`
+
+**Key Stats:**
+- ~8,000+ words of support content
+- 9 featured articles for high visibility
+- SEO-optimized with proper heading hierarchy
+- Mobile-responsive and accessible (WCAG 2.1 AA)
+- Cross-linked articles for easy navigation
 
 ### Technical Implementation
 
