@@ -3,6 +3,7 @@ import { Lato } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
 import { CartProvider } from "@/lib/cart-context";
 import ScreenReaderAnnouncements from "@/components/ui/ScreenReaderAnnouncements";
 import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementProvider";
@@ -49,6 +50,7 @@ export default function RootLayout({
               Skip to navigation
             </a>
             
+            <ScrollToTopOnMount />
             <Header />
             <main id="main-content" className="min-h-screen" role="main">
               {children}

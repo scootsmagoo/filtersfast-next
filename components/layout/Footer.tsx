@@ -89,7 +89,7 @@ export default function Footer() {
 
       {/* Main Footer */}
       <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-4">
@@ -148,6 +148,15 @@ export default function Footer() {
               <li><Link href="/water-filters" className="hover:text-brand-orange transition-colors">Water Filters</Link></li>
               <li><Link href="/pool-filters" className="hover:text-brand-orange transition-colors">Pool & Spa Filters</Link></li>
               <li><Link href="/humidifier-filters" className="hover:text-brand-orange transition-colors">Humidifier Filters</Link></li>
+            </ul>
+          </div>
+
+          {/* Discounts & Rewards */}
+          <div>
+            <h4 className="font-bold mb-4">Discounts &amp; Rewards</h4>
+            <ul className="space-y-2 text-brand-gray-300">
+              <li><Link href="/military-discount" className="hover:text-brand-orange transition-colors">Military &amp; First Responder Discount</Link></li>
+              <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/sale" className="hover:text-brand-orange transition-colors">Shop Sale</Link></li>
             </ul>
           </div>
@@ -159,7 +168,6 @@ export default function Footer() {
               <li><Link href="/support" className="hover:text-brand-orange transition-colors">Support Center</Link></li>
               <li><Link href="/track-order" className="hover:text-brand-orange transition-colors">Track Order</Link></li>
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
-              <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/contact" className="hover:text-brand-orange transition-colors">Contact Us</Link></li>
             </ul>
           </div>

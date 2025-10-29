@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import IdMeVerificationButton from '@/components/idme/IdMeVerificationButton';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package } from 'lucide-react';
 
 export default function CartPage() {
@@ -259,6 +260,11 @@ export default function CartPage() {
                   </svg>
                   <span>30-day return policy</span>
                 </div>
+              </div>
+
+              {/* ID.me Military & First Responder Discount */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <IdMeVerificationButton compact />
               </div>
             </Card>
           </div>
