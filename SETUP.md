@@ -397,6 +397,78 @@ Before going live:
 
 ---
 
+## 🤖 AI Chatbot Setup (OpenAI)
+
+### Overview
+The AI chatbot uses OpenAI's GPT-3.5-turbo model for natural language understanding and responses. It's optional but highly recommended for better customer support.
+
+### Get Your OpenAI API Key
+
+1. **Visit [OpenAI Platform](https://platform.openai.com/)**
+2. **Sign up or log in** to your account
+3. **Go to [API Keys](https://platform.openai.com/api-keys)**
+4. **Click "Create new secret key"**
+5. **Copy the key** (you won't see it again!)
+
+### Add to Environment Variables
+
+```env
+# OpenAI API Key (for AI Chatbot)
+OPENAI_API_KEY=sk-...your-key-here...
+```
+
+### Cost Information
+
+**GPT-3.5-turbo Pricing (as of 2024):**
+- Input: ~$0.50 per 1M tokens
+- Output: ~$1.50 per 1M tokens
+
+**Real-world costs:**
+- Average conversation: ~1,000 tokens = **$0.0005** (less than a penny!)
+- 1,000 conversations: ~**$0.50**
+- 10,000 conversations: ~**$5.00**
+
+**Extremely affordable** compared to human support costs!
+
+### Testing the Chatbot
+
+1. **Start the dev server**: `npm run dev`
+2. **Look for the orange bubble** in the bottom-right corner
+3. **Click to open** the chat widget
+4. **Try asking:**
+   - "Where is my order?"
+   - "How do I return an item?"
+   - "Tell me about your filters"
+   - "What's your return policy?"
+
+### Features
+
+- ✅ **Natural language** - No keyword matching needed
+- ✅ **Context aware** - Remembers the conversation
+- ✅ **Smart responses** - Uses your support articles
+- ✅ **Article references** - Links to relevant docs
+- ✅ **Fallback to human** - Easy contact form
+- ✅ **Feedback system** - Thumbs up/down to improve
+
+### Without OpenAI Key
+
+The chatbot will still display but will show an error message directing users to contact support directly. It's gracefully degraded!
+
+### Rate Limits
+
+- **20 requests per minute** per IP (to prevent abuse)
+- **Configurable** in `app/api/chatbot/route.ts`
+
+### Database
+
+Conversations are automatically saved to SQLite:
+- Session tracking
+- Message history
+- Feedback collection
+- Analytics ready
+
+---
+
 ## 🛠️ Troubleshooting
 
 ### "BETTER_AUTH_SECRET is required"

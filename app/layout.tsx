@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { CartProvider } from "@/lib/cart-context";
 import ScreenReaderAnnouncements from "@/components/ui/ScreenReaderAnnouncements";
 import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementProvider";
+import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -54,6 +55,7 @@ export default function RootLayout({
             </main>
             <Footer />
             <ScreenReaderAnnouncements />
+            <ChatbotWidget />
           </CartProvider>
         </StatusAnnouncementProvider>
       </body>

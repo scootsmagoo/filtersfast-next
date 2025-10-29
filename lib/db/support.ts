@@ -122,6 +122,21 @@ export function initializeSupportTables() {
     )
   `);
 
+  // Chatbot Conversations
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS chatbot_conversations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      user_id INTEGER,
+      message_role TEXT NOT NULL,
+      message_content TEXT NOT NULL,
+      articles_referenced TEXT,
+      feedback TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
+    )
+  `);
+
   // Create indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_support_articles_category ON support_articles(category_id);
@@ -129,6 +144,8 @@ export function initializeSupportTables() {
     CREATE INDEX IF NOT EXISTS idx_support_articles_published ON support_articles(is_published);
     CREATE INDEX IF NOT EXISTS idx_support_article_views_article ON support_article_views(article_id);
     CREATE INDEX IF NOT EXISTS idx_support_article_feedback_article ON support_article_feedback(article_id);
+    CREATE INDEX IF NOT EXISTS idx_chatbot_conversations_session ON chatbot_conversations(session_id);
+    CREATE INDEX IF NOT EXISTS idx_chatbot_conversations_user ON chatbot_conversations(user_id);
   `);
 }
 
@@ -542,5 +559,54 @@ export function getCategoryAnalytics() {
     ORDER BY total_views DESC
   `;
   return db.prepare(sql).all();
+}
+
+// Chatbot Conversation Functions
+export interface ChatbotMessage {
+  id: number;
+  session_id: string;
+  user_id: number | null;
+  message_role: 'user' | 'assistant' | 'system';
+  message_content: string;
+  articles_referenced: string | null;
+  feedback: string | null;
+  created_at: string;
+}
+
+export function saveChatbotMessage(data: {
+  session_id: string;
+  user_id?: number;
+  message_role: 'user' | 'assistant' | 'system';
+  message_content: string;
+  articles_referenced?: string;
+}): number {
+  const sql = `
+    INSERT INTO chatbot_conversations (session_id, user_id, message_role, message_content, articles_referenced)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  const result = db.prepare(sql).run(
+    data.session_id,
+    data.user_id || null,
+    data.message_role,
+    data.message_content,
+    data.articles_referenced || null
+  );
+  return Number(result.lastInsertRowid);
+}
+
+export function getChatbotHistory(session_id: string, limit: number = 20): ChatbotMessage[] {
+  const sql = `
+    SELECT * FROM chatbot_conversations 
+    WHERE session_id = ? 
+    ORDER BY created_at DESC 
+    LIMIT ?
+  `;
+  const messages = db.prepare(sql).all(session_id, limit) as ChatbotMessage[];
+  return messages.reverse(); // Return in chronological order
+}
+
+export function recordChatbotFeedback(messageId: number, feedback: string): void {
+  const sql = 'UPDATE chatbot_conversations SET feedback = ? WHERE id = ?';
+  db.prepare(sql).run(feedback, messageId);
 }
 

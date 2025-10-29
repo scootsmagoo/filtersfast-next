@@ -6,6 +6,38 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-10-29
+- **AI Chatbot with GPT-3.5-turbo** 🤖
+  - OpenAI GPT-3.5-turbo integration for natural language understanding
+  - RAG (Retrieval Augmented Generation) with support article search
+  - Floating chat widget with modern UI
+  - Conversation history tracking in SQLite
+  - Session persistence across page refreshes
+  - Quick action buttons for common questions
+  - Feedback system (thumbs up/down)
+  - Fallback to human support option
+  - Article references with clickable links
+  - Graceful fallback when OpenAI quota exceeded
+  - Rate limiting (disabled in dev, 20 req/min in production)
+  - **OWASP Security Hardened:**
+    - XSS prevention with input/output sanitization
+    - Session ID validation (alphanumeric only)
+    - Message length limits (2000 chars max)
+    - Rate limiting per IP
+    - No sensitive error exposure
+    - SQL injection protection
+  - **WCAG 2.1 AA Compliant:**
+    - ARIA labels and roles throughout
+    - Live regions for screen readers
+    - Keyboard navigation (Esc to close, Enter to send)
+    - Focus management and focus trap
+    - Min 44x44px touch targets
+    - Character counter with aria-live
+    - Error announcements to assistive tech
+    - High contrast color scheme
+    - Semantic HTML structure
+  - Costs ~$0.0005 per conversation (extremely affordable!)
+
 ### Added - 2025-10-27
 - **Social Authentication (OAuth)** 🔐
   - Sign in with Google, Facebook, and Apple

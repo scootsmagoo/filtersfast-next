@@ -41,9 +41,14 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations
 - ✅ **Address Validation** - SmartyStreets integration
 
+**Customer Support:**
+- ✅ **AI Chatbot** - GPT-3.5-turbo powered assistant with RAG 🆕
+- ✅ **Support Articles** - Searchable knowledge base
+- ✅ **Contact Forms** - Multiple support channels
+
 **Security & Quality:**
-- ✅ **reCAPTCHA v3** - Invisible bot protection 🆕
-- ✅ **Password Visibility Toggle** - Enhanced UX 🆕
+- ✅ **reCAPTCHA v3** - Invisible bot protection
+- ✅ **Password Visibility Toggle** - Enhanced UX
 - ✅ WCAG 2.1 AA accessibility compliant
 - ✅ OWASP Top 10 security hardened
 - ✅ Rate limiting on all endpoints

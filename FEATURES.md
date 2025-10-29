@@ -1410,6 +1410,114 @@ Get keys: https://www.google.com/recaptcha/admin/create
 
 ---
 
+## 🤖 AI Chatbot (GPT-3.5-turbo + RAG)
+
+### Overview
+Modern AI-powered customer support chatbot with Retrieval Augmented Generation - a massive upgrade from the legacy keyword-matching system!
+
+### Features
+- **GPT-3.5-turbo Integration** - Natural language understanding and responses
+- **RAG (Retrieval Augmented Generation)** - Searches support articles for context
+- **Conversation Memory** - Maintains context throughout the chat session
+- **Floating Widget** - Non-intrusive bubble in bottom-right corner
+- **Quick Actions** - Pre-defined common questions for instant answers
+- **Article References** - Shows related support articles with each response
+- **Feedback System** - Thumbs up/down to improve responses
+- **Fallback to Human** - Easy contact support option when AI can't help
+- **Session Persistence** - Conversations saved to database
+- **Rate Limiting** - 20 requests per minute per IP
+
+### Architecture
+```
+User Question → RAG Search (Support Articles) → GPT-3.5 + Context → Response
+                                                        ↓
+                                              Database (Conversation Log)
+```
+
+### User Experience
+1. **Floating Button** - Orange bubble with notification badge
+2. **Welcome Message** - Greeting with quick action buttons
+3. **Natural Chat** - Type questions naturally, no keywords needed
+4. **Smart Responses** - AI understands context and intent
+5. **Related Articles** - Relevant support docs linked automatically
+6. **Human Handoff** - Contact form for complex issues
+
+### Technical Implementation
+- **OpenAI API** - GPT-3.5-turbo for responses
+- **Vector Search** - Keyword-based article matching (can upgrade to embeddings)
+- **SQLite Storage** - Conversation history and analytics
+- **React Component** - Beautiful, accessible UI
+- **Type-Safe** - Full TypeScript coverage
+
+### API Endpoints
+- `POST /api/chatbot` - Send message, get AI response
+- `GET /api/chatbot` - Retrieve conversation history
+- `POST /api/chatbot/feedback` - Record helpful/not helpful
+
+### Setup
+```env
+OPENAI_API_KEY=your-openai-api-key
+```
+Get your key: https://platform.openai.com/api-keys
+
+### Cost Efficiency
+- **GPT-3.5-turbo pricing**: ~$0.50 per 1M input tokens
+- **Average conversation**: ~1,000 tokens = $0.0005
+- **1,000 conversations**: ~$0.50
+- **Extremely affordable** compared to human support costs!
+
+### Database Schema
+```sql
+CREATE TABLE chatbot_conversations (
+  id INTEGER PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  user_id INTEGER,
+  message_role TEXT NOT NULL,  -- 'user' or 'assistant'
+  message_content TEXT NOT NULL,
+  articles_referenced TEXT,     -- Comma-separated article IDs
+  feedback TEXT,                -- 'helpful' or 'not_helpful'
+  created_at DATETIME
+)
+```
+
+### Comparison: Legacy vs Modern
+
+**Legacy System (FiltersFast):**
+- ❌ Simple keyword matching
+- ❌ No natural language understanding
+- ❌ Only returns pre-written articles
+- ❌ No conversation context
+- ❌ Built in VBScript/ASP
+
+**Modern System (FiltersFast-Next):**
+- ✅ AI-powered natural language processing
+- ✅ Understands intent and context
+- ✅ Generates custom responses
+- ✅ Maintains conversation history
+- ✅ Modern React/TypeScript architecture
+- ✅ 10x better user experience!
+
+### Future Enhancements (Phase 2)
+- **Vector Embeddings** - Semantic search using OpenAI embeddings
+- **Multi-Language Support** - Translate conversations
+- **Sentiment Analysis** - Detect frustrated customers for priority routing
+- **Agent Handoff** - Live chat integration for complex issues
+- **Analytics Dashboard** - Track common questions, satisfaction rates
+- **Voice Support** - Text-to-speech for accessibility
+- **Custom Training** - Fine-tune on FiltersFast-specific data
+- **Integration with Order System** - "Where's my order #12345?" auto-lookup
+
+### Analytics Available
+- Total conversations
+- Average messages per conversation
+- Helpful vs not helpful feedback
+- Most referenced articles
+- Common user questions
+- Session duration
+- Fallback to human rate
+
+---
+
 **For setup instructions, see `SETUP.md`**  
 **For development guide, see `DEVELOPMENT.md`**
 
