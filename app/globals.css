@@ -38,7 +38,7 @@
   white-space: normal;
 }
 
-/* Enhanced focus indicators for accessibility */
+/* Enhanced focus indicators for accessibility - using exact brand orange */
 *:focus-visible {
   outline: 2px solid #f26722;
   outline-offset: 2px;

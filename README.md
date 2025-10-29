@@ -84,11 +84,15 @@ Since Node.js may not be in your PATH, you have two options:
 
 ## 🎨 Design System
 
-### Brand Colors (from original FiltersFast)
+### Brand Colors (EXACT match from original FiltersFast)
 
 - **Orange:** `#f26722` - Primary CTA buttons, accents
-- **Blue:** `#0066b2` - Secondary actions, navigation
+- **Blue:** `#054f97` - Secondary actions, navigation, headings
+- **Blue (Links):** `#086db6` - Text links, hover states
+- **Green (Success):** `#37b033` - Success messages, confirmations
 - **Gray Scale:** Neutral backgrounds and text
+
+**Note:** All colors have been audited against the original FiltersFast ASP site CSS to ensure perfect brand consistency.
 
 ### Component Library
 
