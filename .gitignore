@@ -35,3 +35,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# authentication database (contains user data)
+auth.db
+*.db
+*.db-journal
+

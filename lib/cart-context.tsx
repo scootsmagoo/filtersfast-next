@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useSession } from '@/lib/auth-client';
 
 export interface CartItem {
   id: number;
@@ -19,7 +20,8 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> }
+  | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> & { quantity?: number } }
+  | { type: 'ADD_ITEMS_BATCH'; payload: CartItem[] }
   | { type: 'REMOVE_ITEM'; payload: number }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
   | { type: 'CLEAR_CART' }
@@ -35,11 +37,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
+      const quantityToAdd = action.payload.quantity || 1;
       
       if (existingItem) {
         const updatedItems = state.items.map(item =>
           item.id === action.payload.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
         return {
@@ -49,7 +52,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         };
       } else {
-        const newItem = { ...action.payload, quantity: 1 };
+        const newItem = { ...action.payload, quantity: quantityToAdd };
         const updatedItems = [...state.items, newItem];
         return {
           ...state,
@@ -58,6 +61,33 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         };
       }
+    }
+    
+    case 'ADD_ITEMS_BATCH': {
+      // Batch add multiple items (for reorder functionality)
+      let updatedItems = [...state.items];
+      
+      action.payload.forEach(newItem => {
+        const existingIndex = updatedItems.findIndex(item => item.id === newItem.id);
+        
+        if (existingIndex >= 0) {
+          // Item exists, add to quantity
+          updatedItems[existingIndex] = {
+            ...updatedItems[existingIndex],
+            quantity: updatedItems[existingIndex].quantity + newItem.quantity,
+          };
+        } else {
+          // New item, add to cart
+          updatedItems.push(newItem);
+        }
+      });
+      
+      return {
+        ...state,
+        items: updatedItems,
+        total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+      };
     }
     
     case 'REMOVE_ITEM': {
@@ -107,24 +137,48 @@ const CartContext = createContext<{
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const { data: session, isPending } = useSession();
+  
+  // Get the appropriate cart key based on user authentication
+  const getCartKey = (userId?: string) => {
+    if (userId) {
+      return `filtersfast-cart-user-${userId}`;
+    }
+    return 'filtersfast-cart-anonymous';
+  };
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage when user session changes
   useEffect(() => {
-    const savedCart = localStorage.getItem('filtersfast-cart');
+    // Wait for session to be loaded
+    if (isPending) return;
+
+    const currentUserId = session?.user?.id;
+    const cartKey = getCartKey(currentUserId);
+    
+    const savedCart = localStorage.getItem(cartKey);
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
         dispatch({ type: 'LOAD_CART', payload: cartItems });
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
+        dispatch({ type: 'CLEAR_CART' });
       }
+    } else {
+      // Clear cart if no saved cart exists for this user
+      dispatch({ type: 'CLEAR_CART' });
     }
-  }, []);
+  }, [session?.user?.id, isPending]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('filtersfast-cart', JSON.stringify(state.items));
-  }, [state.items]);
+    // Don't save until session is loaded
+    if (isPending) return;
+    
+    const currentUserId = session?.user?.id;
+    const cartKey = getCartKey(currentUserId);
+    localStorage.setItem(cartKey, JSON.stringify(state.items));
+  }, [state.items, session?.user?.id, isPending]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>
@@ -138,5 +192,46 @@ export function useCart() {
   if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
-  return context;
+  
+  // Helper functions for easier cart management
+  const addItem = (item: Omit<CartItem, 'quantity'>) => {
+    context.dispatch({ type: 'ADD_ITEM', payload: item });
+  };
+  
+  const addItemsBatch = (items: CartItem[]) => {
+    context.dispatch({ type: 'ADD_ITEMS_BATCH', payload: items });
+  };
+  
+  const removeItem = (id: number) => {
+    context.dispatch({ type: 'REMOVE_ITEM', payload: id });
+  };
+  
+  const updateQuantity = (id: number, quantity: number) => {
+    context.dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+  };
+  
+  const clearCart = () => {
+    context.dispatch({ type: 'CLEAR_CART' });
+  };
+  
+  const getItemQuantity = (id: number): number => {
+    const item = context.state.items.find(item => item.id === id);
+    return item ? item.quantity : 0;
+  };
+  
+  const isInCart = (id: number): boolean => {
+    return context.state.items.some(item => item.id === id);
+  };
+  
+  return {
+    ...context.state,
+    dispatch: context.dispatch,
+    addItem,
+    addItemsBatch,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    getItemQuantity,
+    isInCart,
+  };
 }

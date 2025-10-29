@@ -1,7 +1,25 @@
+'use client'
+
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
+import { useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function AutoDeliveryPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    if (session?.user) {
+      // If logged in, go to their subscription management
+      router.push('/account/subscriptions');
+    } else {
+      // If not logged in, go to sign-up with redirect to subscriptions
+      router.push('/sign-up?redirect=/account/subscriptions');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-brand-gray-50">
       {/* Hero Section */}
@@ -117,8 +135,8 @@ export default function AutoDeliveryPage() {
                   <span className="text-brand-gray-700">Cancel or modify anytime</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full">
-                Get Started
+              <Button variant="outline" className="w-full" onClick={handleGetStarted}>
+                {session?.user ? 'Manage Subscriptions' : 'Get Started'}
               </Button>
             </Card>
 
@@ -151,8 +169,8 @@ export default function AutoDeliveryPage() {
                   <span className="text-brand-gray-700">Priority customer support</span>
                 </li>
               </ul>
-              <Button variant="primary" className="w-full">
-                Get Started
+              <Button variant="primary" className="w-full" onClick={handleGetStarted}>
+                {session?.user ? 'Manage Subscriptions' : 'Get Started'}
               </Button>
             </Card>
           </div>
@@ -198,9 +216,22 @@ export default function AutoDeliveryPage() {
           <Card className="p-8 bg-gradient-to-r from-brand-blue to-brand-blue-dark text-white">
             <h2 className="text-3xl font-bold mb-4">Ready to Join Home Filter Club?</h2>
             <p className="text-lg mb-6 opacity-90">Start saving today with automatic filter deliveries</p>
-            <Button asChild variant="primary" className="bg-brand-orange hover:bg-brand-orange-dark border-0">
-              <a href="/refrigerator-filters">Browse Filters</a>
-            </Button>
+            <div className="flex gap-4 justify-center">
+              {session?.user ? (
+                <Button variant="primary" className="bg-brand-orange hover:bg-brand-orange-dark border-0" onClick={handleGetStarted}>
+                  Manage My Subscriptions
+                </Button>
+              ) : (
+                <Button variant="primary" className="bg-brand-orange hover:bg-brand-orange-dark border-0" onClick={handleGetStarted}>
+                  Sign Up & Subscribe
+                </Button>
+              )}
+              <Link href="/refrigerator-filters">
+                <Button variant="outline" className="border-white text-white hover:bg-white/10">
+                  Browse Filters
+                </Button>
+              </Link>
+            </div>
           </Card>
         </div>
       </div>

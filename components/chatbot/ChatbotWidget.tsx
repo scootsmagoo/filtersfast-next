@@ -1,0 +1,466 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, User } from 'lucide-react';
+
+interface Message {
+  id: number | string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  articlesReferenced?: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    category_slug: string;
+  }>;
+}
+
+export default function ChatbotWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const widgetRef = useRef<HTMLDivElement>(null);
+  
+  // WCAG: Character limit for input
+  const MAX_MESSAGE_LENGTH = 2000;
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen && !showContactForm) {
+      inputRef.current?.focus();
+    }
+  }, [isOpen, showContactForm]);
+
+  // Send initial greeting when chat opens
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        id: 'greeting',
+        role: 'assistant',
+        content: "Hello! I'm the FiltersFast Virtual Assistant. I can help answer questions about our products, orders, returns, and more. How can I help you today?",
+        timestamp: new Date().toISOString(),
+      }]);
+    }
+  }, [isOpen, messages.length]);
+
+  // Handle Escape key to close
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        if (showContactForm) {
+          setShowContactForm(false);
+        } else {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, showContactForm]);
+
+  // Handle click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isOpen && widgetRef.current && !widgetRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      // Delay adding listener to avoid immediate close on open
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    // WCAG/OWASP: Validate message length client-side
+    if (inputValue.length > MAX_MESSAGE_LENGTH) {
+      setErrorMessage(`Message too long. Please keep it under ${MAX_MESSAGE_LENGTH} characters.`);
+      return;
+    }
+
+    setErrorMessage(''); // Clear any previous errors
+
+    const userMessage: Message = {
+      id: `user_${Date.now()}`,
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage.content,
+          sessionId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
+
+      const assistantMessage: Message = {
+        id: data.messageId,
+        role: 'assistant',
+        content: data.message,
+        timestamp: data.timestamp,
+        articlesReferenced: data.articlesReferenced,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Failed to get response';
+      setErrorMessage(errorMsg); // WCAG: Announce error to screen readers
+      
+      const errorMessage: Message = {
+        id: `error_${Date.now()}`,
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again or contact our support team directly.",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFeedback = async (messageId: number | string, feedback: 'helpful' | 'not_helpful') => {
+    if (typeof messageId !== 'number') return;
+
+    try {
+      await fetch('/api/chatbot/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, feedback }),
+      });
+    } catch (error) {
+      console.error('Failed to send feedback:', error);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const quickActions = [
+    "Where is my order?",
+    "How do I return an item?",
+    "Tell me about Subscribe & Save",
+    "What's your return policy?",
+  ];
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 bg-brand-orange text-white rounded-full p-4 shadow-[0_0_0_4px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_0_0_4px_rgba(242,103,34,0.4),0_12px_24px_rgba(0,0,0,0.3)] hover:scale-110 transition-all duration-200 z-50 group border-4 border-gray-800 min-w-[56px] min-h-[56px]"
+        aria-label="Open chat assistant - Get help with your order"
+        title="Chat with our AI assistant"
+      >
+        <MessageCircle className="w-6 h-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]" strokeWidth={2.5} aria-hidden="true" />
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse border-2 border-gray-800 font-bold shadow-lg" aria-label="New">
+          !
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div 
+      ref={widgetRef}
+      className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-lg shadow-2xl flex flex-col z-50 border-4 border-brand-orange ring-4 ring-gray-300"
+      role="dialog"
+      aria-label="Chat assistant"
+      aria-modal="true"
+    >
+      {/* Header */}
+      <div className="bg-brand-blue text-white p-4 rounded-t-lg flex items-center justify-between border-b-4 border-brand-orange">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-5 h-5" aria-hidden="true" />
+          <div>
+            <h3 className="font-semibold" id="chat-title">FiltersFast Assistant</h3>
+            <p className="text-xs opacity-90">Powered by AI • Press Esc to close</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="hover:bg-white/20 rounded p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Close chat assistant window"
+          title="Close chat (Esc)"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* WCAG: Error announcement for screen readers */}
+      {errorMessage && (
+        <div 
+          className="sr-only" 
+          role="alert" 
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          Error: {errorMessage}
+        </div>
+      )}
+
+      {/* Messages */}
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-label="Chat messages"
+      >
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              {/* Avatar */}
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2 shadow-md ${
+                msg.role === 'user' ? 'bg-gradient-to-br from-brand-blue to-brand-blue-dark border-brand-blue-dark' : 'bg-gradient-to-br from-brand-orange to-brand-orange-dark border-brand-orange-dark'
+              }`}>
+                {msg.role === 'user' ? (
+                  <User className="w-4 h-4 text-white" aria-hidden="true" strokeWidth={2.5} />
+                ) : (
+                  <MessageCircle className="w-4 h-4 text-white" aria-hidden="true" strokeWidth={2.5} />
+                )}
+              </div>
+
+              {/* Message bubble */}
+              <div className="flex flex-col">
+                <div className={`rounded-lg p-3 border-2 shadow-sm ${
+                  msg.role === 'user'
+                    ? 'bg-brand-blue text-white border-brand-blue-dark'
+                    : 'bg-white text-gray-900 border-gray-300'
+                }`}>
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+
+                {/* Referenced articles */}
+                {msg.articlesReferenced && msg.articlesReferenced.length > 0 && (
+                  <div className="mt-2 text-xs space-y-1">
+                    <p className="text-gray-500 font-medium">Related articles:</p>
+                    {msg.articlesReferenced.map((article) => (
+                      <a
+                        key={article.id}
+                        href={`/support/${article.category_slug}/${article.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-brand-blue-link hover:underline"
+                      >
+                        → {article.title}
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {/* Feedback buttons for assistant messages - WCAG: Min 44x44px touch targets */}
+                {msg.role === 'assistant' && typeof msg.id === 'number' && (
+                  <div className="flex gap-2 mt-2" role="group" aria-label="Rate this response">
+                    <button
+                      onClick={() => handleFeedback(msg.id, 'helpful')}
+                      className="text-gray-500 hover:text-green-600 hover:bg-green-50 p-2 rounded transition-colors border border-transparent hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      aria-label="This answer was helpful"
+                      title="This was helpful"
+                    >
+                      <ThumbsUp className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(msg.id, 'not_helpful')}
+                      className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 rounded transition-colors border border-transparent hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      aria-label="This answer was not helpful"
+                      title="This was not helpful"
+                    >
+                      <ThumbsDown className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="flex gap-2 max-w-[85%]">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-brand-orange-dark border-2 border-brand-orange-dark flex items-center justify-center shadow-md">
+                <MessageCircle className="w-4 h-4 text-white" aria-hidden="true" strokeWidth={2.5} />
+              </div>
+              <div className="bg-white border-2 border-gray-300 rounded-lg p-3 shadow-sm" role="status" aria-live="polite" aria-label="Loading response">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-brand-orange rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-brand-orange rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-brand-orange rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick actions (shown when no messages) */}
+      {messages.length === 1 && messages[0].id === 'greeting' && (
+        <div className="px-4 pb-2 space-y-2">
+          <p className="text-xs text-gray-500 font-medium">Quick questions:</p>
+          <div className="grid grid-cols-1 gap-2">
+            {quickActions.map((action) => (
+              <button
+                key={action}
+                onClick={() => {
+                  setInputValue(action);
+                  setTimeout(handleSend, 100);
+                }}
+                className="text-left text-xs bg-white hover:bg-brand-orange hover:text-white text-gray-700 px-3 py-3 rounded border-2 border-gray-300 hover:border-brand-orange transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-orange min-h-[44px]"
+                aria-label={`Ask: ${action}`}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input area */}
+      <div className="p-4 border-t-4 border-brand-orange bg-gray-50">
+        {/* WCAG: Character counter */}
+        {inputValue.length > 0 && (
+          <div className="text-xs text-gray-500 mb-2 text-right" aria-live="polite">
+            {inputValue.length} / {MAX_MESSAGE_LENGTH} characters
+            {inputValue.length > MAX_MESSAGE_LENGTH && (
+              <span className="text-red-600 font-semibold ml-2">
+                (Too long - max {MAX_MESSAGE_LENGTH})
+              </span>
+            )}
+          </div>
+        )}
+        
+        <div className="flex gap-2">
+          <textarea
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message..."
+            rows={1}
+            maxLength={MAX_MESSAGE_LENGTH + 100}
+            className={`flex-1 resize-none border-2 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue text-sm bg-white text-gray-900 ${
+              inputValue.length > MAX_MESSAGE_LENGTH ? 'border-red-500' : 'border-gray-300'
+            }`}
+            disabled={isLoading}
+            aria-label="Type your message"
+            aria-describedby="char-count"
+            aria-invalid={inputValue.length > MAX_MESSAGE_LENGTH}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!inputValue.trim() || isLoading || inputValue.length > MAX_MESSAGE_LENGTH}
+            className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-brand-orange-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-2 border-brand-orange-dark focus:outline-none focus:ring-2 focus:ring-brand-orange shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Send message"
+            title="Send message (Enter)"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Human support button - WCAG: Min touch target 44x44px */}
+        <button
+          onClick={() => setShowContactForm(true)}
+          className="w-full mt-2 text-xs text-brand-blue-link hover:text-brand-orange hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue rounded px-2 py-2 min-h-[44px]"
+          aria-label="Contact human support team"
+        >
+          Need to talk to a human? Contact support →
+        </button>
+      </div>
+
+      {/* Contact form overlay */}
+      {showContactForm && (
+        <div 
+          className="absolute inset-0 bg-white rounded-lg p-4 flex flex-col border-4 border-brand-orange"
+          role="dialog"
+          aria-labelledby="contact-title"
+        >
+          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
+            <h3 id="contact-title" className="font-semibold text-lg text-brand-blue">Contact Human Support</h3>
+            <button
+              onClick={() => setShowContactForm(false)}
+              className="hover:bg-gray-100 rounded p-2 focus:outline-none focus:ring-2 focus:ring-brand-blue min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Close contact form and return to chat"
+              title="Back to chat (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-gray-700 mb-4 font-medium">
+              For immediate assistance, please contact us:
+            </p>
+            <div className="space-y-3 text-sm bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+              <p className="flex items-start">
+                <strong className="w-20 text-brand-blue">Phone:</strong> 
+                <a href="tel:1-888-775-7101" className="text-brand-blue-link hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                  1-888-775-7101
+                </a>
+              </p>
+              <p className="flex items-start">
+                <strong className="w-20 text-brand-blue">Email:</strong> 
+                <a href="mailto:support@filtersfast.com" className="text-brand-blue-link hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                  support@filtersfast.com
+                </a>
+              </p>
+              <p className="flex items-start">
+                <strong className="w-20 text-brand-blue">Hours:</strong> 
+                <span>Mon-Fri 9am-5pm EST</span>
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowContactForm(false)}
+            className="w-full bg-brand-orange text-white py-3 rounded-lg hover:bg-brand-orange-dark border-2 border-brand-orange-dark transition-colors focus:outline-none focus:ring-2 focus:ring-brand-orange mt-4 min-h-[44px]"
+            aria-label="Return to chat conversation"
+          >
+            Back to Chat
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+

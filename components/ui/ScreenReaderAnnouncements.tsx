@@ -4,26 +4,26 @@ import { useEffect, useRef } from 'react';
 import { useCart } from '@/lib/cart-context';
 
 export default function ScreenReaderAnnouncements() {
-  const { state: cart } = useCart();
+  const { itemCount } = useCart();
   const announcementRef = useRef<HTMLDivElement>(null);
-  const previousItemCount = useRef(cart.itemCount);
+  const previousItemCount = useRef(itemCount);
 
   useEffect(() => {
     // Announce cart changes to screen readers
-    if (previousItemCount.current !== cart.itemCount) {
-      const message = cart.itemCount === 0 
+    if (previousItemCount.current !== itemCount) {
+      const message = itemCount === 0 
         ? 'Cart is now empty'
-        : cart.itemCount === 1
+        : itemCount === 1
         ? '1 item added to cart'
-        : `${cart.itemCount} items in cart`;
+        : `${itemCount} items in cart`;
       
       if (announcementRef.current) {
         announcementRef.current.textContent = message;
       }
       
-      previousItemCount.current = cart.itemCount;
+      previousItemCount.current = itemCount;
     }
-  }, [cart.itemCount]);
+  }, [itemCount]);
 
   return (
     <div

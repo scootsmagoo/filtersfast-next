@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
-import { Droplet, Wind, Waves, Sparkles, Package, Tag } from 'lucide-react';
+import { Droplet, Wind, Waves, Sparkles, Package, Tag, Ruler } from 'lucide-react';
 
 const categories = [
   {
@@ -16,6 +16,7 @@ const categories = [
     icon: Wind,
     color: 'text-cyan-500',
     bgColor: 'bg-cyan-50',
+    badge: 'Custom Sizes',
   },
   {
     name: 'Water Filters',
@@ -65,7 +66,12 @@ export default function FeaturedCategories() {
             const Icon = category.icon;
             return (
               <Link key={category.name} href={category.href}>
-                <Card className="group p-6 h-full hover:border-brand-orange border-2 border-transparent transition-all">
+                <Card className="group p-6 h-full hover:border-brand-orange border-2 border-transparent transition-all relative">
+                  {category.badge && (
+                    <div className="absolute top-2 right-2 px-2 py-1 bg-brand-orange text-white text-xs font-bold rounded">
+                      {category.badge}
+                    </div>
+                  )}
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className={`${category.bgColor} p-4 rounded-full group-hover:scale-110 transition-transform`}>
                       <Icon className={`w-8 h-8 ${category.color}`} />

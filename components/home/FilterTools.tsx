@@ -1,15 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
-import { Search, Droplet, Wind } from 'lucide-react';
+import { Search, Droplet, Wind, Bookmark } from 'lucide-react';
 
 export default function FilterTools() {
-  const [activeTab, setActiveTab] = useState<'water' | 'air'>('water');
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'model' | 'water' | 'air'>('model');
   const [partNumber, setPartNumber] = useState('');
   const [airWidth, setAirWidth] = useState('');
   const [airHeight, setAirHeight] = useState('');
   const [airDepth, setAirDepth] = useState('1');
+  const [modelSearch, setModelSearch] = useState('');
 
   const handleWaterSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +22,13 @@ export default function FilterTools() {
   const handleAirSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for air filter:', { airWidth, airHeight, airDepth });
+  };
+
+  const handleModelSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (modelSearch.trim()) {
+      router.push(`/model-lookup?q=${encodeURIComponent(modelSearch)}`);
+    }
   };
 
   return (
@@ -35,7 +45,27 @@ export default function FilterTools() {
 
         {/* Tab Switcher */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-lg border border-brand-gray-300 bg-white p-1">
+          <div 
+            className="inline-flex rounded-lg border border-brand-gray-300 bg-white p-1" 
+            role="tablist"
+            aria-label="Filter search methods"
+          >
+            <button
+              onClick={() => setActiveTab('model')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
+                activeTab === 'model'
+                  ? 'bg-brand-orange text-white'
+                  : 'text-brand-gray-600 hover:text-brand-orange'
+              }`}
+              role="tab"
+              aria-selected={activeTab === 'model'}
+              aria-controls="model-panel"
+              id="model-tab"
+              tabIndex={activeTab === 'model' ? 0 : -1}
+            >
+              <Bookmark className="w-5 h-5" aria-hidden="true" />
+              Find by Model
+            </button>
             <button
               onClick={() => setActiveTab('water')}
               className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
@@ -43,9 +73,15 @@ export default function FilterTools() {
                   ? 'bg-brand-blue text-white'
                   : 'text-brand-gray-600 hover:text-brand-blue'
               }`}
+              role="tab"
+              aria-selected={activeTab === 'water'}
+              aria-controls="water-panel"
+              id="water-tab"
+              tabIndex={activeTab === 'water' ? 0 : -1}
             >
-              <Droplet className="w-5 h-5" />
-              Refrigerator Water Filters
+              <Droplet className="w-5 h-5" aria-hidden="true" />
+              <span className="hidden lg:inline">Refrigerator Water Filters</span>
+              <span className="lg:hidden">Water</span>
             </button>
             <button
               onClick={() => setActiveTab('air')}
@@ -54,16 +90,110 @@ export default function FilterTools() {
                   ? 'bg-brand-blue text-white'
                   : 'text-brand-gray-600 hover:text-brand-blue'
               }`}
+              role="tab"
+              aria-selected={activeTab === 'air'}
+              aria-controls="air-panel"
+              id="air-tab"
+              tabIndex={activeTab === 'air' ? 0 : -1}
             >
-              <Wind className="w-5 h-5" />
-              Air Filters
+              <Wind className="w-5 h-5" aria-hidden="true" />
+              <span className="hidden lg:inline">Air Filters</span>
+              <span className="lg:hidden">Air</span>
             </button>
           </div>
         </div>
 
+        {/* Model Lookup */}
+        {activeTab === 'model' && (
+          <div 
+            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            role="tabpanel"
+            id="model-panel"
+            aria-labelledby="model-tab"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Bookmark className="w-8 h-8 text-brand-orange" aria-hidden="true" />
+              <div>
+                <h3 className="text-xl font-bold text-brand-gray-900">Find the Right Filter for Your Appliance</h3>
+                <p className="text-brand-gray-600">Search by model number or brand to find compatible filters</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleModelSearch} className="space-y-6">
+              <div>
+                <label htmlFor="model-search-home" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                  Enter Your Appliance Model Number or Brand
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    id="model-search-home"
+                    placeholder="e.g., GE GSS25GSHSS or Samsung RF28..."
+                    value={modelSearch}
+                    onChange={(e) => setModelSearch(e.target.value)}
+                    className="flex-1 input-field"
+                    aria-describedby="model-help-text"
+                    maxLength={100}
+                  />
+                  <Button type="submit" className="flex items-center gap-2" aria-label="Search for appliance model">
+                    <Search className="w-5 h-5" aria-hidden="true" />
+                    Find It
+                  </Button>
+                </div>
+                <p id="model-help-text" className="sr-only">
+                  Enter your appliance brand or full model number to find compatible replacement filters
+                </p>
+              </div>
+
+              <div 
+                className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+                role="note"
+                aria-label="Help finding your model number"
+              >
+                <h4 className="font-semibold text-blue-900 mb-2">
+                  <span role="img" aria-label="Light bulb">💡</span> Not sure what your model number is?
+                </h4>
+                <p className="text-sm text-blue-800 mb-3">
+                  Your appliance model number is usually found on a label or tag on the inside or back of your unit.
+                </p>
+                <ul className="text-sm text-blue-800 space-y-1 ml-4 list-none">
+                  <li>• <strong>Refrigerators:</strong> Inside the fridge, on the side wall</li>
+                  <li>• <strong>HVAC/Furnace:</strong> On the unit's metal panel</li>
+                  <li>• <strong>Humidifier:</strong> On the water panel or main unit</li>
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <p className="col-span-2 md:col-span-4 text-sm font-semibold text-brand-gray-700 mb-1" id="popular-brands-label">
+                  Popular Brands:
+                </p>
+                {['GE', 'Samsung', 'Whirlpool', 'LG', 'Honeywell', 'Carrier', 'Trane', 'Lennox'].map((brand) => (
+                  <button
+                    key={brand}
+                    type="button"
+                    onClick={() => {
+                      setModelSearch(brand);
+                      router.push(`/model-lookup?q=${brand}`);
+                    }}
+                    className="px-4 py-2 border-2 border-brand-gray-300 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 transition-all font-semibold text-brand-gray-700 text-sm focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                    aria-label={`Search for ${brand} models`}
+                  >
+                    {brand}
+                  </button>
+                ))}
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Water Filter Search */}
         {activeTab === 'water' && (
-          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div 
+            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            role="tabpanel"
+            id="water-panel"
+            aria-labelledby="water-tab"
+          >
             <div className="flex items-center gap-3 mb-6">
               <Droplet className="w-8 h-8 text-brand-blue" />
               <div>
@@ -142,7 +272,12 @@ export default function FilterTools() {
 
         {/* Air Filter Search */}
         {activeTab === 'air' && (
-          <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div 
+            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            role="tabpanel"
+            id="air-panel"
+            aria-labelledby="air-tab"
+          >
             <div className="flex items-center gap-3 mb-6">
               <Wind className="w-8 h-8 text-brand-blue" />
               <div>

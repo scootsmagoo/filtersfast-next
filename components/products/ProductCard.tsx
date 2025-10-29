@@ -2,9 +2,11 @@
 
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { Star, ShoppingCart, Check } from 'lucide-react';
+import { ShoppingCart, Check } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/lib/cart-context';
+import { useStatusAnnouncement } from '@/components/ui/StatusAnnouncementProvider';
+import ReviewStars from './ReviewStars';
 import { useState } from 'react';
 
 interface Product {
@@ -27,8 +29,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, viewMode }: ProductCardProps) {
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
+  const { announceSuccess } = useStatusAnnouncement();
   const [isAdding, setIsAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -37,22 +41,26 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const handleAddToCart = async () => {
     setIsAdding(true);
     
-    // Simulate a brief loading state
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simulate a brief loading state for better UX
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    dispatch({
-      type: 'ADD_ITEM',
-      payload: {
-        id: product.id,
-        name: product.name,
-        brand: product.brand,
-        sku: product.sku,
-        price: product.price,
-        image: product.image,
-      },
+    addItem({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      sku: product.sku,
+      price: product.price,
+      image: product.image,
     });
     
+    // Announce to screen readers
+    announceSuccess(`${product.name} added to cart`);
+    
     setIsAdding(false);
+    setJustAdded(true);
+    
+    // Reset "just added" state after 2 seconds
+    setTimeout(() => setJustAdded(false), 2000);
   };
 
   if (viewMode === 'list') {
@@ -93,26 +101,13 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
               {product.name}
             </a>
             <div className="flex items-center gap-2 mb-2">
-              <div 
-                className="flex items-center"
-                role="img"
-                aria-label={`${product.rating} out of 5 stars`}
+              <ReviewStars rating={product.rating} size="sm" />
+              <a
+                href={`/products/${product.id}#reviews`}
+                className="text-sm text-brand-gray-600 hover:text-brand-orange transition-colors"
               >
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.floor(product.rating)
-                        ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-brand-gray-300'
-                    }`}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-brand-gray-600">
-                {product.rating} out of 5 stars ({product.reviewCount} reviews)
-              </span>
+                ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+              </a>
             </div>
             {product.badges && (
               <div className="flex gap-2 flex-wrap" role="list" aria-label="Product badges">
@@ -149,10 +144,19 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
             <Button 
               onClick={handleAddToCart}
               disabled={isAdding || !product.inStock}
-              className="w-full flex items-center justify-center gap-2"
+              className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
             >
-              <ShoppingCart className="w-5 h-5" />
-              {isAdding ? 'Adding...' : 'Add to Cart'}
+              {justAdded ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  Added to Cart!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-5 h-5" />
+                  {isAdding ? 'Adding...' : 'Add to Cart'}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -200,19 +204,13 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
 
         {/* Rating */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-4 h-4 ${
-                  i < Math.floor(product.rating)
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-brand-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-sm text-brand-gray-600">({product.reviewCount})</span>
+          <ReviewStars rating={product.rating} size="sm" />
+          <a
+            href={`/products/${product.id}#reviews`}
+            className="text-sm text-brand-gray-600 hover:text-brand-orange transition-colors"
+          >
+            ({product.reviewCount})
+          </a>
         </div>
 
         {/* Price */}
@@ -235,10 +233,19 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
         <Button 
           onClick={handleAddToCart}
           disabled={isAdding || !product.inStock}
-          className="w-full flex items-center justify-center gap-2"
+          className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
         >
-          <ShoppingCart className="w-5 h-5" />
-          {isAdding ? 'Adding...' : 'Add to Cart'}
+          {justAdded ? (
+            <>
+              <Check className="w-5 h-5" />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-5 h-5" />
+              {isAdding ? 'Adding...' : 'Add to Cart'}
+            </>
+          )}
         </Button>
       </div>
     </Card>

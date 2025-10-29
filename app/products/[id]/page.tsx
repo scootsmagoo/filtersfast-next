@@ -196,7 +196,7 @@ export default function ProductDetailPage() {
         sku: product.sku,
         price: product.price,
         image: product.image,
-        quantity
+        ...(quantity > 1 && { quantity })
       });
       
       // Show success message (you could add a toast notification here)

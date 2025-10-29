@@ -20,14 +20,18 @@ interface Product {
 
 interface ProductGridProps {
   products: Product[];
+  title?: string;
 }
 
-export default function ProductGrid({ products }: ProductGridProps) {
+export default function ProductGrid({ products, title }: ProductGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('bestseller');
 
   return (
     <div className="space-y-6">
+      {/* Title */}
+      {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
+      
       {/* Toolbar */}
       <div className="bg-white rounded-lg shadow-sm p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-brand-gray-600">
