@@ -11,7 +11,9 @@
     "cron:cancel-old-orders": "tsx scripts/cancel-old-pending-orders.ts",
     "init:abandoned-carts": "tsx scripts/init-abandoned-carts.ts",
     "init:payment-methods": "tsx scripts/init-payment-methods.ts",
-    "init:idme": "tsx scripts/init-idme.ts"
+    "init:idme": "tsx scripts/init-idme.ts",
+    "init:sms": "tsx scripts/init-sms.ts",
+    "reset:sms": "tsx scripts/reset-sms.ts"
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.0.1",
