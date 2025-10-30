@@ -22,20 +22,23 @@ interface FilterSidebarProps {
   onFilterChange?: (filters: any) => void;
   availableBrands?: string[];
   priceRange?: number[];
+  showMervFilter?: boolean;
 }
 
-export default function FilterSidebar({ onFilterChange, availableBrands, priceRange }: FilterSidebarProps = {}) {
+export default function FilterSidebar({ onFilterChange, availableBrands, priceRange, showMervFilter = false }: FilterSidebarProps = {}) {
   const brands = availableBrands || defaultBrands;
   const [sections, setSections] = useState<Record<string, boolean>>({
     brand: true,
     price: true,
     rating: true,
+    merv: showMervFilter,
     features: false,
   });
 
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedPrice, setSelectedPrice] = useState<string>('');
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
+  const [selectedMervRatings, setSelectedMervRatings] = useState<number[]>([]);
 
   const toggleSection = (section: string) => {
     setSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -47,10 +50,17 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
     );
   };
 
+  const toggleMervRating = (rating: number) => {
+    setSelectedMervRatings((prev) =>
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
+    );
+  };
+
   const clearFilters = () => {
     setSelectedBrands([]);
     setSelectedPrice('');
     setSelectedRating(null);
+    setSelectedMervRatings([]);
   };
 
   // Notify parent of filter changes
@@ -60,12 +70,13 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
         brands: selectedBrands,
         price: selectedPrice,
         rating: selectedRating,
+        mervRatings: selectedMervRatings,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBrands, selectedPrice, selectedRating]);
+  }, [selectedBrands, selectedPrice, selectedRating, selectedMervRatings]);
 
-  const hasFilters = selectedBrands.length > 0 || selectedPrice || selectedRating !== null;
+  const hasFilters = selectedBrands.length > 0 || selectedPrice || selectedRating !== null || selectedMervRatings.length > 0;
 
   return (
     <div className="space-y-4">
@@ -184,6 +195,39 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
           </div>
         )}
       </div>
+
+      {/* MERV Rating Filter (Air Filters Only) */}
+      {showMervFilter && (
+        <div className="bg-white rounded-lg shadow-sm">
+          <button
+            onClick={() => toggleSection('merv')}
+            className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+          >
+            <h3 className="font-bold text-brand-gray-900">MERV Rating</h3>
+            {sections.merv ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+          {sections.merv && (
+            <div className="p-4 pt-0 space-y-2">
+              {[8, 11, 13].map((merv) => (
+                <label key={merv} className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={selectedMervRatings.includes(merv)}
+                    onChange={() => toggleMervRating(merv)}
+                    className="w-4 h-4 rounded border-brand-gray-300 text-brand-orange focus:ring-brand-orange"
+                  />
+                  <span className="text-brand-gray-700 group-hover:text-brand-orange transition-colors">
+                    MERV {merv}
+                    {merv === 8 && <span className="text-xs ml-1">(Basic)</span>}
+                    {merv === 11 && <span className="text-xs ml-1">(Better)</span>}
+                    {merv === 13 && <span className="text-xs ml-1">(Best)</span>}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Features Filter */}
       <div className="bg-white rounded-lg shadow-sm">

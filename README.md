@@ -32,6 +32,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ Multi-step checkout flow with guest checkout
 - ✅ Order management and tracking
 - ✅ **Model Lookup Tool** - Find filters by appliance model 🆕
+- ✅ **Browse by Size** - Find filters by exact dimensions (16x20x1, etc.) 🆕
 - ✅ Product search with real-time preview
 - ✅ Custom air filter builder
 
@@ -171,12 +172,11 @@ npm run lint     # Run ESLint
 Based on legacy FiltersFast features and business priorities:
 
 ### High Priority (Next 3-6 months)
-- [ ] **Browse Filters by Size** - Dedicated page for size-based filter search (e.g., "16x20x1")
 - [ ] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!)
 - [ ] **Giveaways & Sweepstakes** - Promotional contests for email list growth
+- [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
 
 ### Medium Priority (6-12 months)
-- [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
 - [ ] **Shipping Insurance** - Optional insurance for high-value orders
 - [ ] **Newsletter Preferences** - Granular email subscription settings
 - [ ] **Multi-Currency Support** - CAD, GBP, EUR, AUD for international customers
