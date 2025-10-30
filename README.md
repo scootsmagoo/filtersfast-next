@@ -2,10 +2,16 @@
 
 A modern, performant redesign of the FiltersFast e-commerce platform built with Next.js 16, TypeScript, and Tailwind CSS.
 
-## 🆕 Latest Updates (October 29, 2025)
+## 🆕 Latest Updates (October 30, 2025)
 
 **Recent Improvements:**
-- ✅ **Admin Portal Access** - Admin users now have a visible link to the admin portal in their account sidebar (no more manual URL editing!)
+- ✅ **SMS Marketing (Attentive)** - Complete SMS notification system with 98% open rate! 🆕
+  - Customer opt-in at checkout and account settings
+  - Granular preferences (order updates, marketing, quiet hours)
+  - TCPA compliant with full consent tracking
+  - OWASP Top 10 + WCAG 2.1 AA compliant
+  - Ready for Attentive API integration
+- ✅ **Admin Portal Access** - Admin users now have a visible link to the admin portal in their account sidebar
 - ✅ **Account Edit Button Fixed** - The "Edit" button in Account Information now properly navigates to settings
 - ✅ **Enhanced Admin UX** - Purple-themed admin portal link with Shield icon for easy identification
 
@@ -39,6 +45,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 **Customer Features:**
 - ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
 - ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
+- ✅ **SMS Marketing (Attentive)** - Text notifications with 98% open rate 🆕
 - ✅ **ID.me Verification** - Military & first responder discounts (10% off)
 - ✅ **Filter Reminders** - Never forget to replace filters
 - ✅ **Subscriptions** (Subscribe & Save with 5% discount)
@@ -49,6 +56,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 **Business Features:**
 - ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
+- ✅ **SMS Marketing System** - Transactional + promotional messaging 🆕
 - ✅ **Promo Code System** - Discounts, free shipping, usage limits
 - ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats
 - ✅ **Address Validation** - SmartyStreets integration
@@ -172,8 +180,9 @@ npm run lint     # Run ESLint
 Based on legacy FiltersFast features and business priorities:
 
 ### High Priority (Next 3-6 months)
-- [ ] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!)
+- [x] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!) ✅ COMPLETE
 - [ ] **Giveaways & Sweepstakes** - Promotional contests for email list growth
+- [ ] **Charity Landing Pages** - Dedicated pages for partner charities
 - [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
 
 ### Medium Priority (6-12 months)
