@@ -5,14 +5,15 @@ import { Metadata } from 'next';
 import PartnerPageContent from '@/components/partners/PartnerPageContent';
 
 interface PartnerPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PartnerPageProps): Promise<Metadata> {
-  const partner = getPartnerBySlug(params.slug);
+  const { slug } = await params;
+  const partner = getPartnerBySlug(slug);
 
   if (!partner || !partner.active) {
     return {
@@ -31,8 +32,9 @@ export async function generateMetadata({ params }: PartnerPageProps): Promise<Me
   };
 }
 
-export default function PartnerPage({ params }: PartnerPageProps) {
-  const partner = getPartnerBySlug(params.slug);
+export default async function PartnerPage({ params }: PartnerPageProps) {
+  const { slug } = await params;
+  const partner = getPartnerBySlug(slug);
 
   if (!partner || !partner.active) {
     notFound();

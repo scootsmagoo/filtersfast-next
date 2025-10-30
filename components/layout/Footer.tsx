@@ -156,6 +156,8 @@ export default function Footer() {
             <h4 className="font-bold mb-4">Discounts &amp; Rewards</h4>
             <ul className="space-y-2 text-brand-gray-300">
               <li><Link href="/military-discount" className="hover:text-brand-orange transition-colors">Military &amp; First Responder Discount</Link></li>
+              <li><Link href="/partners/american-home-shield" className="hover:text-brand-orange transition-colors">American Home Shield</Link></li>
+              <li><Link href="/partners/frontdoor" className="hover:text-brand-orange transition-colors">Frontdoor Discount</Link></li>
               <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/sale" className="hover:text-brand-orange transition-colors">Shop Sale</Link></li>
             </ul>
@@ -178,6 +180,7 @@ export default function Footer() {
             <ul className="space-y-2 text-brand-gray-300">
               <li><Link href="/our-story" className="hover:text-brand-orange transition-colors">Our Story</Link></li>
               <li><Link href="/our-brand" className="hover:text-brand-orange transition-colors">Our Brand</Link></li>
+              <li><Link href="/partners" className="hover:text-brand-orange transition-colors">Our Partners</Link></li>
               <li><Link href="/reviews" className="hover:text-brand-orange transition-colors">Reviews</Link></li>
               <li><Link href="/business-services" className="hover:text-brand-orange transition-colors">Business Services</Link></li>
               <li><Link href="/careers" className="hover:text-brand-orange transition-colors">Careers</Link></li>

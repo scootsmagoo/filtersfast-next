@@ -166,9 +166,9 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
 
   // Grid view
   return (
-    <Card className="group overflow-hidden">
+    <Card className="group overflow-hidden flex flex-col h-full">
       {/* Image */}
-      <div className="aspect-square bg-brand-gray-100 relative overflow-hidden">
+      <div className="aspect-square bg-brand-gray-100 relative overflow-hidden flex-shrink-0">
         {discount > 0 && (
           <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full font-bold text-sm z-10">
             -{discount}%
@@ -193,17 +193,17 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
-        <div className="text-sm text-brand-gray-600">{product.brand} • {product.sku}</div>
+      <div className="p-4 flex flex-col flex-grow">
+        <div className="text-sm text-brand-gray-600 mb-3">{product.brand} • {product.sku}</div>
         <a 
           href={`/products/${product.id}`}
-          className="text-base font-bold text-brand-gray-900 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem] block"
+          className="text-base font-bold text-brand-gray-900 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem] block mb-3"
         >
           {product.name}
         </a>
 
         {/* Rating */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-3">
           <ReviewStars rating={product.rating} size="sm" />
           <a
             href={`/products/${product.id}#reviews`}
@@ -214,7 +214,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
         </div>
 
         {/* Price */}
-        <div className="pt-2">
+        <div className="mb-3">
           {product.originalPrice && (
             <div className="text-sm text-brand-gray-500 line-through">
               {formatPrice(product.originalPrice)}
@@ -229,11 +229,14 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           </div>
         </div>
 
+        {/* Spacer to push button to bottom */}
+        <div className="flex-grow"></div>
+
         {/* Add to Cart Button */}
         <Button 
           onClick={handleAddToCart}
           disabled={isAdding || !product.inStock}
-          className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
+          className={`w-full flex items-center justify-center gap-2 mt-auto ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
         >
           {justAdded ? (
             <>
