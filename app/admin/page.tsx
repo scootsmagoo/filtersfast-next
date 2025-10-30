@@ -19,7 +19,8 @@ import {
   Shield,
   HelpCircle,
   Heart,
-  Gift
+  Gift,
+  Handshake
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -124,6 +125,13 @@ export default function AdminDashboard() {
       icon: Heart,
       href: '/admin/charities',
       color: 'pink'
+    },
+    {
+      title: 'Partner Landing Pages',
+      description: 'Manage charity and corporate partner pages',
+      icon: Handshake,
+      href: '/admin/partners',
+      color: 'blue'
     },
     {
       title: 'Customers',

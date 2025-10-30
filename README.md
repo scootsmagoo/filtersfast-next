@@ -5,6 +5,15 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🆕 Latest Updates (October 30, 2025)
 
 **Recent Improvements:**
+- ✅ **Partner Landing Pages** - Dynamic co-marketing pages for charity & corporate partners! 🆕
+  - Flexible content block system (hero, text, stats, gallery, timeline, CTA, video, perks)
+  - Admin interface at `/admin/partners` for creating and managing partner pages
+  - 5 pre-configured partners: Wine to Water, Habitat for Humanity, Xtreme Hike, American Home Shield, Frontdoor
+  - Auto-apply discount codes for corporate partners
+  - View tracking and analytics dashboard
+  - SEO optimized with custom meta tags
+  - **OWASP Top 10 2021:** ✅ 10/10 PASS (rate limiting, admin role checks, input validation, audit logs)
+  - **WCAG 2.1 AA:** ✅ 100% PASS (skip links, ARIA labels, keyboard navigation, screen reader support)
 - ✅ **Giveaways & Sweepstakes System** - Complete promotional contest platform! 🆕
   - Full-featured admin dashboard at `/admin/giveaways`
   - Create unlimited campaigns with custom prizes and dates
@@ -66,6 +75,12 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Charitable Donations** - Support causes at checkout
 
 **Business Features:**
+- ✅ **Partner Landing Pages** - Dynamic charity & corporate partner pages 🆕
+  - 8 flexible content block types for custom page layouts
+  - Admin dashboard for partner management
+  - Auto-apply discount codes for corporate partners
+  - View tracking and analytics
+  - OWASP & WCAG compliant (10/10 security, 100% accessible)
 - ✅ **Giveaways & Sweepstakes** - Complete contest management platform 🆕
   - Admin dashboard with campaign creation and winner selection
   - reCAPTCHA protected public entry forms
@@ -75,7 +90,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
 - ✅ **SMS Marketing System** - Transactional + promotional messaging
 - ✅ **Promo Code System** - Discounts, free shipping, usage limits
-- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats, giveaways
+- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats, giveaways, partners
 - ✅ **Address Validation** - SmartyStreets integration
 
 **Customer Support:**

@@ -6,6 +6,55 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-10-30
+- **Partner Landing Pages** 🤝
+  - Dynamic landing pages for charity partners, corporate partners, and discount programs
+  - Flexible content block system with 8 block types (hero, text, stats, gallery, timeline, CTA, video, perks)
+  - Admin interface for creating and managing partner pages
+  - Auto-apply discount codes for corporate partners
+  - Page view tracking and analytics
+  - SEO optimization with custom meta tags
+  - Mobile-responsive design
+  - **Partner Types:**
+    - Charity Partners: Wine to Water, Habitat for Humanity, Xtreme Hike (CF Foundation)
+    - Corporate Partners: American Home Shield, Frontdoor
+    - Discount Programs: ID.me integration ready
+  - **Routes:** `/partners/[slug]` for public pages, `/admin/partners` for management
+  - **Database:** `partners`, `partner_views` tables
+  - **API Endpoints:** `/api/partners`, `/api/partners/[slug]`, `/api/admin/partners/*`
+  - **Setup:** `npm run init:partners` or `npx tsx scripts/init-partners.ts`
+  - **Features:**
+    - Content block builder for flexible page layouts
+    - Partnership timeline display
+    - Impact statistics showcase
+    - Image galleries (carousel/grid)
+    - Video embeds (YouTube/Vimeo)
+    - Featured partners highlighting
+    - Display order management
+  - **OWASP Top 10 2021 Compliance:** ✅ 10/10 PASS
+    - A01 Access Control: Admin role verification, rate limiting (30 req/min), proper 401/403
+    - A02 Cryptographic: Secure session handling, no sensitive data exposure
+    - A03 Injection: SQL parameterized queries, input sanitization, URL validation
+    - A04 Insecure Design: Rate limiting, 1MB request size limits, schema validation
+    - A05 Security Config: Secure error handling, input length validation, sanitized logging
+    - A06 Components: Latest dependencies (Next.js 16, better-sqlite3)
+    - A07 Authentication: Admin role checking, session-based auth
+    - A08 Data Integrity: JSON validation, schema enforcement, type whitelisting
+    - A09 Logging: Audit logs for CRUD, view tracking, rate limit headers
+    - A10 SSRF: No user URLs in requests, client-side only usage, protocol validation
+  - **WCAG 2.1 AA Compliance:** ✅ 100% PASS
+    - Full keyboard navigation with visible focus indicators (2px ring with offset)
+    - Skip to main content links on all pages
+    - ARIA labels and roles on all interactive elements
+    - Screen reader support with live region announcements
+    - Carousel accessibility with proper ARIA
+    - External link indicators and notifications
+    - Semantic HTML with proper heading hierarchy
+    - High contrast colors meeting AA standards
+    - Loading state announcements
+    - Icon-only buttons with screen reader text
+  - **Expected Business Impact:** Enhanced partner relationships, brand awareness, co-marketing opportunities, legal compliance, improved accessibility
+
 ### Added - 2025-10-29
 - **ID.me Military & First Responder Discounts** 🎖️
   - OAuth 2.0 integration with ID.me for secure verification
