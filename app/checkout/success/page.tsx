@@ -6,13 +6,15 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import DonationSummary from '@/components/checkout/DonationSummary';
-import { CheckCircle, Package, Mail, Home, Printer } from 'lucide-react';
+import SocialShare from '@/components/social/SocialShare';
+import { CheckCircle, Package, Mail, Home, Printer, Gift, Share2 } from 'lucide-react';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order') || searchParams.get('session_id') || 'UNKNOWN';
   const [email, setEmail] = useState('');
   const [donation, setDonation] = useState<{ charityName: string; amount: number } | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
     // Get email from localStorage or session
@@ -32,6 +34,24 @@ function OrderSuccessContent() {
         console.error('Error parsing donation:', e);
       }
     }
+
+    // Fetch user's referral code if logged in
+    const fetchReferralCode = async () => {
+      try {
+        const response = await fetch('/api/referrals');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.code) {
+            setReferralCode(data.code);
+          }
+        }
+      } catch (error) {
+        // Silently fail - not critical
+        console.log('Could not fetch referral code:', error);
+      }
+    };
+
+    fetchReferralCode();
   }, []);
 
   return (
@@ -168,6 +188,73 @@ function OrderSuccessContent() {
               </div>
             </div>
           </Card>
+
+          {/* Share Section */}
+          {referralCode && (
+            <Card className="p-6 mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Share & Earn Rewards!</h3>
+                  <p className="text-sm text-gray-600">
+                    Love your purchase? Share FiltersFast with friends and earn ${' '}
+                    <span className="font-semibold">$10 credit</span> for each referral!
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 mb-4">
+                <p className="text-sm text-gray-700 mb-2">Your referral code:</p>
+                <p className="text-2xl font-bold text-blue-600 font-mono mb-3">{referralCode}</p>
+                <SocialShare
+                  data={{
+                    url: typeof window !== 'undefined' 
+                      ? `${window.location.origin}?ref=${referralCode}` 
+                      : '',
+                    title: 'Check out FiltersFast - Get 10% off your first order!',
+                    description: `I just ordered from FiltersFast and love it! Use my code ${referralCode} to get 10% off your first order.`,
+                    hashtags: ['FiltersFast', 'Filters', 'HomeImprovement']
+                  }}
+                  shareType="referral"
+                  referralCode={referralCode}
+                  variant="buttons"
+                  showLabels={true}
+                />
+              </div>
+
+              <Link 
+                href="/account/referrals"
+                className="text-sm text-blue-600 hover:underline font-medium inline-flex items-center gap-1"
+              >
+                View your referral dashboard →
+              </Link>
+            </Card>
+          )}
+
+          {/* Or just general sharing if no referral code */}
+          {!referralCode && (
+            <Card className="p-6 mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Share2 className="w-5 h-5 text-gray-700" />
+                <h3 className="text-lg font-semibold text-gray-900">Love your purchase?</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Share FiltersFast with friends and family!
+              </p>
+              <SocialShare
+                data={{
+                  url: typeof window !== 'undefined' ? window.location.origin : '',
+                  title: 'Check out FiltersFast!',
+                  description: 'I just ordered from FiltersFast - great selection and fast shipping!',
+                  hashtags: ['FiltersFast', 'Filters']
+                }}
+                shareType="general"
+                variant="icons"
+              />
+            </Card>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">

@@ -9,6 +9,7 @@ import { useCart } from '@/lib/cart-context';
 import { formatPrice } from '@/lib/utils';
 import { SearchableProduct } from '@/lib/types';
 import Link from 'next/link';
+import SocialShare from '@/components/social/SocialShare';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -358,6 +359,22 @@ export default function ProductDetailPage() {
                 {isAdding ? 'Adding...' : 'Add to Cart'}
               </Button>
             </div>
+
+            {/* Social Sharing */}
+            <Card className="p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Share this product:</h3>
+              <SocialShare
+                data={{
+                  url: typeof window !== 'undefined' ? window.location.href : '',
+                  title: product.name,
+                  description: product.description,
+                  hashtags: ['FiltersFast', product.brand, product.category]
+                }}
+                shareType="product"
+                productId={product.id.toString()}
+                variant="icons"
+              />
+            </Card>
 
             {/* Specifications */}
             {product.specifications && (

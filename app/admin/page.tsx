@@ -85,6 +85,13 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Referral Program',
+      description: 'Manage customer referrals and rewards',
+      icon: Users,
+      href: '/admin/referrals',
+      color: 'purple'
+    },
+    {
       title: 'Abandoned Carts',
       description: 'View cart recovery metrics and analytics',
       icon: ShoppingCart,

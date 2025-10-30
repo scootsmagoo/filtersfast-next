@@ -8,6 +8,8 @@ import { CartProvider } from "@/lib/cart-context";
 import ScreenReaderAnnouncements from "@/components/ui/ScreenReaderAnnouncements";
 import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementProvider";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
+import { Suspense } from "react";
+import ReferralTracker from "@/components/tracking/ReferralTracker";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -24,6 +26,33 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },
+  openGraph: {
+    title: "FiltersFast - America's Top Online Filtration Retailer",
+    description: "Huge Selection. Unbeatable Quality. 365-Day Returns. Shop refrigerator water filters, air filters, pool filters, and more from trusted brands.",
+    url: 'https://www.filtersfast.com',
+    siteName: 'FiltersFast',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: 'https://www.filtersfast.com/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'FiltersFast - America\'s Top Online Filtration Retailer'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "FiltersFast - America's Top Online Filtration Retailer",
+    description: "Huge Selection. Unbeatable Quality. 365-Day Returns. Shop water filters, air filters, and more!",
+    images: ['https://www.filtersfast.com/og-image.jpg'],
+    creator: '@FiltersFast',
+    site: '@FiltersFast'
+  },
+  alternates: {
+    canonical: 'https://www.filtersfast.com'
+  }
 };
 
 export default function RootLayout({
@@ -51,6 +80,9 @@ export default function RootLayout({
             </a>
             
             <ScrollToTopOnMount />
+            <Suspense fallback={null}>
+              <ReferralTracker />
+            </Suspense>
             <Header />
             <main id="main-content" className="min-h-screen" role="main">
               {children}

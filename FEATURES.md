@@ -4648,6 +4648,335 @@ Each partner page includes:
 
 ---
 
+## 🎁 Referral Program + Social Sharing
+
+**Status:** ✅ Implemented  
+**Priority:** High  
+**Complexity:** High  
+**Timeline:** 4 weeks
+
+A comprehensive customer acquisition and viral marketing system that incentivizes existing customers to refer friends while enabling easy social sharing across all platforms.
+
+### 🎯 Core Features
+
+#### Referral Program
+- **Unique Referral Codes:** Auto-generated codes for each customer (e.g., "JOHN25")
+- **Automatic Code Creation:** Generated on first account access
+- **Click Tracking:** Records all referral link clicks with metadata (IP, user agent, landing page)
+- **Conversion Tracking:** Automatic tracking when referred customers place orders
+- **Reward System:** Configurable rewards for both referrer and referred customer
+- **Reward Types:** Account credit, discount codes, percentage off, or fixed amounts
+- **Minimum Order Value:** Configurable threshold for referral qualification
+- **Fraud Prevention:** 14-day waiting period before rewards are approved (return window)
+- **Reward Status Tracking:** Pending → Approved → Paid workflow
+
+#### Social Sharing
+- **Multiple Platforms:** Facebook, Twitter/X, LinkedIn, WhatsApp, Email, Copy Link
+- **Native Share API:** Mobile-friendly native sharing when available
+- **Product Sharing:** Share individual products with custom messaging
+- **Referral Sharing:** Share referral codes with pre-populated messages
+- **Order Sharing:** Share purchase excitement post-checkout
+- **Share Analytics:** Track which platforms drive the most engagement
+- **Smart Share URLs:** Automatic UTM parameters and referral codes in shared links
+
+#### Analytics & Reporting
+- **Real-Time Dashboard:** Live stats for both customers and admins
+- **Customer Metrics:**
+  - Total clicks on referral links
+  - Total conversions (successful referrals)
+  - Conversion rate percentage
+  - Total revenue generated
+  - Total rewards earned
+  - Pending vs. available rewards
+  - Recent referral activity with details
+- **Admin Metrics:**
+  - System-wide clicks and conversions
+  - Overall conversion rates
+  - Total revenue from referrals
+  - Total rewards paid out
+  - Pending rewards awaiting approval
+  - Active referrers (last 30 days)
+  - Top performing referral codes
+  - Social share analytics by platform
+
+### 🔧 Technical Implementation
+
+#### Database Schema
+```
+referral_codes
+├── id (TEXT PRIMARY KEY)
+├── user_id (TEXT, FK to user)
+├── code (TEXT UNIQUE) - e.g., "JOHN25"
+├── clicks (INTEGER) - Total clicks
+├── conversions (INTEGER) - Successful referrals
+├── total_revenue (REAL) - Revenue generated
+├── total_rewards (REAL) - Rewards earned
+├── active (BOOLEAN)
+└── timestamps
+
+referral_clicks
+├── id (TEXT PRIMARY KEY)
+├── referral_code_id (TEXT, FK)
+├── referral_code (TEXT)
+├── ip_address (TEXT)
+├── user_agent (TEXT)
+├── referrer_url (TEXT)
+├── landing_page (TEXT)
+├── converted (BOOLEAN)
+├── conversion_order_id (INTEGER)
+└── clicked_at (TIMESTAMP)
+
+referral_conversions
+├── id (TEXT PRIMARY KEY)
+├── referral_code_id (TEXT, FK)
+├── referral_code (TEXT)
+├── referrer_user_id (TEXT, FK)
+├── referred_user_id (TEXT, FK nullable)
+├── order_id (INTEGER)
+├── order_total (REAL)
+├── referrer_reward (REAL)
+├── referred_discount (REAL)
+├── reward_status (pending/approved/paid)
+└── timestamps
+
+referral_settings
+├── id (TEXT PRIMARY KEY)
+├── enabled (BOOLEAN)
+├── referrer_reward_type (credit/discount/percentage/fixed)
+├── referrer_reward_amount (REAL)
+├── referred_discount_type (percentage/fixed)
+├── referred_discount_amount (REAL)
+├── minimum_order_value (REAL)
+├── reward_delay_days (INTEGER)
+└── terms_text (TEXT)
+
+social_share_analytics
+├── id (TEXT PRIMARY KEY)
+├── user_id (TEXT, FK nullable)
+├── share_type (product/referral/order/general)
+├── share_platform (facebook/twitter/linkedin/whatsapp/email/copy)
+├── shared_url (TEXT)
+├── product_id (TEXT nullable)
+├── referral_code (TEXT nullable)
+└── shared_at (TIMESTAMP)
+```
+
+#### API Routes
+- `GET /api/referrals` - Get/create user's referral code
+- `POST /api/referrals/validate` - Validate a referral code
+- `POST /api/referrals/track-click` - Track referral link clicks
+- `GET /api/referrals/stats` - Get user's referral statistics
+- `GET /api/referrals/settings` - Get public program settings
+- `POST /api/social-share` - Track social media shares
+- `GET /api/admin/referrals` - Admin: Get all codes and stats
+- `GET /api/admin/referrals/settings` - Admin: Get full settings
+- `PUT /api/admin/referrals/settings` - Admin: Update settings
+
+#### Components
+- `<SocialShare>` - Multi-platform sharing buttons (3 variants)
+- `<ReferralCodeInput>` - Checkout referral code validation
+- `<ReferralTracker>` - Auto-tracks clicks from referral links
+- Referral dashboard page at `/account/referrals`
+- Admin management page at `/admin/referrals`
+
+#### Automatic Tracking
+- URL parameter detection (`?ref=CODE` or `?referral=CODE`)
+- 30-day cookie persistence in localStorage
+- Automatic click tracking on arrival
+- IP address and user agent capture
+- Landing page recording
+- Conversion tracking on order completion
+
+### 📧 Email Notifications
+
+Three automated email templates:
+
+1. **Referral Conversion Email**
+   - Sent when someone uses your code
+   - Shows order details and pending reward
+   - Explains 14-day waiting period
+   - Links to referral dashboard
+
+2. **Reward Ready Email**
+   - Sent when reward is approved (after return window)
+   - Shows available credit/code
+   - Displays total referral stats
+   - Encourages continued sharing
+
+3. **Welcome to Referral Program**
+   - Sent when customer gets their first code
+   - Explains how the program works
+   - Shows reward amounts
+   - Provides sharing tips
+
+### 🎨 User Experience
+
+#### Customer Dashboard (`/account/referrals`)
+- **Program Overview:** "How It Works" 3-step guide
+- **Stat Cards:** Clicks, conversions, conversion rate, total earned
+- **Your Referral Code:** Large, copyable display
+- **Referral Link:** Pre-formatted URL with copy button
+- **Social Share Buttons:** One-click sharing to all platforms
+- **Recent Referrals Table:** Track friend purchases and rewards
+- **Program Terms:** Transparent conditions and timeline
+
+#### Product Pages
+- Social share card below "Add to Cart"
+- Share product with friends
+- Includes product info in share message
+- Tracks product share analytics
+
+#### Order Confirmation
+- **For Logged-In Users:** Prominent referral code promotion with social sharing
+- **For Guests:** General social sharing option
+- Automatic referral code display with pre-populated messages
+- Direct link to referral dashboard
+
+#### Admin Dashboard (`/admin/referrals`)
+- **Global Statistics:** All-time performance metrics
+- **Settings Management:** Configure all program parameters
+- **Referral Codes List:** View all customer codes with performance
+- **Recent Conversions:** Monitor latest referrals
+- **Reward Management:** Track pending/approved rewards
+- **Enable/Disable:** Toggle entire program on/off
+
+### ⚙️ Configuration
+
+Default settings (customizable via admin):
+```javascript
+{
+  enabled: true,
+  referrer_reward_type: 'credit', // $10 credit
+  referrer_reward_amount: 10.00,
+  referred_discount_type: 'percentage', // 10% off
+  referred_discount_amount: 10.00,
+  minimum_order_value: 50.00, // $50 minimum
+  reward_delay_days: 14, // Return window
+  terms_text: 'Refer a friend and get $10 credit when they make their first purchase of $50 or more. Your friend also gets 10% off their first order!'
+}
+```
+
+### 🔐 Security Features
+- Unique referral code generation with collision detection
+- Rate limiting on API endpoints
+- IP tracking for fraud prevention
+- User agent fingerprinting
+- Referral code validation before tracking
+- Admin-only settings access
+- SQL injection prevention
+- XSS protection on all inputs
+
+### 📱 Open Graph Integration
+- Rich social media previews for shared links
+- Custom OG tags for products, referrals, and general pages
+- Twitter Card support
+- 1200x630 optimized images
+- Dynamic meta tag generation
+- Utility functions in `lib/og-tags.ts`
+
+### 📊 Business Impact
+- **Customer Acquisition:** Turn customers into brand ambassadors
+- **Reduced CAC:** Lower cost per acquisition through referrals
+- **Viral Growth:** Social sharing amplifies reach
+- **Customer Loyalty:** Rewards encourage repeat purchases
+- **Social Proof:** Shares increase brand visibility
+- **Conversion Tracking:** Measure ROI of referral program
+- **Data Insights:** Understand which customers drive growth
+
+### 🚀 Setup Instructions
+
+1. **Initialize Database:**
+```bash
+npm run init-referrals
+```
+
+2. **Configure Settings:**
+   - Go to Admin Dashboard → Referral Program
+   - Adjust reward amounts and types
+   - Set minimum order value
+   - Configure reward delay period
+   - Update terms and conditions
+
+3. **Database Maintenance (Recommended Weekly):**
+```bash
+npm run cleanup:referrals
+```
+   - Removes orphaned referral records (for deleted users)
+   - Maintains data integrity across auth.db and filtersfast.db
+   - No foreign key constraints (tables in different databases)
+   - Cleanup script validates user existence and removes orphans
+
+4. **Test Flow:**
+   - Create customer account
+   - Get referral code from dashboard (auto-generated)
+   - Share link with friend
+   - Friend makes purchase with code
+   - Verify conversion tracking
+   - Check reward after 14 days
+
+5. **Email Integration (Optional):**
+   - Configure email templates in `lib/email-templates/referral.ts`
+   - Set up email service (SendGrid, etc.)
+   - Test email notifications
+
+### 🎯 Usage Examples
+
+#### Customer Flow
+1. Customer logs in → auto-gets referral code
+2. Visits `/account/referrals` to see code and stats
+3. Clicks social share buttons to share on Facebook/Twitter/etc.
+4. Friend clicks link → referral code stored in localStorage
+5. Friend makes purchase → referral code applied automatically
+6. Customer earns $10 credit after 14 days
+7. Email notification sent when reward is ready
+
+#### Admin Management
+1. Go to `/admin/referrals`
+2. View system-wide statistics
+3. Monitor recent conversions
+4. Adjust program settings (rewards, minimums, etc.)
+5. View top performing referrers
+6. Track social sharing trends
+
+### 📈 Future Enhancements
+- Tiered rewards (more referrals = bigger rewards)
+- Leaderboards for top referrers
+- Seasonal promotions (double rewards)
+- Referral contests and competitions
+- Integration with loyalty points system
+- A/B testing different reward amounts
+- SMS notifications for conversions
+- Advanced fraud detection with ML
+- Gift card reward options
+- Charitable donation alternatives
+
+### 🔗 Files Created
+- `lib/types/referral.ts` - TypeScript interfaces
+- `lib/db/referrals.ts` - Database functions
+- `lib/db/referral-cleanup.ts` - Data integrity maintenance
+- `lib/hooks/useReferralTracking.ts` - Tracking hook
+- `lib/og-tags.ts` - Open Graph utilities
+- `lib/email-templates/referral.ts` - Email templates
+- `scripts/init-referrals.ts` - Database initialization
+- `scripts/cleanup-referrals.ts` - Orphaned record cleanup
+- `app/api/referrals/route.ts` - Referral code API
+- `app/api/referrals/validate/route.ts` - Code validation
+- `app/api/referrals/track-click/route.ts` - Click tracking
+- `app/api/referrals/stats/route.ts` - User statistics
+- `app/api/referrals/settings/route.ts` - Public settings
+- `app/api/social-share/route.ts` - Share tracking
+- `app/api/admin/referrals/route.ts` - Admin data
+- `app/api/admin/referrals/settings/route.ts` - Admin settings
+- `app/account/referrals/page.tsx` - Customer dashboard
+- `app/admin/referrals/page.tsx` - Admin dashboard
+- `components/social/SocialShare.tsx` - Share component
+- `components/checkout/ReferralCodeInput.tsx` - Checkout input
+- `components/tracking/ReferralTracker.tsx` - Auto-tracker
+
+**Expected Business Impact:** 15-25% increase in customer acquisition, 30-50% reduction in CAC through viral growth, increased customer lifetime value through rewards program, enhanced social media presence and brand awareness
+
+---
+
 **For setup instructions, see `SETUP.md`**  
 **For development guide, see `DEVELOPMENT.md`**
 
