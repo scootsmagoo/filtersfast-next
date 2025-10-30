@@ -1,10 +1,8 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import Database from 'better-sqlite3';
+import { hasAdminAccess } from '@/lib/auth-admin';
 import MFADashboard from '@/components/admin/MFADashboard';
-
-const dbPath = process.env.DATABASE_URL || "./auth.db";
 
 export const metadata = {
   title: 'MFA Dashboard - Admin - FiltersFast',
@@ -20,13 +18,9 @@ export default async function AdminMFAPage() {
     redirect('/sign-in?redirect=/admin/mfa');
   }
 
-  // Check admin role
-  const db = new Database(dbPath);
-  const user = db.prepare('SELECT * FROM user WHERE email = ?').get(session.user.email!) as any;
-  db.close();
-
-  if (!user || user.role !== 'admin') {
-    redirect('/account');
+  // Check admin access using email whitelist
+  if (!hasAdminAccess(session.user)) {
+    redirect('/');
   }
 
   return (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+import { hasAdminAccess } from '@/lib/auth-admin';
 import { getMFAStatistics } from '@/lib/db/mfa';
 import Database from 'better-sqlite3';
 
@@ -18,11 +19,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.email!;
-
-    // Authorization: Check if user is admin
-    const user = db.prepare('SELECT * FROM user WHERE email = ?').get(userId) as any;
-    if (!user || user.role !== 'admin') {
+    // Authorization: Check if user is admin using email whitelist
+    if (!hasAdminAccess(session.user)) {
       return NextResponse.json(
         { error: 'Forbidden: Admin access required' },
         { status: 403 }

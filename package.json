@@ -13,6 +13,7 @@
     "init:payment-methods": "tsx scripts/init-payment-methods.ts",
     "init:idme": "tsx scripts/init-idme.ts",
     "init:sms": "tsx scripts/init-sms.ts",
+    "init:giveaways": "tsx scripts/init-giveaways.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"
   },
   "dependencies": {

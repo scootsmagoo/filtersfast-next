@@ -5,7 +5,18 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🆕 Latest Updates (October 30, 2025)
 
 **Recent Improvements:**
-- ✅ **SMS Marketing (Attentive)** - Complete SMS notification system with 98% open rate! 🆕
+- ✅ **Giveaways & Sweepstakes System** - Complete promotional contest platform! 🆕
+  - Full-featured admin dashboard at `/admin/giveaways`
+  - Create unlimited campaigns with custom prizes and dates
+  - Public entry forms with reCAPTCHA v3 bot protection
+  - One-click random winner selection
+  - Automated email notifications (entry confirmation + winner alerts)
+  - Duplicate entry prevention (server-side)
+  - Real-time stats: entry counts, active campaigns, winners
+  - OWASP Top 10 security hardened + WCAG 2.1 AA accessible
+  - Legal compliance with comprehensive official rules page
+  - Email list growth tool for marketing campaigns
+- ✅ **SMS Marketing (Attentive)** - Complete SMS notification system with 98% open rate!
   - Customer opt-in at checkout and account settings
   - Granular preferences (order updates, marketing, quiet hours)
   - TCPA compliant with full consent tracking
@@ -55,10 +66,16 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Charitable Donations** - Support causes at checkout
 
 **Business Features:**
+- ✅ **Giveaways & Sweepstakes** - Complete contest management platform 🆕
+  - Admin dashboard with campaign creation and winner selection
+  - reCAPTCHA protected public entry forms
+  - Email confirmation and winner notifications
+  - Entry analytics and duplicate prevention
+  - Official rules page for legal compliance
 - ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
-- ✅ **SMS Marketing System** - Transactional + promotional messaging 🆕
+- ✅ **SMS Marketing System** - Transactional + promotional messaging
 - ✅ **Promo Code System** - Discounts, free shipping, usage limits
-- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats
+- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats, giveaways
 - ✅ **Address Validation** - SmartyStreets integration
 
 **Customer Support:**
@@ -173,6 +190,17 @@ npm run dev      # Start development server (localhost:3000)
 npm run build    # Production build
 npm run start    # Start production server
 npm run lint     # Run ESLint
+
+# Database Initialization
+npm run init:giveaways        # Initialize giveaway tables
+npm run init:sms              # Initialize SMS system
+npm run init:abandoned-carts  # Initialize cart recovery
+npm run init:payment-methods  # Initialize payment vault
+npm run init:idme             # Initialize ID.me verification
+
+# Cron Jobs
+npm run cron:abandoned-carts  # Send cart recovery emails
+npm run cron:cancel-old-orders # Cancel stale pending orders
 ```
 
 ## 🎯 Upcoming Features (Roadmap)
@@ -181,7 +209,11 @@ Based on legacy FiltersFast features and business priorities:
 
 ### High Priority (Next 3-6 months)
 - [x] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!) ✅ COMPLETE
-- [ ] **Giveaways & Sweepstakes** - Promotional contests for email list growth
+- [x] **Giveaways & Sweepstakes** - Promotional contests for email list growth ✅ COMPLETE
+  - 10 API endpoints (admin + public)
+  - 3 UI pages (admin dashboard, public entry, official rules)
+  - Email templates (confirmation + winner notification)
+  - Complete security audit (OWASP Top 10 + WCAG 2.1 AA)
 - [ ] **Charity Landing Pages** - Dedicated pages for partner charities
 - [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
 
@@ -250,14 +282,18 @@ This is a demo/proof-of-concept. All FiltersFast branding and intellectual prope
 ### Core Documentation (5 Files)
 
 1. **[README.md](./README.md)** (You are here) - Project overview and quick start
-2. **[FEATURES.md](./FEATURES.md)** - Complete feature documentation
+2. **[FEATURES.md](./FEATURES.md)** - Complete feature documentation (3,800+ lines)
    - All implemented features with API endpoints
-   - Model Lookup, reCAPTCHA, Promo Codes, Subscriptions, Returns, etc.
+   - Model Lookup, reCAPTCHA, Promo Codes, Subscriptions, Returns
+   - **Giveaways System** - ~400 lines of comprehensive docs
+   - SMS Marketing (Attentive)
+   - AI Chatbot with RAG
 3. **[SETUP.md](./SETUP.md)** - Setup and configuration guide
    - Environment variables
    - OAuth setup
    - reCAPTCHA configuration
    - Payment integration
+   - Database initialization
 4. **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
    - Project structure
    - Coding standards
@@ -265,6 +301,30 @@ This is a demo/proof-of-concept. All FiltersFast branding and intellectual prope
 5. **[CHANGELOG.md](./CHANGELOG.md)** - Version history
 
 **Start here:** Read [SETUP.md](./SETUP.md) to get the app running locally.
+
+### Quick Start: Giveaways System
+
+```bash
+# 1. Initialize database
+npm run init:giveaways
+
+# 2. Access admin panel (requires admin email in auth-admin.ts)
+# Navigate to: /admin/giveaways
+
+# 3. Create your first giveaway
+# - Set campaign name, title, description, prize
+# - Configure start/end dates
+# - Activate campaign
+
+# 4. Users can enter at: /giveaway
+# 5. Pick winner from admin dashboard
+# 6. Optional: Auto-send winner email
+
+# Public URLs:
+# - Entry page: /giveaway
+# - Official rules: /sweepstakes
+# - Admin dashboard: /admin/giveaways
+```
 
 ---
 

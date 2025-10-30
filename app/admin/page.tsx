@@ -18,7 +18,8 @@ import {
   Bell,
   Shield,
   HelpCircle,
-  Heart
+  Heart,
+  Gift
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -76,12 +77,18 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Giveaways & Sweepstakes',
+      description: 'Create contests and pick winners',
+      icon: Gift,
+      href: '/admin/giveaways',
+      color: 'orange'
+    },
+    {
       title: 'Abandoned Carts',
       description: 'View cart recovery metrics and analytics',
       icon: ShoppingCart,
       href: '/admin/abandoned-carts',
-      color: 'red',
-      badge: 'NEW'
+      color: 'red'
     },
     {
       title: 'Returns & Exchanges',

@@ -3840,6 +3840,392 @@ CREATE TABLE chatbot_conversations (
 
 ---
 
+## 🎁 Giveaways & Sweepstakes System
+
+Complete promotional contest platform for email list growth and marketing campaigns.
+
+### Overview
+
+The giveaways system allows FiltersFast to run promotional contests to:
+- Grow email marketing list
+- Increase brand awareness
+- Drive traffic to the website
+- Reward loyal customers
+- Generate social media engagement
+
+### Features
+
+#### Admin Management
+- **Create Giveaways** - Full campaign setup with all details
+- **Manage Active Campaigns** - View stats, entries, and status
+- **Random Winner Selection** - Fair, cryptographically secure selection
+- **Winner Notifications** - Automated email notifications
+- **Entry Tracking** - View all entries with customer details
+- **Campaign Analytics** - Entry counts, engagement metrics
+- **Flexible Scheduling** - Set start and end dates
+- **Active/Inactive Toggle** - Control visibility
+
+#### Public Entry System
+- **Beautiful Entry Forms** - Mobile-responsive design
+- **reCAPTCHA Protection** - Prevent bot submissions
+- **Duplicate Prevention** - One entry per email per giveaway
+- **Pre-fill for Logged Users** - Convenience for existing customers
+- **Real-time Status** - Days remaining, entry count
+- **Official Rules Page** - Full legal compliance
+- **Email Confirmations** - Instant entry confirmation emails
+
+#### Security & Compliance
+- **Bot Protection** - reCAPTCHA v3 integration
+- **Rate Limiting** - Prevents spam and abuse
+- **SQL Injection Prevention** - Parameterized queries
+- **XSS Protection** - Input sanitization
+- **GDPR Compliant** - Proper consent and data handling
+- **Legal Terms** - Complete official rules page
+- **Audit Logging** - Track all admin actions
+
+### API Endpoints
+
+#### Admin Endpoints (Require Admin Role)
+
+**GET /api/admin/giveaways**
+- List all giveaways with filtering
+- Query params: `status` (all|active|upcoming|ended), `limit`, `offset`
+- Returns: giveaways array, stats, pagination info
+
+**POST /api/admin/giveaways**
+- Create new giveaway campaign
+- Body: `CreateGiveawayRequest` (see types)
+- Returns: giveaway ID
+
+**GET /api/admin/giveaways/[id]**
+- Get specific giveaway details
+- Returns: full giveaway data with winner info
+
+**PUT /api/admin/giveaways/[id]**
+- Update existing giveaway
+- Body: partial giveaway data
+- Returns: success message
+
+**DELETE /api/admin/giveaways/[id]**
+- Delete giveaway (CASCADE deletes entries)
+- Returns: success message
+
+**POST /api/admin/giveaways/[id]/pick-winner**
+- Randomly select winner
+- Body (optional): `{ sendEmail: boolean }`
+- Returns: winner details
+
+**GET /api/admin/giveaways/[id]/entries**
+- List all entries for a giveaway
+- Returns: entries array with customer info
+
+#### Public Endpoints
+
+**GET /api/giveaways/active**
+- Get all currently active giveaways
+- Returns: array of public giveaway data with status
+
+**GET /api/giveaways/[identifier]**
+- Get specific giveaway by ID or campaign name
+- Returns: public giveaway data
+
+**POST /api/giveaways/enter**
+- Submit entry to a giveaway
+- Body: `SubmitEntryRequest` with reCAPTCHA token
+- Returns: success message, entry ID
+
+### Database Schema
+
+```sql
+-- Giveaway campaigns
+CREATE TABLE giveaways (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  campaign_name TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  product_name TEXT,
+  product_url TEXT,
+  product_image_url TEXT,
+  prize_description TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  is_active INTEGER DEFAULT 1,
+  winner_id INTEGER,
+  winner_notified INTEGER DEFAULT 0,
+  winner_selected_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (winner_id) REFERENCES giveaway_entries(id)
+);
+
+-- Entry submissions
+CREATE TABLE giveaway_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  giveaway_id INTEGER NOT NULL,
+  customer_id INTEGER,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  entry_date TEXT DEFAULT CURRENT_TIMESTAMP,
+  is_winner INTEGER DEFAULT 0,
+  UNIQUE(giveaway_id, email),
+  FOREIGN KEY (giveaway_id) REFERENCES giveaways(id) ON DELETE CASCADE,
+  FOREIGN KEY (customer_id) REFERENCES user(id) ON DELETE SET NULL
+);
+
+-- Indexes for performance
+CREATE INDEX idx_giveaways_dates ON giveaways(start_date, end_date);
+CREATE INDEX idx_giveaways_active ON giveaways(is_active);
+CREATE INDEX idx_giveaway_entries_giveaway ON giveaway_entries(giveaway_id);
+CREATE INDEX idx_giveaway_entries_email ON giveaway_entries(email);
+```
+
+### Type Definitions
+
+```typescript
+interface Giveaway {
+  id: number;
+  campaign_name: string;
+  title: string;
+  description: string;
+  product_name: string | null;
+  product_url: string | null;
+  product_image_url: string | null;
+  prize_description: string;
+  start_date: string;
+  end_date: string;
+  is_active: number;
+  winner_id: number | null;
+  winner_notified: number;
+  winner_selected_at: string | null;
+  created_at: string;
+  updated_at: string;
+  entry_count?: number;
+}
+
+interface GiveawayEntry {
+  id: number;
+  giveaway_id: number;
+  customer_id: number | null;
+  first_name: string;
+  last_name: string;
+  email: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  entry_date: string;
+  is_winner: number;
+}
+
+interface PublicGiveaway {
+  id: number;
+  campaignName: string;
+  title: string;
+  description: string;
+  productName: string | null;
+  productUrl: string | null;
+  productImageUrl: string | null;
+  prizeDescription: string;
+  startDate: string;
+  endDate: string;
+  entryCount: number;
+  status: GiveawayStatus;
+}
+
+interface GiveawayStatus {
+  status: 'upcoming' | 'active' | 'ended';
+  daysRemaining?: number;
+  hasEntered?: boolean;
+  canEnter: boolean;
+}
+```
+
+### Email Templates
+
+#### Entry Confirmation Email
+- Sent immediately upon successful entry
+- Confirms participation
+- Shows prize details
+- Lists deadline
+- Includes link to shop
+
+#### Winner Notification Email
+- Sent when admin picks winner
+- Congratulatory message
+- Prize details
+- Instructions to claim
+- 14-day response deadline
+- Contact information
+
+### Pages & Routes
+
+**Admin:**
+- `/admin/giveaways` - Main admin dashboard
+  - View all giveaways with filtering
+  - Create new campaigns
+  - Edit existing campaigns
+  - View entries
+  - Pick winners
+  - Delete campaigns
+
+**Public:**
+- `/giveaway` - Public giveaway listing page
+  - Shows all active giveaways
+  - Entry forms
+  - Status indicators
+  - Prize information
+- `/sweepstakes` - Official rules page
+  - Complete legal terms
+  - Eligibility requirements
+  - Winner selection process
+  - Privacy policy
+  - Liability disclaimers
+
+### Setup Instructions
+
+1. **Initialize Database:**
+```bash
+npm run init:giveaways
+```
+
+2. **Access Admin Panel:**
+- Navigate to `/admin/giveaways`
+- Click "Create Giveaway"
+- Fill in campaign details
+- Set start and end dates
+- Configure prize information
+- Activate campaign
+
+3. **Public Access:**
+- Users visit `/giveaway`
+- View active campaigns
+- Click "Enter Giveaway"
+- Fill entry form
+- Submit with reCAPTCHA
+- Receive confirmation email
+
+### Winner Selection Process
+
+1. Admin navigates to giveaway in dashboard
+2. Clicks "Pick Winner" button
+3. System randomly selects from eligible entries
+4. Optional: Send winner notification email
+5. Winner details displayed in admin panel
+6. Winner marked in database
+7. Admin can manually contact if needed
+
+### Best Practices
+
+**Campaign Planning:**
+- Run campaigns during high-traffic periods
+- Align with holidays or seasons
+- Cross-promote on social media
+- Feature valuable, relevant prizes
+- Set realistic duration (1-4 weeks ideal)
+
+**Prize Selection:**
+- FiltersFast products (air purifiers, filters)
+- Gift cards (Amazon, Target, etc.)
+- Bundles (product + gift card)
+- High-value items for major campaigns
+
+**Marketing Tips:**
+- Announce on homepage
+- Email existing customers
+- Social media posts
+- Blog articles
+- Partner with influencers
+- Use branded hashtags
+
+**Legal Compliance:**
+- "No purchase necessary" language
+- Official rules clearly posted
+- Eligibility requirements stated
+- Winner selection method disclosed
+- Privacy policy linked
+- Tax implications noted
+
+### Comparison: Legacy vs Modern
+
+**Legacy System (FiltersFast):**
+- ❌ Hardcoded campaign details in ASP
+- ❌ Manual database queries for entries
+- ❌ No admin interface
+- ❌ Cookie-based duplicate prevention (easily bypassed)
+- ❌ Static campaign page
+- ❌ No entry management
+
+**Modern System (FiltersFast-Next):**
+- ✅ Full admin dashboard
+- ✅ Database-driven campaigns
+- ✅ Server-side duplicate prevention
+- ✅ Automated winner selection
+- ✅ Email notifications
+- ✅ Beautiful public interface
+- ✅ Mobile-responsive
+- ✅ Analytics and reporting
+- ✅ reCAPTCHA protection
+- ✅ Audit logging
+
+### Analytics & Reporting
+
+Available Metrics:
+- Total giveaways created
+- Active campaigns count
+- Total entries across all campaigns
+- Entries per campaign
+- Winners selected count
+- Conversion rate (views to entries)
+- Email list growth
+- Campaign duration analysis
+
+### Future Enhancements (Phase 2)
+
+- **Social Sharing** - Extra entries for sharing on social media
+- **Referral Bonuses** - Extra entries for referring friends
+- **Multi-Prize Tiers** - First, second, third place winners
+- **Instagram Integration** - Follow + tag for entries
+- **Photo Submissions** - User-generated content campaigns
+- **Voting System** - Public voting for photo contests
+- **Export Entries** - CSV export for email marketing tools
+- **A/B Testing** - Test different prize offerings
+- **Scheduled Emails** - Reminder emails before deadline
+- **Winner Gallery** - Public showcase of past winners
+
+### Security Features
+
+- Rate limiting on all endpoints
+- reCAPTCHA verification
+- SQL injection prevention
+- XSS protection
+- CSRF protection
+- Input sanitization
+- Audit logging
+- Admin-only access controls
+- Secure random winner selection
+- Email verification
+- IP address logging
+
+### Troubleshooting
+
+**Winner Selection Failed:**
+- Check that giveaway has entries
+- Verify giveaway hasn't ended too long ago
+- Ensure no winner already selected
+
+**Entries Not Showing:**
+- Check giveaway is active
+- Verify dates are correct
+- Confirm reCAPTCHA is working
+
+**Email Not Sent:**
+- Configure SendGrid in production
+- Check email service status
+- Verify email addresses are valid
+
+---
+
 **For setup instructions, see `SETUP.md`**  
 **For development guide, see `DEVELOPMENT.md`**
 
