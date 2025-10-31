@@ -92,6 +92,11 @@ export default function CheckoutPage() {
     }
   }, [items, router, isProcessing]);
 
+  // Scroll to top when checkout step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
   const shippingCost = total >= 50 ? 0 : 9.99;
   const tax = total * 0.08; // 8% tax (would be calculated by TaxJar in production)
   const donationAmount = donation?.amount || 0;
