@@ -297,6 +297,7 @@ npm run init:payment-methods  # Initialize payment vault
 npm run init:idme             # Initialize ID.me verification
 npm run init:newsletter       # Initialize newsletter tokens (GDPR/CAN-SPAM)
 npm run init:currency         # Initialize currency tables (USD, CAD, AUD, EUR, GBP)
+npm run init:b2b              # Initialize B2B portal (accounts, pricing, quotes)
 npx tsx scripts/init-user-preferences.ts  # Initialize user preferences (dark mode, notifications)
 
 # Currency Management
@@ -441,6 +442,38 @@ npm run init:giveaways
 # - Entry page: /giveaway
 # - Official rules: /sweepstakes
 # - Admin dashboard: /admin/giveaways
+```
+
+### Quick Start: B2B Portal
+
+```bash
+# 1. Initialize database
+npm run init:b2b
+
+# 2. Access admin panel (requires admin email in auth-admin.ts)
+# Navigate to: /admin/b2b
+
+# 3. Business Application Flow:
+# - Customers apply: /business-services
+# - Admin reviews: /admin/b2b
+# - Approve/reject with pricing tier, discount, credit limit
+
+# 4. B2B Customer Portal:
+# - Dashboard: /b2b
+# - Request quotes: /b2b/quotes/new
+# - View account details and order history
+
+# 5. Admin Management:
+# - Account management: /admin/b2b
+# - Quote requests: /admin/b2b/quotes
+# - Tier pricing rules: /admin/b2b/tier-pricing
+
+# Key Features:
+# - 5 pricing tiers (Standard, Silver, Gold, Platinum, Custom)
+# - Volume discounts with configurable tier pricing
+# - Quote request system for bulk orders
+# - Net payment terms (Net-15/30/45/60)
+# - Credit limit tracking
 ```
 
 ---
