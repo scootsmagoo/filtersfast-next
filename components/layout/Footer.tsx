@@ -170,6 +170,7 @@ export default function Footer() {
               <li><Link href="/support" className="hover:text-brand-orange transition-colors">Support Center</Link></li>
               <li><Link href="/track-order" className="hover:text-brand-orange transition-colors">Track Order</Link></li>
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
+              <li><Link href="/account/newsletter" className="hover:text-brand-orange transition-colors">Email Preferences</Link></li>
               <li><Link href="/contact" className="hover:text-brand-orange transition-colors">Contact Us</Link></li>
             </ul>
           </div>

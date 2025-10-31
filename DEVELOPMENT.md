@@ -290,6 +290,104 @@ const products = [
 // TypeScript infers: Array<{ id: number; name: string; price: number }>
 ```
 
+## 📧 Newsletter Preferences Setup
+
+### Quick Start
+
+1. **Initialize newsletter_tokens table:**
+```bash
+npm run init-newsletter
+# or
+npx tsx scripts/init-newsletter.ts
+```
+
+2. **Verify table creation:**
+```bash
+# The script will output: ✅ Newsletter tokens table initialized
+```
+
+### What Gets Created
+
+**newsletter_tokens table:**
+- Stores unsubscribe tokens (never expire by law)
+- Stores preference management tokens (24-hour expiry)
+- Indexed for fast lookups
+- Foreign key to user table (cascade delete)
+
+### Environment Variables
+
+Add to your `.env.local`:
+
+```env
+# Base URL for email links (required for unsubscribe links)
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# Production example:
+# NEXT_PUBLIC_BASE_URL=https://www.filtersfast.com
+```
+
+### Testing Unsubscribe Flow
+
+1. **Generate a token (in code):**
+```typescript
+import { createNewsletterToken } from '@/lib/db/newsletter-tokens';
+
+const token = createNewsletterToken(
+  userId,
+  userEmail,
+  'unsubscribe',
+  null  // Never expires
+);
+
+console.log(`Unsubscribe URL: http://localhost:3000/unsubscribe/${token}`);
+```
+
+2. **Test the unsubscribe page:**
+- Navigate to `/unsubscribe/[token]`
+- Should show confirmation screen
+- Click "Yes, Unsubscribe Me"
+- Verify preferences updated in database
+
+### Email Integration
+
+**Using email templates:**
+
+```typescript
+import { createNewsletterEmail, createReminderEmail } from '@/lib/email-templates/newsletter';
+
+// Newsletter email
+const newsletter = await createNewsletterEmail({
+  userId: user.id,
+  email: user.email,
+  subject: 'Spring Sale - 20% Off All Filters!',
+  heading: 'Spring Cleaning Sale',
+  content: '<p>Get 20% off all filters this week only!</p>',
+  ctaText: 'Shop Now',
+  ctaUrl: 'https://www.filtersfast.com/sale',
+});
+
+// Send via your email service
+await sendEmail({
+  to: user.email,
+  subject: newsletter.subject,
+  html: newsletter.html,
+});
+```
+
+### GDPR/CAN-SPAM Compliance Checklist
+
+**Before sending marketing emails:**
+
+- [ ] Initialize newsletter_tokens table
+- [ ] Set NEXT_PUBLIC_BASE_URL environment variable
+- [ ] Test unsubscribe links work
+- [ ] Verify unsubscribe footer appears in emails
+- [ ] Check physical address in email footer
+- [ ] Test on mobile devices
+- [ ] Verify audit logging is active
+
+---
+
 ## 🚀 Performance Optimization
 
 ### Image Optimization

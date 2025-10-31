@@ -62,7 +62,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="transition-colors">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'light';
+                  const root = document.documentElement;
+                  
+                  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    root.classList.add('dark', 'transition-colors');
+                  } else {
+                    root.classList.add('light', 'transition-colors');
+                  }
+                } catch (e) {
+                  document.documentElement.classList.add('light', 'transition-colors');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${lato.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
         <ThemeProvider>
           <StatusAnnouncementProvider>

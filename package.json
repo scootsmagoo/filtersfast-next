@@ -15,6 +15,7 @@
     "init:sms": "tsx scripts/init-sms.ts",
     "init:giveaways": "tsx scripts/init-giveaways.ts",
     "init:referrals": "tsx scripts/init-referrals.ts",
+    "init:newsletter": "tsx scripts/init-newsletter.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"
   },

@@ -1841,6 +1841,202 @@ InsuranceOption { carrier, name, description, calculateCost, minOrderValue }
 
 ---
 
+## 📧 Newsletter Preferences & Email Compliance
+
+### Overview
+GDPR/CAN-SPAM compliant newsletter preference system with granular email controls, token-based unsubscribe, and comprehensive audit logging.
+
+### Core Features
+
+#### Preference Management
+- **Granular Controls:**
+  - Newsletter subscription (promotional emails)
+  - Product reminders (filter replacement notifications)
+  - Transactional emails (orders, shipping, security)
+  - SMS notifications
+  - Theme preferences (dark/light mode)
+
+#### GDPR/CAN-SPAM Compliance
+- **Legal Requirements Met:**
+  - ✅ One-click unsubscribe in all marketing emails
+  - ✅ Unsubscribe tokens never expire (law requirement)
+  - ✅ Clear identification of sender
+  - ✅ Accurate subject lines
+  - ✅ Physical address in email footers
+  - ✅ Honor opt-outs within 10 business days
+  - ✅ Privacy notices and consent
+  - ✅ Audit trail for compliance
+
+#### Token-Based Unsubscribe System
+- **Secure Tokens:**
+  - 256-bit cryptographically secure tokens
+  - Never expire (CAN-SPAM requirement)
+  - One-time use tokens
+  - Database-backed validation
+  - Automatic cleanup of expired preference tokens
+
+### User Interfaces
+
+#### Newsletter Preferences Page
+**Location:** `/account/newsletter`
+
+**Features:**
+- Beautiful GDPR notice with Shield icon
+- Clear descriptions of each email type
+- Frequency information for each subscription
+- Toggle controls for preferences
+- Save preferences button
+- Unsubscribe from all option
+- Help section with support links
+- Legal footer
+
+#### Public Unsubscribe Page
+**Location:** `/unsubscribe/[token]`
+
+**Features:**
+- Token validation
+- Confirmation screen before unsubscribe
+- List of what user will miss
+- Option to keep subscription
+- Success confirmation
+- Resubscribe instructions
+- GDPR compliance notice
+
+### API Endpoints
+
+#### Newsletter Management APIs
+```
+POST /api/newsletter/unsubscribe
+POST /api/newsletter/unsubscribe-all
+POST /api/newsletter/resubscribe
+POST /api/newsletter/validate-token
+```
+
+**Security:**
+- Rate limiting (strict limits)
+- Token validation
+- Audit logging
+- Error handling
+- SQL injection prevention
+
+### Email Templates
+
+#### Newsletter Email Template
+**Features:**
+- Responsive HTML design
+- Mobile-optimized
+- Plain text fallback
+- Unsubscribe link in footer
+- Physical address
+- Preference management link
+- Brand colors and styling
+
+#### Product Reminder Email
+**Features:**
+- Personalized with customer name
+- Product image and details
+- Last purchase date
+- Benefits of filter replacement
+- Reorder CTA button
+- Snooze reminder option
+- Full compliance footer
+
+### Database Schema
+
+#### newsletter_tokens Table
+```sql
+CREATE TABLE newsletter_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  token TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  type TEXT CHECK(type IN ('unsubscribe', 'preferences')),
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER,  -- NULL for unsubscribe (never expires)
+  used_at INTEGER,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+)
+```
+
+#### user_preferences Table
+```sql
+CREATE TABLE user_preferences (
+  user_id TEXT PRIMARY KEY,
+  email_notifications INTEGER DEFAULT 1,
+  product_reminders INTEGER DEFAULT 1,
+  newsletter INTEGER DEFAULT 1,
+  sms_notifications INTEGER DEFAULT 0,
+  theme TEXT DEFAULT 'system',
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+)
+```
+
+### Setup Instructions
+
+1. **Initialize Database:**
+```bash
+npm run init-newsletter
+```
+
+2. **Environment Variables:**
+```env
+NEXT_PUBLIC_BASE_URL=https://yourdomain.com
+```
+
+3. **Email Integration:**
+- Configure SMTP settings
+- Test unsubscribe links
+- Verify compliance footer
+- Test mobile rendering
+
+### Compliance Features
+
+**GDPR Compliance:**
+- ✅ Explicit consent for marketing emails
+- ✅ Easy opt-out mechanism
+- ✅ Right to be forgotten (account deletion)
+- ✅ Data portability
+- ✅ Privacy notices
+- ✅ Audit trail
+- ✅ Preference management
+
+**CAN-SPAM Compliance:**
+- ✅ Clear unsubscribe mechanism
+- ✅ Unsubscribe processed within 10 days
+- ✅ No deceptive subject lines
+- ✅ Physical address in emails
+- ✅ Identify message as advertisement
+- ✅ Honor opt-outs permanently
+
+### Audit Logging
+
+**Tracked Events:**
+- Newsletter subscribed/unsubscribed
+- Preferences updated
+- Token validated
+- Unsubscribe all
+- Resubscribed
+- Invalid token attempts
+
+**Logged Information:**
+- User ID, IP address, User agent
+- Timestamp, Action details
+- Status (success/failure)
+
+### Legal Compliance Notes
+
+**Important:** This system implements technical requirements for GDPR and CAN-SPAM compliance, but legal compliance also requires:
+- Privacy policy with email practices
+- Terms of service mentioning emails
+- Physical business address
+- Data processing agreements (if using third-party email service)
+- Regular compliance audits
+
+**Recommendation:** Have legal counsel review email practices and policies.
+
+---
+
 ## 📚 Support Portal / Knowledge Base
 
 ### Overview
@@ -2316,11 +2512,27 @@ This section documents features found in the legacy ASP FiltersFast site that co
 - **Value:** Medium - Protects high-value orders, reduces liability, additional revenue stream
 - **Components:** `ShippingInsurance.tsx`, `lib/types/insurance.ts`
 
-**11. Newsletter Preference Center** 📧
-- **Description:** Granular email subscription settings
-- **Legacy File:** `custSecurity.asp` (futureMail preferences)
-- **Implementation:** Low complexity, 1 week
-- **Value:** Medium - Compliance and user control
+**11. Newsletter Preference Center** 📧 ✅ **IMPLEMENTED**
+- **Description:** Granular email subscription settings with GDPR/CAN-SPAM compliance
+- **Legacy File:** `custSecurity.asp` (futureMail, newsletter preferences)
+- **Implementation:** Completed - Full preference management with token-based unsubscribe
+- **Value:** High - Legal compliance, user control, email deliverability
+- **Components:** 
+  - Newsletter preferences page (`/account/newsletter`)
+  - Public unsubscribe page (`/unsubscribe/[token]`)
+  - Token-based unsubscribe system
+  - Email templates with unsubscribe links
+  - Database: `newsletter_tokens`, `user_preferences` tables
+- **Features:**
+  - ✅ Granular email preferences (newsletter, reminders, transactional)
+  - ✅ One-click unsubscribe from email links (CAN-SPAM compliant)
+  - ✅ Token-based unsubscribe (never expires, as required by law)
+  - ✅ Preference management dashboard
+  - ✅ GDPR-compliant notices and consent
+  - ✅ Audit logging for compliance
+  - ✅ Email templates with footer compliance
+  - ✅ Resubscribe functionality
+  - ✅ Unsubscribe from all marketing emails option
 
 **12. Refrigerator Finder Tool** 🧊
 - **Description:** Specialized refrigerator model lookup (vs general model lookup)
@@ -2405,8 +2617,8 @@ Based on business value, effort, and dependencies:
 **Quarter 3 (6-9 months):**
 8. **Referral Program + Social Sharing** (4 weeks) - Customer acquisition, viral marketing
 9. **Affiliate/Partnership Program** (3-4 weeks) - Performance-based marketing
-10. **Shipping Insurance** (1 week) - Risk mitigation for high-value orders
-11. **Newsletter Preferences** (1 week) - GDPR/CAN-SPAM compliance
+10. ✅ **Shipping Insurance** (1 week) - Risk mitigation for high-value orders - COMPLETED! ✅
+11. ✅ **Newsletter Preferences** (1 week) - GDPR/CAN-SPAM compliance - COMPLETED! ✅
 
 **Quarter 4 (9-12 months):**
 12. **Multi-Currency Support** (4 weeks) - International expansion

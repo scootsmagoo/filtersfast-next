@@ -5,6 +5,15 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🆕 Latest Updates (October 31, 2025)
 
 **Recent Improvements:**
+- ✅ **Newsletter Preferences** - GDPR/CAN-SPAM compliant email management! 🆕
+  - Granular email preferences (newsletter, reminders, transactional)
+  - One-click unsubscribe with secure token system
+  - Public unsubscribe page with token validation
+  - Accessible confirmation dialogs (WCAG 2.1 AA)
+  - Email templates with compliant footers
+  - Token-based unsubscribe (never expires per CAN-SPAM)
+  - Audit logging for compliance tracking
+  - OWASP Top 10 2021 secure + WCAG 2.1 AA accessible
 - ✅ **Shipping Insurance** - Optional protection for high-value orders! 🆕
   - Two coverage levels: Standard (tiered) & Premium (0.35%)
   - Smart recommendations based on order value ($50/$200 thresholds)
@@ -91,8 +100,9 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ Custom air filter builder
 
 **Customer Features:**
+- ✅ **Newsletter Preferences** - GDPR/CAN-SPAM compliant email management 🆕
 - ✅ **Enhanced Account Settings** - Dark mode, notification preferences, theme management 🆕
-- ✅ **Dark Mode** - Full site-wide dark theme with proper contrast (Light/Dark/System) 🆕
+- ✅ **Dark Mode** - Full site-wide dark theme with proper contrast (Light/Dark/System) 🆝
 - ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
 - ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
 - ✅ **SMS Marketing (Attentive)** - Text notifications with 98% open rate 🆕
@@ -251,6 +261,7 @@ npm run init:sms              # Initialize SMS system
 npm run init:abandoned-carts  # Initialize cart recovery
 npm run init:payment-methods  # Initialize payment vault
 npm run init:idme             # Initialize ID.me verification
+npm run init:newsletter       # Initialize newsletter tokens (GDPR/CAN-SPAM)
 npx tsx scripts/init-user-preferences.ts  # Initialize user preferences (dark mode, notifications)
 
 # Cron Jobs
@@ -274,7 +285,7 @@ Based on legacy FiltersFast features and business priorities:
 
 ### Medium Priority (6-12 months)
 - [x] **Shipping Insurance** - Optional insurance for high-value orders ✅
-- [ ] **Newsletter Preferences** - Granular email subscription settings
+- [x] **Newsletter Preferences** - Granular email subscription settings ✅
 - [ ] **Multi-Currency Support** - CAD, GBP, EUR, AUD for international customers
 
 ### Future Considerations

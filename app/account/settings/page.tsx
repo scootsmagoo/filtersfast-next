@@ -870,24 +870,32 @@ export default function AccountSettingsPage() {
 
                   {/* Save Button */}
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <Button
-                      onClick={handlePreferencesUpdate}
-                      disabled={loading}
-                      className="flex items-center gap-2"
-                      aria-label="Save notification preferences"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" aria-hidden="true" />
-                          Save Preferences
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <Button
+                        onClick={handlePreferencesUpdate}
+                        disabled={loading}
+                        className="flex items-center gap-2"
+                        aria-label="Save notification preferences"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" aria-hidden="true" />
+                            Save Preferences
+                          </>
+                        )}
+                      </Button>
+                      <Link
+                        href="/account/newsletter"
+                        className="text-sm text-brand-orange hover:text-brand-orange-dark font-medium"
+                      >
+                        View detailed newsletter preferences →
+                      </Link>
+                    </div>
                   </div>
                 </fieldset>
               </Card>
