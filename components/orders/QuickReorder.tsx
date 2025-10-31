@@ -91,12 +91,12 @@ export default function QuickReorder() {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-brand-orange/10 dark:bg-brand-orange/20 rounded-full flex items-center justify-center transition-colors">
             <Package className="w-5 h-5 text-brand-orange" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Quick Reorder</h2>
-            <p className="text-sm text-gray-600">Reorder from your recent purchases</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Quick Reorder</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">Reorder from your recent purchases</p>
           </div>
         </div>
         
@@ -113,13 +113,13 @@ export default function QuickReorder() {
         <div className="space-y-4">
           {[1, 2].map((i) => (
             <div key={i} className="animate-pulse">
-              <div className="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-b-0 last:pb-0">
-                <div className="w-16 h-16 bg-gray-200 rounded"></div>
+              <div className="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
                 </div>
-                <div className="h-10 w-24 bg-gray-200 rounded"></div>
+                <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
             </div>
           ))}
@@ -129,10 +129,10 @@ export default function QuickReorder() {
           {recentOrders.map((order) => (
             <div
               key={order.id}
-              className="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-b-0 last:pb-0"
+              className="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0 transition-colors"
             >
               {/* Product Image */}
-              <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0 transition-colors">
                 <img
                   src={order.items[0]?.image}
                   alt={order.items[0]?.name}
@@ -147,11 +147,11 @@ export default function QuickReorder() {
               <div className="flex-1 min-w-0">
                 <Link
                   href={`/account/orders/${order.id}`}
-                  className="font-medium text-gray-900 hover:text-brand-orange line-clamp-1 block"
+                  className="font-medium text-gray-900 dark:text-gray-100 hover:text-brand-orange line-clamp-1 block transition-colors"
                 >
                   Order #{order.orderNumber}
                 </Link>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                   {new Date(order.date).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',

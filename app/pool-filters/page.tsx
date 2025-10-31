@@ -145,17 +145,17 @@ export default function PoolFiltersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
+    <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Page Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">Pool & Spa Filters</h1>
-              <p className="text-brand-gray-600">Keep your pool crystal clear with quality replacement filters</p>
+              <h1 className="text-3xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Pool & Spa Filters</h1>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Keep your pool crystal clear with quality replacement filters</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-brand-gray-600">{filteredProducts.length} products</p>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">{filteredProducts.length} products</p>
             </div>
           </div>
         </div>
@@ -184,24 +184,24 @@ export default function PoolFiltersPage() {
       </div>
 
       {/* Info Section */}
-      <div className="bg-white border-t mt-12">
+      <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-12 transition-colors">
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Pool Cartridge Filters</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Pool Cartridge Filters</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Easy to clean and maintain. Perfect for in-ground and above-ground pools. Replace annually for best performance.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Hot Tub & Spa Filters</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Hot Tub & Spa Filters</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Keep your spa water clean and clear. Compatible with major brands including Sundance, Jacuzzi, and more.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Sand & DE Filters</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Sand & DE Filters</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Premium filter media and DE grids for optimal filtration. Professional-grade quality at affordable prices.
               </p>
             </div>

@@ -25,7 +25,7 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
         Skip to main content
       </a>
       
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
         {/* Content Blocks */}
         <div id="partner-content" className="partner-content" role="main">
           {partner.contentBlocks
@@ -62,29 +62,29 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
             )}
 
             {/* Title */}
-            <h1 className="text-4xl font-bold text-gray-900 mb-4 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center transition-colors">
               {partner.name}
             </h1>
 
             {/* Short Description */}
             {partner.shortDescription && (
-              <p className="text-xl text-gray-600 mb-6 text-center">
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 text-center transition-colors">
                 {partner.shortDescription}
               </p>
             )}
 
             {/* Mission Statement */}
             {partner.missionStatement && (
-              <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Mission</h2>
-                <p className="text-gray-700 italic">{partner.missionStatement}</p>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8 transition-colors">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Mission</h2>
+                <p className="text-gray-700 dark:text-gray-300 italic transition-colors">{partner.missionStatement}</p>
               </div>
             )}
 
             {/* Full Description */}
             {partner.description && (
-              <div className="prose max-w-none mb-8">
-                <p className="text-gray-700 leading-relaxed">{partner.description}</p>
+              <div className="prose max-w-none dark:prose-invert mb-8">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed transition-colors">{partner.description}</p>
               </div>
             )}
 
@@ -110,7 +110,7 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
 
             {/* Partnership Date */}
             {partner.partnershipStartDate && (
-              <p className="text-gray-600 text-center mb-6">
+              <p className="text-gray-600 dark:text-gray-300 text-center mb-6 transition-colors">
                 Partners since {new Date(partner.partnershipStartDate).getFullYear()}
               </p>
             )}

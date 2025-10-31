@@ -30,10 +30,10 @@ export default function PaymentMethodsPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300 transition-colors">Loading...</p>
         </div>
       </div>
     );
@@ -49,13 +49,13 @@ export default function PaymentMethodsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/account"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Account
@@ -63,11 +63,11 @@ export default function PaymentMethodsPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center transition-colors">
                 <CreditCard className="w-8 h-8 mr-3 text-orange-500" />
                 Payment Methods
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-gray-600 dark:text-gray-300 transition-colors">
                 Manage your saved payment methods for faster checkout
               </p>
             </div>
@@ -96,11 +96,11 @@ export default function PaymentMethodsPage() {
 
         {/* Info Section */}
         {!showAddForm && (
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+          <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 transition-colors">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-2 transition-colors">
               💡 Why save a payment method?
             </h3>
-            <ul className="space-y-2 text-blue-800">
+            <ul className="space-y-2 text-blue-800 dark:text-blue-300 transition-colors">
               <li className="flex items-start">
                 <span className="mr-2">✓</span>
                 <span>Faster checkout - no need to enter card details again</span>

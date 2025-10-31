@@ -87,7 +87,7 @@ export default function SavedModelsPage() {
 
   if (isPending || loading) {
     return (
-      <div className="container-custom py-12">
+      <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="flex items-center justify-center" role="status" aria-live="polite">
           <Loader2 className="w-8 h-8 animate-spin text-brand-orange" aria-hidden="true" />
           <span className="sr-only">Loading your saved models...</span>
@@ -97,12 +97,12 @@ export default function SavedModelsPage() {
   }
 
   return (
-    <div className="container-custom py-12">
+    <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3 transition-colors">
               <Bookmark className="w-8 h-8 text-brand-orange" />
               My Saved Models
             </h1>
@@ -113,7 +113,7 @@ export default function SavedModelsPage() {
               </Button>
             </Link>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300 transition-colors">
             Quickly find and reorder filters for your saved appliances
           </p>
         </div>
@@ -121,23 +121,23 @@ export default function SavedModelsPage() {
         {/* Error Message */}
         {error && (
           <div 
-            className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+            className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3 transition-colors"
             role="alert"
             aria-live="assertive"
           >
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="text-sm text-red-800">{error}</p>
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 transition-colors" aria-hidden="true" />
+            <p className="text-sm text-red-800 dark:text-red-300 transition-colors">{error}</p>
           </div>
         )}
 
         {/* Saved Models List */}
         {savedModels.length === 0 ? (
           <Card className="p-12 text-center">
-            <Bookmark className="w-16 h-16 text-gray-300 mx-auto mb-4" aria-hidden="true" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <Bookmark className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4 transition-colors" aria-hidden="true" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
               No Saved Models Yet
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">
               Save your appliance models for quick filter reordering and automatic reminders
             </p>
             <Link href="/model-lookup">
@@ -158,34 +158,34 @@ export default function SavedModelsPage() {
                         {APPLIANCE_TYPE_ICONS[model.applianceType]}
                       </span>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                           {model.brand} {model.modelNumber}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors">
                           {APPLIANCE_TYPE_LABELS[model.applianceType]}
                         </p>
                       </div>
                     </div>
 
                     {model.nickname && (
-                      <p className="text-sm font-medium text-gray-700 mb-1">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                         {model.nickname}
                       </p>
                     )}
 
                     {model.location && (
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 transition-colors">
                         📍 {model.location}
                       </p>
                     )}
 
                     {model.notes && (
-                      <p className="text-sm text-gray-500 italic mb-3">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic mb-3 transition-colors">
                         {model.notes}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors">
                       <span>
                         Saved {new Date(model.createdAt).toLocaleDateString()}
                       </span>
@@ -205,6 +205,7 @@ export default function SavedModelsPage() {
                       size="sm"
                       onClick={() => router.push(`/products?model=${model.modelId}`)}
                       aria-label={`Order filters for ${model.brand} ${model.modelNumber}`}
+                      className="focus:ring-offset-gray-50 dark:focus:ring-offset-gray-900"
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" aria-hidden="true" />
                       Order Filters
@@ -215,7 +216,7 @@ export default function SavedModelsPage() {
                       size="sm"
                       onClick={() => handleDelete(model.id, `${model.brand} ${model.modelNumber}`)}
                       disabled={deletingId === model.id}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:ring-offset-gray-50 dark:focus:ring-offset-gray-900"
                       aria-label={`Remove ${model.brand} ${model.modelNumber} from saved models`}
                       aria-busy={deletingId === model.id}
                     >
@@ -239,9 +240,9 @@ export default function SavedModelsPage() {
         )}
 
         {/* Info Box */}
-        <Card className="mt-8 p-6 bg-blue-50 border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Pro Tip</h3>
-          <p className="text-sm text-blue-800">
+        <Card className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 transition-colors">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 transition-colors">💡 Pro Tip</h3>
+          <p className="text-sm text-blue-800 dark:text-blue-300 transition-colors">
             Save all your appliance models to make reordering filters quick and easy. 
             We'll even remind you when it's time to replace them!
           </p>

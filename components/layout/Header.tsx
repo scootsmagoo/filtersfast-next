@@ -78,7 +78,7 @@ export default function Header() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-colors">
       {/* Top Banner */}
       <div className="bg-brand-orange text-white py-2">
         <div className="container-custom">
@@ -114,7 +114,7 @@ export default function Header() {
               width={200}
               height={60}
               priority
-              className="h-auto w-auto max-h-14"
+              className="h-auto w-auto max-h-14 dark:border-2 dark:border-white transition-all"
             />
           </Link>
 
@@ -133,7 +133,7 @@ export default function Header() {
                   onChange={handleSearchChange}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
-                  className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+                  className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
                   aria-describedby="search-help"
                   autoComplete="off"
                 />
@@ -164,15 +164,15 @@ export default function Header() {
             {session ? (
               <Link 
                 href="/account" 
-                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
                   {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium">{session.user.name?.split(' ')[0] || 'Account'}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{session.user.name?.split(' ')[0] || 'Account'}</span>
               </Link>
             ) : (
-              <Link href="/sign-in" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
+              <Link href="/sign-in" className="hidden md:block text-sm text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
                 Sign In
               </Link>
             )}
@@ -181,7 +181,7 @@ export default function Header() {
               className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
               aria-label={`Shopping cart with ${itemCount} items`}
             >
-              <ShoppingCart className="w-6 h-6 hover:text-brand-orange transition-colors" />
+              <ShoppingCart className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors" />
               {itemCount > 0 && (
                 <span 
                   className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
@@ -198,7 +198,7 @@ export default function Header() {
               aria-controls="mobile-menu"
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6 text-gray-900 dark:text-gray-100" /> : <Menu className="w-6 h-6 text-gray-900 dark:text-gray-100" />}
             </button>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function Header() {
                 onChange={handleSearchChange}
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
-                className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
                 aria-describedby="mobile-search-help"
                 autoComplete="off"
               />
@@ -251,27 +251,52 @@ export default function Header() {
           <div className="hidden md:flex items-center justify-center gap-8 py-3">
             <Link 
               href="/model-lookup" 
-              className="hover:text-brand-orange transition-colors font-medium bg-white/10 px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
+              className={`${pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors font-medium px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue`}
               aria-label="Find filter by appliance model"
+              aria-current={pathname === '/model-lookup' ? 'page' : undefined}
             >
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter
             </Link>
-            <Link href="/refrigerator-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/refrigerator-filters" 
+              className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/refrigerator-filters' ? 'page' : undefined}
+            >
               Refrigerator Filters
             </Link>
-            <Link href="/air-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/air-filters" 
+              className={`${pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/air-filters' ? 'page' : undefined}
+            >
               Air Filters
             </Link>
-            <Link href="/water-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/water-filters" 
+              className={`${pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/water-filters' ? 'page' : undefined}
+            >
               Water Filters
             </Link>
-            <Link href="/pool-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/pool-filters" 
+              className={`${pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/pool-filters' ? 'page' : undefined}
+            >
               Pool & Spa
             </Link>
-            <Link href="/humidifier-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/humidifier-filters" 
+              className={`${pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/humidifier-filters' ? 'page' : undefined}
+            >
               Humidifier Filters
             </Link>
-            <Link href="/sale" className="hover:text-brand-orange transition-colors font-medium text-brand-orange">
+            <Link 
+              href="/sale" 
+              className={`${pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium text-brand-orange px-3 py-2 rounded-lg`}
+              aria-current={pathname === '/sale' ? 'page' : undefined}
+            >
               Sale
             </Link>
           </div>
@@ -282,7 +307,7 @@ export default function Header() {
       {mobileMenuOpen && (
         <div 
           id="mobile-menu"
-          className="md:hidden bg-white border-t shadow-lg"
+          className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg transition-colors"
           role="menu"
           aria-label="Main navigation"
         >
@@ -295,19 +320,19 @@ export default function Header() {
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter by Model
             </Link>
             <hr />
-            <Link href="/refrigerator-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/refrigerator-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Refrigerator Filters
             </Link>
-            <Link href="/air-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/air-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Air Filters
             </Link>
-            <Link href="/water-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/water-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Water Filters
             </Link>
-            <Link href="/pool-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/pool-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Pool & Spa Filters
             </Link>
-            <Link href="/humidifier-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/humidifier-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Humidifier Filters
             </Link>
             <Link href="/sale" className="block py-2 text-brand-orange font-semibold">
@@ -320,11 +345,11 @@ export default function Header() {
                   <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
                     {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
                   </div>
-                  <span>{session.user.name || 'My Account'}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{session.user.name || 'My Account'}</span>
                 </div>
               </Link>
             ) : (
-              <Link href="/sign-in" className="block py-2 hover:text-brand-orange transition-colors">
+              <Link href="/sign-in" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
                 Sign In / Register
               </Link>
             )}

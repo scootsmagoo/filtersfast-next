@@ -50,13 +50,13 @@ const categories = [
 
 export default function FeaturedCategories() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-white dark:bg-gray-900 transition-colors">
       <div className="container-custom">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">
             Featured Categories
           </h2>
-          <p className="text-lg text-brand-gray-600">
+          <p className="text-lg text-brand-gray-600 dark:text-gray-300 transition-colors">
             Browse our most popular filter categories
           </p>
         </div>
@@ -73,10 +73,10 @@ export default function FeaturedCategories() {
                     </div>
                   )}
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className={`${category.bgColor} p-4 rounded-full group-hover:scale-110 transition-transform`}>
+                    <div className={`${category.bgColor} dark:bg-gray-700 p-4 rounded-full group-hover:scale-110 transition-all`}>
                       <Icon className={`w-8 h-8 ${category.color}`} />
                     </div>
-                    <h3 className="text-lg font-bold text-brand-gray-900 group-hover:text-brand-orange transition-colors">
+                    <h3 className="text-lg font-bold text-brand-gray-900 dark:text-gray-100 group-hover:text-brand-orange transition-colors">
                       {category.name}
                     </h3>
                     <p className="text-sm text-brand-orange font-semibold opacity-0 group-hover:opacity-100 transition-opacity">

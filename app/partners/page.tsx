@@ -55,9 +55,9 @@ export default function PartnersPage() {
 
   const getPartnerTypeBadge = (type: PartnerType) => {
     switch (type) {
-      case 'charity': return 'bg-purple-100 text-purple-800';
-      case 'corporate': return 'bg-blue-100 text-blue-800';
-      case 'discount_program': return 'bg-green-100 text-green-800';
+      case 'charity': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300';
+      case 'corporate': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
+      case 'discount_program': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
     }
   };
 
@@ -65,9 +65,9 @@ export default function PartnersPage() {
     return (
       <div className="container-custom py-12">
         <div className="animate-pulse space-y-6">
-          <div className="h-12 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-1/3 transition-colors"></div>
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded transition-colors"></div>
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded transition-colors"></div>
         </div>
       </div>
     );
@@ -83,7 +83,7 @@ export default function PartnersPage() {
         Skip to main content
       </a>
       
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white py-16">
           <div className="container-custom">
@@ -100,7 +100,7 @@ export default function PartnersPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 shadow-sm transition-colors">
           <div className="container-custom">
             <div 
               className="flex gap-2 overflow-x-auto py-4" 
@@ -112,7 +112,7 @@ export default function PartnersPage() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                   filter === 'all'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 role="tab"
                 aria-selected={filter === 'all'}
@@ -125,7 +125,7 @@ export default function PartnersPage() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                   filter === 'charity'
                     ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 role="tab"
                 aria-selected={filter === 'charity'}
@@ -139,7 +139,7 @@ export default function PartnersPage() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                   filter === 'corporate'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 role="tab"
                 aria-selected={filter === 'corporate'}
@@ -153,7 +153,7 @@ export default function PartnersPage() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                   filter === 'discount_program'
                     ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 role="tab"
                 aria-selected={filter === 'discount_program'}
@@ -207,24 +207,24 @@ export default function PartnersPage() {
                   </div>
 
                   {/* Name & Description */}
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
                     {partner.name}
                   </h2>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 transition-colors">
                     {partner.shortDescription}
                   </p>
 
                   {/* Partnership Date */}
                   {partner.partnershipStartDate && (
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 transition-colors">
                       Partners since {new Date(partner.partnershipStartDate).getFullYear()}
                     </p>
                   )}
 
                   {/* Discount Badge */}
                   {partner.discountCode && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">
-                      <p className="text-sm font-medium text-green-800">
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mb-4 transition-colors">
+                      <p className="text-sm font-medium text-green-800 dark:text-green-300 transition-colors">
                         ✨ {partner.discountDescription || 'Exclusive discount available'}
                       </p>
                     </div>
@@ -248,7 +248,7 @@ export default function PartnersPage() {
                         href={partner.websiteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
                         aria-label={`Visit ${partner.name} website (opens in new tab)`}
                         title="Visit partner website"
                       >
@@ -265,11 +265,11 @@ export default function PartnersPage() {
           {/* Empty State */}
           {filteredPartners.length === 0 && (
             <div className="text-center py-16">
-              <Handshake className="w-16 h-16 text-gray-300 mx-auto mb-4" aria-hidden="true" />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              <Handshake className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" aria-hidden="true" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
                 No Partners Found
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300 transition-colors">
                 {filter === 'all' 
                   ? 'There are currently no active partners.'
                   : `There are no ${getPartnerTypeLabel(filter as PartnerType).toLowerCase()}s at this time.`}
@@ -280,13 +280,13 @@ export default function PartnersPage() {
 
         {/* Featured Section */}
         {partners.some(p => p.featured) && (
-          <div className="bg-white py-16 border-t border-gray-200">
+          <div className="bg-white dark:bg-gray-800 py-16 border-t border-gray-200 dark:border-gray-700 transition-colors">
             <div className="container-custom">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
                   Featured Partnership
                 </h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors">
                   Learn about our flagship partnerships making a real difference
                 </p>
               </div>
@@ -318,10 +318,10 @@ export default function PartnersPage() {
                               className="h-20 object-contain mb-4"
                             />
                           )}
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-brand-orange transition-colors">
+                          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 group-hover:text-brand-orange transition-colors">
                             {partner.name}
                           </h3>
-                          <p className="text-gray-600 mb-4">
+                          <p className="text-gray-600 dark:text-gray-300 mb-4 transition-colors">
                             {partner.description || partner.shortDescription}
                           </p>
                           <div className="flex items-center gap-2 text-brand-orange font-medium">

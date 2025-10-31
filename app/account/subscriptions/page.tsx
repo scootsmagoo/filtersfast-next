@@ -110,7 +110,7 @@ export default function SubscriptionsPage() {
 
   if (isPending || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange"></div>
       </div>
     )
@@ -124,13 +124,13 @@ export default function SubscriptionsPage() {
   const pausedCount = subscriptions.filter(s => s.status === 'paused').length
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container-custom py-8">
         {/* Header */}
         <div className="mb-8">
           <Link 
             href="/account" 
-            className="inline-flex items-center gap-2 text-brand-blue hover:underline mb-4"
+            className="inline-flex items-center gap-2 text-brand-blue hover:underline mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Account
@@ -138,8 +138,8 @@ export default function SubscriptionsPage() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Subscriptions</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">My Subscriptions</h1>
+              <p className="text-gray-600 dark:text-gray-300 transition-colors">
                 Manage your Subscribe & Save automatic deliveries
               </p>
             </div>
@@ -157,36 +157,36 @@ export default function SubscriptionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center transition-colors">
+                <Package className="w-5 h-5 text-green-600 dark:text-green-400 transition-colors" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-gray-900">{activeCount}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Active</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{activeCount}</p>
               </div>
             </div>
           </Card>
 
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Pause className="w-5 h-5 text-yellow-600" />
+              <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center transition-colors">
+                <Pause className="w-5 h-5 text-yellow-600 dark:text-yellow-400 transition-colors" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Paused</p>
-                <p className="text-2xl font-bold text-gray-900">{pausedCount}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Paused</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{pausedCount}</p>
               </div>
             </div>
           </Card>
 
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center transition-colors">
                 <Truck className="w-5 h-5 text-brand-orange" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Subscriptions</p>
-                <p className="text-2xl font-bold text-gray-900">{subscriptions.length}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Total Subscriptions</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{subscriptions.length}</p>
               </div>
             </div>
           </Card>
@@ -195,11 +195,11 @@ export default function SubscriptionsPage() {
         {/* Subscriptions List */}
         {subscriptions.length === 0 ? (
           <Card className="p-12 text-center">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <Package className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4 transition-colors" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
               No Subscriptions Yet
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">
               Subscribe to products and save 5% on every delivery!
             </p>
             <Link href="/">
@@ -226,9 +226,9 @@ export default function SubscriptionsPage() {
         )}
 
         {/* Info Banner */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">Subscribe & Save Benefits</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 transition-colors">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 transition-colors">Subscribe & Save Benefits</h3>
+          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1 transition-colors">
             <li>✓ <strong>Save 5%</strong> on every subscription order</li>
             <li>✓ <strong>Free shipping</strong> on subscription orders $50+</li>
             <li>✓ <strong>Never run out</strong> - automatic deliveries on your schedule</li>

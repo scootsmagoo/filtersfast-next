@@ -3,9 +3,9 @@ import { Facebook, Twitter, Instagram, Youtube, Headset, UserCircle, Home, Key }
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-gray-800 text-white">
+    <footer className="bg-brand-gray-800 dark:bg-gray-950 text-white transition-colors">
       {/* Top Banner: Reorder, Home Filter Club, Additional Questions */}
-      <div className="bg-brand-gray-900 py-8 border-b border-brand-gray-700">
+      <div className="bg-brand-gray-900 dark:bg-black py-8 border-b border-brand-gray-700 dark:border-gray-800 transition-colors">
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Reorder Filters */}

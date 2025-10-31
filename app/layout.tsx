@@ -10,6 +10,7 @@ import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementPr
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import { Suspense } from "react";
 import ReferralTracker from "@/components/tracking/ReferralTracker";
+import { ThemeProvider } from "@/lib/theme-provider";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -61,10 +62,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${lato.className} antialiased`}>
-        <StatusAnnouncementProvider>
-          <CartProvider>
+    <html lang="en" className="transition-colors">
+      <body className={`${lato.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
+        <ThemeProvider>
+          <StatusAnnouncementProvider>
+            <CartProvider>
             {/* Skip Links */}
             <a 
               href="#main-content" 
@@ -84,14 +86,15 @@ export default function RootLayout({
               <ReferralTracker />
             </Suspense>
             <Header />
-            <main id="main-content" className="min-h-screen" role="main">
+            <main id="main-content" className="min-h-screen bg-white dark:bg-gray-900 transition-colors" role="main">
               {children}
             </main>
             <Footer />
             <ScreenReaderAnnouncements />
             <ChatbotWidget />
-          </CartProvider>
-        </StatusAnnouncementProvider>
+            </CartProvider>
+          </StatusAnnouncementProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

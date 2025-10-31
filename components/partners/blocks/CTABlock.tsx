@@ -14,11 +14,11 @@ export default function CTABlock({ data }: CTABlockProps) {
       style={{ backgroundColor: bgColor }}
     >
       <div className="container-custom max-w-3xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
           {data.heading}
         </h2>
         {data.description && (
-          <p className="text-lg text-gray-700 mb-8">
+          <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 transition-colors">
             {data.description}
           </p>
         )}

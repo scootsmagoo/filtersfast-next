@@ -186,12 +186,12 @@ export default function ChatbotWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-brand-orange text-white rounded-full p-4 shadow-[0_0_0_4px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_0_0_4px_rgba(242,103,34,0.4),0_12px_24px_rgba(0,0,0,0.3)] hover:scale-110 transition-all duration-200 z-50 group border-4 border-gray-800 min-w-[56px] min-h-[56px]"
+        className="fixed bottom-6 right-6 bg-brand-orange text-white rounded-full p-4 shadow-[0_0_0_4px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_0_0_4px_rgba(242,103,34,0.4),0_12px_24px_rgba(0,0,0,0.3)] hover:scale-110 transition-all duration-200 z-50 group border-4 border-gray-800 dark:border-gray-600 min-w-[56px] min-h-[56px]"
         aria-label="Open chat assistant - Get help with your order"
         title="Chat with our AI assistant"
       >
         <MessageCircle className="w-6 h-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]" strokeWidth={2.5} aria-hidden="true" />
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse border-2 border-gray-800 font-bold shadow-lg" aria-label="New">
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse border-2 border-gray-800 dark:border-gray-600 font-bold shadow-lg" aria-label="New">
           !
         </span>
       </button>
@@ -201,13 +201,13 @@ export default function ChatbotWidget() {
   return (
     <div 
       ref={widgetRef}
-      className="fixed bottom-6 right-6 w-96 h-[600px] bg-white rounded-lg shadow-2xl flex flex-col z-50 border-4 border-brand-orange ring-4 ring-gray-300"
+      className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-2xl flex flex-col z-50 border-4 border-brand-orange ring-4 ring-gray-300 dark:ring-gray-600 transition-colors"
       role="dialog"
       aria-label="Chat assistant"
       aria-modal="true"
     >
       {/* Header */}
-      <div className="bg-brand-blue text-white p-4 rounded-t-lg flex items-center justify-between border-b-4 border-brand-orange">
+      <div className="bg-brand-blue dark:bg-gray-900 text-white p-4 rounded-t-lg flex items-center justify-between border-b-4 border-brand-orange transition-colors">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5" aria-hidden="true" />
           <div>
@@ -239,7 +239,7 @@ export default function ChatbotWidget() {
 
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-gray-800 transition-colors"
         role="log"
         aria-live="polite"
         aria-atomic="false"
@@ -264,10 +264,10 @@ export default function ChatbotWidget() {
 
               {/* Message bubble */}
               <div className="flex flex-col">
-                <div className={`rounded-lg p-3 border-2 shadow-sm ${
+                <div className={`rounded-lg p-3 border-2 shadow-sm transition-colors ${
                   msg.role === 'user'
                     ? 'bg-brand-blue text-white border-brand-blue-dark'
-                    : 'bg-white text-gray-900 border-gray-300'
+                    : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600'
                 }`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </div>
@@ -275,14 +275,14 @@ export default function ChatbotWidget() {
                 {/* Referenced articles */}
                 {msg.articlesReferenced && msg.articlesReferenced.length > 0 && (
                   <div className="mt-2 text-xs space-y-1">
-                    <p className="text-gray-500 font-medium">Related articles:</p>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium transition-colors">Related articles:</p>
                     {msg.articlesReferenced.map((article) => (
                       <a
                         key={article.id}
                         href={`/support/${article.category_slug}/${article.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block text-brand-blue-link hover:underline"
+                        className="block text-brand-blue-link dark:text-blue-400 hover:underline transition-colors"
                       >
                         → {article.title}
                       </a>
@@ -295,7 +295,7 @@ export default function ChatbotWidget() {
                   <div className="flex gap-2 mt-2" role="group" aria-label="Rate this response">
                     <button
                       onClick={() => handleFeedback(msg.id, 'helpful')}
-                      className="text-gray-500 hover:text-green-600 hover:bg-green-50 p-2 rounded transition-colors border border-transparent hover:border-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      className="text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 p-2 rounded transition-colors border border-transparent hover:border-green-300 dark:hover:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
                       aria-label="This answer was helpful"
                       title="This was helpful"
                     >
@@ -303,7 +303,7 @@ export default function ChatbotWidget() {
                     </button>
                     <button
                       onClick={() => handleFeedback(msg.id, 'not_helpful')}
-                      className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 rounded transition-colors border border-transparent hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      className="text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded transition-colors border border-transparent hover:border-red-300 dark:hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
                       aria-label="This answer was not helpful"
                       title="This was not helpful"
                     >
@@ -322,7 +322,7 @@ export default function ChatbotWidget() {
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-brand-orange to-brand-orange-dark border-2 border-brand-orange-dark flex items-center justify-center shadow-md">
                 <MessageCircle className="w-4 h-4 text-white" aria-hidden="true" strokeWidth={2.5} />
               </div>
-              <div className="bg-white border-2 border-gray-300 rounded-lg p-3 shadow-sm" role="status" aria-live="polite" aria-label="Loading response">
+              <div className="bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 shadow-sm transition-colors" role="status" aria-live="polite" aria-label="Loading response">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-brand-orange rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-2 h-2 bg-brand-orange rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -338,8 +338,8 @@ export default function ChatbotWidget() {
 
       {/* Quick actions (shown when no messages) */}
       {messages.length === 1 && messages[0].id === 'greeting' && (
-        <div className="px-4 pb-2 space-y-2">
-          <p className="text-xs text-gray-500 font-medium">Quick questions:</p>
+        <div className="px-4 pb-2 space-y-2 bg-white dark:bg-gray-800 transition-colors">
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors">Quick questions:</p>
           <div className="grid grid-cols-1 gap-2">
             {quickActions.map((action) => (
               <button
@@ -348,7 +348,7 @@ export default function ChatbotWidget() {
                   setInputValue(action);
                   setTimeout(handleSend, 100);
                 }}
-                className="text-left text-xs bg-white hover:bg-brand-orange hover:text-white text-gray-700 px-3 py-3 rounded border-2 border-gray-300 hover:border-brand-orange transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-orange min-h-[44px]"
+                className="text-left text-xs bg-white dark:bg-gray-700 hover:bg-brand-orange hover:text-white text-gray-700 dark:text-gray-300 px-3 py-3 rounded border-2 border-gray-300 dark:border-gray-600 hover:border-brand-orange transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-orange min-h-[44px]"
                 aria-label={`Ask: ${action}`}
               >
                 {action}
@@ -359,13 +359,13 @@ export default function ChatbotWidget() {
       )}
 
       {/* Input area */}
-      <div className="p-4 border-t-4 border-brand-orange bg-gray-50">
+      <div className="p-4 border-t-4 border-brand-orange bg-gray-50 dark:bg-gray-900 transition-colors">
         {/* WCAG: Character counter */}
         {inputValue.length > 0 && (
-          <div className="text-xs text-gray-500 mb-2 text-right" aria-live="polite">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-right transition-colors" aria-live="polite">
             {inputValue.length} / {MAX_MESSAGE_LENGTH} characters
             {inputValue.length > MAX_MESSAGE_LENGTH && (
-              <span className="text-red-600 font-semibold ml-2">
+              <span className="text-red-600 dark:text-red-400 font-semibold ml-2 transition-colors">
                 (Too long - max {MAX_MESSAGE_LENGTH})
               </span>
             )}
@@ -381,8 +381,8 @@ export default function ChatbotWidget() {
             placeholder="Type your message..."
             rows={1}
             maxLength={MAX_MESSAGE_LENGTH + 100}
-            className={`flex-1 resize-none border-2 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue text-sm bg-white text-gray-900 ${
-              inputValue.length > MAX_MESSAGE_LENGTH ? 'border-red-500' : 'border-gray-300'
+            className={`flex-1 resize-none border-2 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 transition-colors ${
+              inputValue.length > MAX_MESSAGE_LENGTH ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
             }`}
             disabled={isLoading}
             aria-label="Type your message"
@@ -403,7 +403,7 @@ export default function ChatbotWidget() {
         {/* Human support button - WCAG: Min touch target 44x44px */}
         <button
           onClick={() => setShowContactForm(true)}
-          className="w-full mt-2 text-xs text-brand-blue-link hover:text-brand-orange hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue rounded px-2 py-2 min-h-[44px]"
+          className="w-full mt-2 text-xs text-brand-blue-link dark:text-blue-400 hover:text-brand-orange dark:hover:text-brand-orange hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue rounded px-2 py-2 min-h-[44px] transition-colors"
           aria-label="Contact human support team"
         >
           Need to talk to a human? Contact support →
@@ -413,40 +413,40 @@ export default function ChatbotWidget() {
       {/* Contact form overlay */}
       {showContactForm && (
         <div 
-          className="absolute inset-0 bg-white rounded-lg p-4 flex flex-col border-4 border-brand-orange"
+          className="absolute inset-0 bg-white dark:bg-gray-800 rounded-lg p-4 flex flex-col border-4 border-brand-orange transition-colors"
           role="dialog"
           aria-labelledby="contact-title"
         >
-          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
-            <h3 id="contact-title" className="font-semibold text-lg text-brand-blue">Contact Human Support</h3>
+          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200 dark:border-gray-700 transition-colors">
+            <h3 id="contact-title" className="font-semibold text-lg text-brand-blue dark:text-blue-400 transition-colors">Contact Human Support</h3>
             <button
               onClick={() => setShowContactForm(false)}
-              className="hover:bg-gray-100 rounded p-2 focus:outline-none focus:ring-2 focus:ring-brand-blue min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-2 focus:outline-none focus:ring-2 focus:ring-brand-blue min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
               aria-label="Close contact form and return to chat"
               title="Back to chat (Esc)"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-gray-900 dark:text-gray-100" />
             </button>
           </div>
           <div className="flex-1">
-            <p className="text-sm text-gray-700 mb-4 font-medium">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 font-medium transition-colors">
               For immediate assistance, please contact us:
             </p>
-            <div className="space-y-3 text-sm bg-gray-50 p-4 rounded-lg border-2 border-gray-200">
+            <div className="space-y-3 text-sm bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 transition-colors">
               <p className="flex items-start">
-                <strong className="w-20 text-brand-blue">Phone:</strong> 
-                <a href="tel:1-888-775-7101" className="text-brand-blue-link hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                <strong className="w-20 text-brand-blue dark:text-blue-400 transition-colors">Phone:</strong> 
+                <a href="tel:1-888-775-7101" className="text-brand-blue-link dark:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue transition-colors">
                   1-888-775-7101
                 </a>
               </p>
               <p className="flex items-start">
-                <strong className="w-20 text-brand-blue">Email:</strong> 
-                <a href="mailto:support@filtersfast.com" className="text-brand-blue-link hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                <strong className="w-20 text-brand-blue dark:text-blue-400 transition-colors">Email:</strong> 
+                <a href="mailto:support@filtersfast.com" className="text-brand-blue-link dark:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-brand-blue transition-colors">
                   support@filtersfast.com
                 </a>
               </p>
-              <p className="flex items-start">
-                <strong className="w-20 text-brand-blue">Hours:</strong> 
+              <p className="flex items-start text-gray-900 dark:text-gray-100 transition-colors">
+                <strong className="w-20 text-brand-blue dark:text-blue-400 transition-colors">Hours:</strong> 
                 <span>Mon-Fri 9am-5pm EST</span>
               </p>
             </div>

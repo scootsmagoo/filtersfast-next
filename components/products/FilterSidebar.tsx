@@ -82,9 +82,9 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
     <div className="space-y-4">
       {/* Active Filters */}
       {hasFilters && (
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 transition-colors">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="font-bold text-brand-gray-900">Active Filters</h3>
+            <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Active Filters</h3>
             <button
               onClick={clearFilters}
               className="text-brand-orange text-sm font-semibold hover:underline"
@@ -109,12 +109,12 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
       )}
 
       {/* Brand Filter */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-colors">
         <button
           onClick={() => toggleSection('brand')}
-          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <h3 className="font-bold text-brand-gray-900">Brand</h3>
+          <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Brand</h3>
           {sections.brand ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {sections.brand && (
@@ -127,7 +127,7 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
                   onChange={() => toggleBrand(brand)}
                   className="w-4 h-4 rounded border-brand-gray-300 text-brand-orange focus:ring-brand-orange"
                 />
-                <span className="text-brand-gray-700 group-hover:text-brand-orange transition-colors">
+                <span className="text-brand-gray-700 dark:text-gray-300 group-hover:text-brand-orange transition-colors">
                   {brand}
                 </span>
               </label>
@@ -137,12 +137,12 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
       </div>
 
       {/* Price Filter */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-colors">
         <button
           onClick={() => toggleSection('price')}
-          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <h3 className="font-bold text-brand-gray-900">Price Range</h3>
+          <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Price Range</h3>
           {sections.price ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {sections.price && (
@@ -156,7 +156,7 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
                   onChange={() => setSelectedPrice(range.value)}
                   className="w-4 h-4 border-brand-gray-300 text-brand-orange focus:ring-brand-orange"
                 />
-                <span className="text-brand-gray-700 group-hover:text-brand-orange transition-colors">
+                <span className="text-brand-gray-700 dark:text-gray-300 group-hover:text-brand-orange transition-colors">
                   {range.label}
                 </span>
               </label>
@@ -166,12 +166,12 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
       </div>
 
       {/* Rating Filter */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-colors">
         <button
           onClick={() => toggleSection('rating')}
-          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <h3 className="font-bold text-brand-gray-900">Customer Rating</h3>
+          <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Customer Rating</h3>
           {sections.rating ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {sections.rating && (
@@ -185,7 +185,7 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
                   onChange={() => setSelectedRating(rating)}
                   className="w-4 h-4 border-brand-gray-300 text-brand-orange focus:ring-brand-orange"
                 />
-                <span className="flex items-center gap-1 text-brand-gray-700 group-hover:text-brand-orange transition-colors">
+                <span className="flex items-center gap-1 text-brand-gray-700 dark:text-gray-300 group-hover:text-brand-orange transition-colors">
                   {rating}
                   <span className="text-yellow-400">★</span>
                   & Up
@@ -198,12 +198,12 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
 
       {/* MERV Rating Filter (Air Filters Only) */}
       {showMervFilter && (
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-colors">
           <button
             onClick={() => toggleSection('merv')}
-            className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+            className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            <h3 className="font-bold text-brand-gray-900">MERV Rating</h3>
+            <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">MERV Rating</h3>
             {sections.merv ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
           {sections.merv && (
@@ -216,7 +216,7 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
                     onChange={() => toggleMervRating(merv)}
                     className="w-4 h-4 rounded border-brand-gray-300 text-brand-orange focus:ring-brand-orange"
                   />
-                  <span className="text-brand-gray-700 group-hover:text-brand-orange transition-colors">
+                  <span className="text-brand-gray-700 dark:text-gray-300 group-hover:text-brand-orange transition-colors">
                     MERV {merv}
                     {merv === 8 && <span className="text-xs ml-1">(Basic)</span>}
                     {merv === 11 && <span className="text-xs ml-1">(Better)</span>}
@@ -230,12 +230,12 @@ export default function FilterSidebar({ onFilterChange, availableBrands, priceRa
       )}
 
       {/* Features Filter */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm transition-colors">
         <button
           onClick={() => toggleSection('features')}
-          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 transition-colors"
+          className="w-full flex justify-between items-center p-4 hover:bg-brand-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
-          <h3 className="font-bold text-brand-gray-900">Features</h3>
+          <h3 className="font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Features</h3>
           {sections.features ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
         {sections.features && (

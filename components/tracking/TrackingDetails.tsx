@@ -36,30 +36,30 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
   return (
     <Card className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-          <Truck className="w-6 h-6 text-purple-600" />
+        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center transition-colors">
+          <Truck className="w-6 h-6 text-purple-600 dark:text-purple-400" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Shipping Information</h2>
-          <p className="text-sm text-gray-600">Track your package</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Shipping Information</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">Track your package</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {/* Carrier */}
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
           <span className="text-3xl">{getCarrierLogo(trackingInfo.carrier)}</span>
           <div>
-            <p className="text-sm text-gray-600">Carrier</p>
-            <p className="font-semibold text-gray-900">{trackingInfo.carrier}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Carrier</p>
+            <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{trackingInfo.carrier}</p>
           </div>
         </div>
 
         {/* Tracking Number */}
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200">
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
           <div>
-            <p className="text-sm text-gray-600 mb-1">Tracking Number</p>
-            <p className="font-mono font-semibold text-gray-900">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 transition-colors">Tracking Number</p>
+            <p className="font-mono font-semibold text-gray-900 dark:text-gray-100 transition-colors">
               {trackingInfo.trackingNumber}
             </p>
           </div>
@@ -78,11 +78,11 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
 
         {/* Estimated Delivery */}
         {trackingInfo.estimatedDelivery && (
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
-            <Calendar className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
+            <Calendar className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             <div>
-              <p className="text-sm text-gray-600">Estimated Delivery</p>
-              <p className="font-semibold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Estimated Delivery</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                 {new Date(trackingInfo.estimatedDelivery).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
@@ -96,11 +96,11 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
 
         {/* Current Location */}
         {trackingInfo.currentLocation && (
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-200">
-            <MapPin className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
+            <MapPin className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             <div>
-              <p className="text-sm text-gray-600">Current Status</p>
-              <p className="font-semibold text-gray-900">{trackingInfo.currentLocation}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Current Status</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{trackingInfo.currentLocation}</p>
             </div>
           </div>
         )}
@@ -108,10 +108,10 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
         {/* Last Update */}
         {trackingInfo.lastUpdate && (
           <div className="flex items-center gap-3">
-            <Info className="w-5 h-5 text-gray-400" />
+            <Info className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             <div>
-              <p className="text-sm text-gray-600">Last Update</p>
-              <p className="text-sm text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Last Update</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100 transition-colors">
                 {new Date(trackingInfo.lastUpdate).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',

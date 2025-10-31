@@ -209,12 +209,17 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('[ERROR] Payment method creation failed:', error.message);
+    // OWASP A09: Security logging without sensitive data exposure
+    console.error('[ERROR] Payment method creation failed:', {
+      error_type: error.type || 'unknown',
+      user_id: session?.user?.id || 'unknown',
+      timestamp: new Date().toISOString(),
+    });
     
-    // Handle Stripe errors without exposing internal details
+    // OWASP A04: Generic error messages to prevent information disclosure
     if (error.type === 'StripeInvalidRequestError') {
       return NextResponse.json(
-        { error: 'Invalid payment method' },
+        { error: 'Unable to process payment method. Please verify your information.' },
         { status: 400 }
       );
     }
@@ -227,7 +232,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to save payment method' },
+      { error: 'Unable to save payment method. Please try again or contact support.' },
       { status: 500 }
     );
   }

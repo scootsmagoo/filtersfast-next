@@ -145,17 +145,17 @@ export default function HumidifierFiltersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
+    <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Page Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">Humidifier Filters</h1>
-              <p className="text-brand-gray-600">Maintain healthy humidity levels with quality replacement filters</p>
+              <h1 className="text-3xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Humidifier Filters</h1>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Maintain healthy humidity levels with quality replacement filters</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-brand-gray-600">{filteredProducts.length} products</p>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">{filteredProducts.length} products</p>
             </div>
           </div>
         </div>
@@ -184,23 +184,23 @@ export default function HumidifierFiltersPage() {
       </div>
 
       {/* Info Section */}
-      <div className="bg-white border-t mt-12">
+      <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-12 transition-colors">
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Why Replace Humidifier Filters?</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Why Replace Humidifier Filters?</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Regular replacement ensures optimal humidity output, prevents mineral buildup, and maintains clean air quality. Replace every 6-12 months.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Compatible Brands</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Compatible Brands</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 We carry filters for all major brands including Aprilaire, Honeywell, Carrier, Lennox, GeneralAire, and more. Find your exact model number.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Subscribe & Save</h3>
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Subscribe & Save</h3>
               <p className="text-sm text-brand-gray-600 mb-3">
                 Get automatic filter deliveries on your schedule. Never miss a replacement and save up to 10%.
               </p>

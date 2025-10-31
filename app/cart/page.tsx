@@ -36,20 +36,20 @@ export default function CartPage() {
   // Empty cart state
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
         <div className="container-custom">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 transition-colors">Shopping Cart</h1>
           
           <Card className="p-12 text-center">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-              <ShoppingBag className="w-12 h-12 text-gray-400" />
+            <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6 transition-colors">
+              <ShoppingBag className="w-12 h-12 text-gray-400 dark:text-gray-500" />
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
               Your cart is empty
             </h2>
             
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto transition-colors">
               Looks like you haven't added any filters yet. Browse our products to find what you need!
             </p>
             
@@ -76,18 +76,18 @@ export default function CartPage() {
 
   // Cart with items
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-            <p className="text-gray-600 mt-1">{itemCount} {itemCount === 1 ? 'item' : 'items'} in cart</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Shopping Cart</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 transition-colors">{itemCount} {itemCount === 1 ? 'item' : 'items'} in cart</p>
           </div>
           
           <button
             onClick={handleClearCart}
-            className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-2"
+            className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium flex items-center gap-2 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
             Clear Cart
@@ -107,7 +107,7 @@ export default function CartPage() {
                 <div className="flex gap-4">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
-                    <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden transition-colors">
                       <Image
                         src={item.image}
                         alt={item.name}
@@ -122,16 +122,16 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate transition-colors">
                           {item.name}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">{item.brand}</p>
-                        <p className="text-xs text-gray-500 mt-1">SKU: {item.sku}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">{item.brand}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">SKU: {item.sku}</p>
                       </div>
                       
                       <button
                         onClick={() => handleRemoveItem(item.id)}
-                        className="text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
+                        className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0"
                         aria-label="Remove item"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -142,12 +142,12 @@ export default function CartPage() {
                     <div className="flex items-center justify-between mt-4">
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 font-medium">Qty:</span>
-                        <div className="flex items-center border border-gray-300 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-300 font-medium transition-colors">Qty:</span>
+                        <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg transition-colors">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="w-4 h-4" />
@@ -164,13 +164,13 @@ export default function CartPage() {
                                 updateQuantity(item.id, value);
                               }
                             }}
-                            className="w-16 text-center border-x border-gray-300 py-2 focus:outline-none"
+                            className="w-16 text-center border-x border-gray-300 dark:border-gray-600 py-2 focus:outline-none bg-transparent text-gray-900 dark:text-gray-100"
                           />
                           
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             disabled={item.quantity >= 99}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
                             aria-label="Increase quantity"
                           >
                             <Plus className="w-4 h-4" />
@@ -180,7 +180,7 @@ export default function CartPage() {
 
                       {/* Price */}
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                           ${item.price.toFixed(2)} each
                         </p>
                         <p className="text-lg font-bold text-brand-orange">
@@ -197,28 +197,28 @@ export default function CartPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors">Order Summary</h2>
               
               <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
                   <span>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})</span>
                   <span className="font-medium">${total.toFixed(2)}</span>
                 </div>
                 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
                   <span>Shipping</span>
-                  <span className="text-sm text-gray-500">Calculated at checkout</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors">Calculated at checkout</span>
                 </div>
                 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
                   <span>Tax</span>
-                  <span className="text-sm text-gray-500">Calculated at checkout</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors">Calculated at checkout</span>
                 </div>
               </div>
               
-              <div className="border-t border-gray-200 pt-4 mb-6">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6 transition-colors">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-900">Estimated Total</span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">Estimated Total</span>
                   <span className="text-2xl font-bold text-brand-orange">${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -239,22 +239,22 @@ export default function CartPage() {
               </Link>
               
               {/* Trust Indicators */}
-              <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3 transition-colors">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 transition-colors">
                   <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Free shipping on orders over $50</span>
                 </div>
                 
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 transition-colors">
                   <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span>Secure checkout</span>
                 </div>
                 
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300 transition-colors">
                   <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -263,7 +263,7 @@ export default function CartPage() {
               </div>
 
               {/* ID.me Military & First Responder Discount */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 transition-colors">
                 <IdMeVerificationButton compact />
               </div>
             </Card>

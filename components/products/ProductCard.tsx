@@ -69,7 +69,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Image */}
           <div className="md:col-span-3">
-            <div className="aspect-square bg-brand-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
+            <div className="aspect-square bg-brand-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center relative overflow-hidden transition-colors">
               {discount > 0 && (
                 <div 
                   className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded font-bold text-sm z-10"
@@ -87,16 +87,16 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-              <div className="text-brand-gray-400 text-sm hidden">Product Image</div>
+              <div className="text-brand-gray-400 dark:text-gray-500 text-sm hidden transition-colors">Product Image</div>
             </div>
           </div>
 
           {/* Details */}
           <div className="md:col-span-6 flex flex-col justify-center">
-            <div className="text-sm text-brand-gray-600 mb-1">{product.brand} • SKU: {product.sku}</div>
+            <div className="text-sm text-brand-gray-600 dark:text-gray-300 mb-1 transition-colors">{product.brand} • SKU: {product.sku}</div>
             <a 
               href={`/products/${product.id}`}
-              className="text-lg font-bold text-brand-gray-900 mb-2 hover:text-brand-orange transition-colors cursor-pointer block"
+              className="text-lg font-bold text-brand-gray-900 dark:text-gray-100 mb-2 hover:text-brand-orange transition-colors cursor-pointer block"
             >
               {product.name}
             </a>
@@ -104,7 +104,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
               <ReviewStars rating={product.rating} size="sm" />
               <a
                 href={`/products/${product.id}#reviews`}
-                className="text-sm text-brand-gray-600 hover:text-brand-orange transition-colors"
+                className="text-sm text-brand-gray-600 dark:text-gray-300 hover:text-brand-orange transition-colors"
               >
                 ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
               </a>
@@ -168,7 +168,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
   return (
     <Card className="group overflow-hidden flex flex-col h-full">
       {/* Image */}
-      <div className="aspect-square bg-brand-gray-100 relative overflow-hidden flex-shrink-0">
+      <div className="aspect-square bg-brand-gray-100 dark:bg-gray-700 relative overflow-hidden flex-shrink-0 transition-colors">
         {discount > 0 && (
           <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full font-bold text-sm z-10">
             -{discount}%
@@ -186,7 +186,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
             ))}
           </div>
         )}
-        <div className="absolute inset-0 flex items-center justify-center text-brand-gray-400">
+        <div className="absolute inset-0 flex items-center justify-center text-brand-gray-400 dark:text-gray-500 transition-colors">
           Product Image
         </div>
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all"></div>
@@ -194,10 +194,10 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-grow">
-        <div className="text-sm text-brand-gray-600 mb-3">{product.brand} • {product.sku}</div>
+        <div className="text-sm text-brand-gray-600 dark:text-gray-300 mb-3 transition-colors">{product.brand} • {product.sku}</div>
         <a 
           href={`/products/${product.id}`}
-          className="text-base font-bold text-brand-gray-900 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem] block mb-3"
+          className="text-base font-bold text-brand-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-brand-orange transition-colors cursor-pointer min-h-[3rem] block mb-3"
         >
           {product.name}
         </a>
@@ -207,7 +207,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           <ReviewStars rating={product.rating} size="sm" />
           <a
             href={`/products/${product.id}#reviews`}
-            className="text-sm text-brand-gray-600 hover:text-brand-orange transition-colors"
+            className="text-sm text-brand-gray-600 dark:text-gray-300 hover:text-brand-orange transition-colors"
           >
             ({product.reviewCount})
           </a>

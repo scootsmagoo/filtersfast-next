@@ -282,7 +282,7 @@ export default function AirFiltersPage() {
   const availableBrands = [...new Set(displayedProducts.map(p => p.brand))];
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
+    <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Screen Reader Status Announcements */}
       <div 
         role="status" 
@@ -294,16 +294,13 @@ export default function AirFiltersPage() {
       </div>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-orange/10 via-brand-blue/10 to-green-50 border-b-2 border-brand-orange/20">
+      <div className="bg-gradient-to-br from-brand-orange/10 via-brand-blue/10 to-green-50 dark:from-brand-orange/20 dark:via-brand-blue/20 dark:to-gray-800 border-b-2 border-brand-orange/20 dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-orange/10 mb-3">
-              <Ruler className="w-6 h-6 text-brand-orange" aria-hidden="true" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">
               Standard Air Filters
             </h1>
-            <p className="text-brand-gray-700 max-w-2xl mx-auto">
+            <p className="text-brand-gray-700 dark:text-gray-300 max-w-2xl mx-auto transition-colors">
               Find your perfect HVAC filter by size or browse our complete selection
             </p>
           </div>
@@ -318,13 +315,13 @@ export default function AirFiltersPage() {
       </div>
 
       {/* MERV Rating Information Section */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-brand-gray-900 mb-2" id="merv-section-heading">
+            <h2 className="text-2xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors" id="merv-section-heading">
               {searchPerformed ? 'Refine by MERV Rating' : 'Choose Your MERV Rating'}
             </h2>
-            <p className="text-brand-gray-600 max-w-2xl mx-auto" id="merv-section-description">
+            <p className="text-brand-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors" id="merv-section-description">
               {searchPerformed 
                 ? 'Click a MERV rating below to filter your results'
                 : 'Higher MERV ratings provide better filtration for allergies and air quality'
@@ -341,10 +338,10 @@ export default function AirFiltersPage() {
             {/* MERV 8 */}
             <button
               onClick={() => handleMervRatingSelect(selectedMervRating === 8 ? null : 8)}
-              className={`bg-gray-50 border-2 rounded-lg p-6 transition-all text-left ${
+              className={`bg-gray-50 dark:bg-gray-700 border-2 rounded-lg p-6 transition-all text-left ${
                 selectedMervRating === 8
-                  ? 'border-brand-orange bg-brand-orange/5 shadow-lg'
-                  : 'border-gray-200 hover:border-brand-orange/50 cursor-pointer'
+                  ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-lg'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-brand-orange/50 cursor-pointer'
               }`}
               disabled={!searchPerformed && sizeProducts.length === 0}
               aria-label="MERV 8 - Basic filtration. Captures 70 to 85 percent of particles. Best for basic dust and pollen protection, standard residential use, and budget-conscious homeowners."
@@ -352,22 +349,22 @@ export default function AirFiltersPage() {
               aria-describedby="merv-8-details"
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className={`text-2xl font-bold ${selectedMervRating === 8 ? 'text-brand-orange' : 'text-gray-900'}`}>
+                <span className={`text-2xl font-bold ${selectedMervRating === 8 ? 'text-brand-orange' : 'text-gray-900 dark:text-gray-100'} transition-colors`}>
                   MERV 8
                 </span>
                 <span className="text-xs font-semibold px-2 py-1 rounded text-green-600 bg-green-600/10">
                   Low Cost
                 </span>
               </div>
-              <p className="text-sm text-gray-700 font-medium mb-3" id="merv-8-details">
+              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium mb-3 transition-colors" id="merv-8-details">
                 Basic Filtration
               </p>
-              <p className="text-xs text-gray-600 mb-3">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 transition-colors">
                 <span role="img" aria-label="Chart">📊</span> Captures 70-85% of particles 3-10 microns
               </p>
               <div className="space-y-1" aria-label="MERV 8 best uses">
-                <p className="text-xs font-semibold text-gray-700">Best For:</p>
-                <ul className="text-xs text-gray-600 space-y-0.5">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors">Best For:</p>
+                <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5 transition-colors">
                   <li className="flex items-start gap-1">
                     <span className="text-brand-orange mt-0.5">•</span>
                     <span>Basic dust and pollen protection</span>
@@ -389,8 +386,8 @@ export default function AirFiltersPage() {
               onClick={() => handleMervRatingSelect(selectedMervRating === 11 ? null : 11)}
               className={`border-2 rounded-lg p-6 shadow-md relative transition-all text-left ${
                 selectedMervRating === 11
-                  ? 'border-brand-orange bg-brand-orange/10 shadow-xl'
-                  : 'bg-brand-orange/5 border-brand-orange hover:shadow-lg cursor-pointer'
+                  ? 'border-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20 shadow-xl'
+                  : 'bg-brand-orange/5 dark:bg-brand-orange/10 border-brand-orange hover:shadow-lg cursor-pointer'
               }`}
               disabled={!searchPerformed && sizeProducts.length === 0}
               aria-label="MERV 11 - Superior allergen control. Most popular choice. Captures 85 to 95 percent of particles. Best for homes with pets or allergies, mold spores and pollen, and better air quality."
@@ -406,15 +403,15 @@ export default function AirFiltersPage() {
                   Medium Cost
                 </span>
               </div>
-              <p className="text-sm text-gray-700 font-medium mb-3" id="merv-11-details">
+              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium mb-3 transition-colors" id="merv-11-details">
                 Superior Allergen Control
               </p>
-              <p className="text-xs text-gray-600 mb-3">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 transition-colors">
                 <span role="img" aria-label="Chart">📊</span> Captures 85-95% of particles 1-10 microns
               </p>
               <div className="space-y-1" aria-label="MERV 11 best uses">
-                <p className="text-xs font-semibold text-gray-700">Best For:</p>
-                <ul className="text-xs text-gray-600 space-y-0.5">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors">Best For:</p>
+                <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5 transition-colors">
                   <li className="flex items-start gap-1">
                     <span className="text-brand-orange mt-0.5">•</span>
                     <span>Homes with pets or allergies</span>
@@ -434,10 +431,10 @@ export default function AirFiltersPage() {
             {/* MERV 13 */}
             <button
               onClick={() => handleMervRatingSelect(selectedMervRating === 13 ? null : 13)}
-              className={`bg-purple-50 border-2 rounded-lg p-6 transition-all text-left ${
+              className={`bg-purple-50 dark:bg-purple-900/20 border-2 rounded-lg p-6 transition-all text-left ${
                 selectedMervRating === 13
-                  ? 'border-brand-orange bg-brand-orange/5 shadow-lg'
-                  : 'border-purple-200 hover:border-purple-400 cursor-pointer'
+                  ? 'border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 shadow-lg'
+                  : 'border-purple-200 dark:border-purple-800 hover:border-purple-400 dark:hover:border-purple-600 cursor-pointer'
               }`}
               disabled={!searchPerformed && sizeProducts.length === 0}
               aria-label="MERV 13 - Hospital-grade filtration. Premium choice. Captures 90 percent or more of particles. Best for severe allergies or asthma, bacteria and virus carriers, and maximum air quality."
@@ -445,22 +442,22 @@ export default function AirFiltersPage() {
               aria-describedby="merv-13-details"
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className={`text-2xl font-bold ${selectedMervRating === 13 ? 'text-brand-orange' : 'text-gray-900'}`}>
+                <span className={`text-2xl font-bold ${selectedMervRating === 13 ? 'text-brand-orange' : 'text-gray-900 dark:text-gray-100'} transition-colors`}>
                   MERV 13
                 </span>
                 <span className="text-xs font-semibold px-2 py-1 rounded text-purple-600 bg-purple-600/10">
                   Premium
                 </span>
               </div>
-              <p className="text-sm text-gray-700 font-medium mb-3" id="merv-13-details">
+              <p className="text-sm text-gray-700 dark:text-gray-200 font-medium mb-3 transition-colors" id="merv-13-details">
                 Hospital-Grade Filtration
               </p>
-              <p className="text-xs text-gray-600 mb-3">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-3 transition-colors">
                 <span role="img" aria-label="Chart">📊</span> Captures 90%+ of particles 0.3-10 microns
               </p>
               <div className="space-y-1" aria-label="MERV 13 best uses">
-                <p className="text-xs font-semibold text-gray-700">Best For:</p>
-                <ul className="text-xs text-gray-600 space-y-0.5">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors">Best For:</p>
+                <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5 transition-colors">
                   <li className="flex items-start gap-1">
                     <span className="text-brand-orange mt-0.5">•</span>
                     <span>Severe allergies or asthma</span>
@@ -480,7 +477,7 @@ export default function AirFiltersPage() {
 
           <div className="mt-6 text-center">
             {searchPerformed ? (
-              <p className="text-sm text-brand-gray-600" role="status" aria-live="polite">
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors" role="status" aria-live="polite">
                 {selectedMervRating ? (
                   <>
                     <strong>Showing MERV {selectedMervRating} filters.</strong> Click the card again to show all MERV ratings.
@@ -492,7 +489,7 @@ export default function AirFiltersPage() {
                 )}
               </p>
             ) : (
-              <p className="text-sm text-brand-gray-600">
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 <span role="img" aria-label="Light bulb">💡</span> <strong>Tip:</strong> Select a size above, then choose your preferred MERV rating to see matching filters
               </p>
             )}
@@ -502,21 +499,21 @@ export default function AirFiltersPage() {
 
       {/* Results Header */}
       {(searchPerformed || !loading) && (
-        <div className="bg-white border-b">
+        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
           <div className="container-custom py-6">
             <div className="flex items-center justify-between">
               <div>
                 {searchPerformed && currentSizeFilters.height && currentSizeFilters.width && currentSizeFilters.depth ? (
-                  <h2 className="text-xl font-bold text-brand-gray-900">
+                  <h2 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">
                     Filters for{' '}
                     <span className="text-brand-orange">
                       {currentSizeFilters.height}×{currentSizeFilters.width}×{currentSizeFilters.depth}
                     </span>
                   </h2>
                 ) : (
-                  <h2 className="text-xl font-bold text-brand-gray-900">All Standard Air Filters</h2>
+                  <h2 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">All Standard Air Filters</h2>
                 )}
-                <p className="text-brand-gray-600 text-sm mt-1">
+                <p className="text-brand-gray-600 dark:text-gray-300 text-sm mt-1 transition-colors">
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} available
                 </p>
               </div>
@@ -531,15 +528,15 @@ export default function AirFiltersPage() {
           <div className="text-center py-16" role="status" aria-live="polite">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange" aria-hidden="true"></div>
             <span className="sr-only">Loading, please wait. Searching for filters.</span>
-            <p className="mt-4 text-brand-gray-600" aria-hidden="true">Searching for filters...</p>
+            <p className="mt-4 text-brand-gray-600 dark:text-gray-300 transition-colors" aria-hidden="true">Searching for filters...</p>
           </div>
         ) : filteredProducts.length === 0 && searchPerformed ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center max-w-2xl mx-auto" role="status" aria-live="polite">
-            <Ruler className="w-16 h-16 text-yellow-600 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-xl font-bold text-brand-gray-900 mb-2">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-8 text-center max-w-2xl mx-auto transition-colors" role="status" aria-live="polite">
+            <Ruler className="w-16 h-16 text-yellow-600 dark:text-yellow-400 mx-auto mb-4 transition-colors" aria-hidden="true" />
+            <h3 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">
               No Filters Found for This Size
             </h3>
-            <p className="text-brand-gray-700 mb-6">
+            <p className="text-brand-gray-700 dark:text-gray-300 mb-6 transition-colors">
               {currentSizeFilters.height && currentSizeFilters.width && currentSizeFilters.depth ? (
                 <>
                   We couldn't find any filters matching{' '}
@@ -582,27 +579,27 @@ export default function AirFiltersPage() {
       </div>
 
       {/* Info Section */}
-      <div className="bg-white border-t mt-12">
+      <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-12 transition-colors">
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Need a Custom Size?</h3>
-              <p className="text-sm text-brand-gray-600 mb-3">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Need a Custom Size?</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 mb-3 transition-colors">
                 Can't find your exact size? We can build custom air filters to your specifications.
               </p>
               <a href="/custom-air-filters" className="text-brand-orange hover:underline text-sm font-medium">Build Custom Filter →</a>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">MERV Ratings Explained</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">MERV Ratings Explained</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 <strong>MERV 8:</strong> Basic filtration<br/>
                 <strong>MERV 11:</strong> Better allergen capture<br/>
                 <strong>MERV 13:</strong> Best for allergies & pets
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-3">Subscribe & Save</h3>
-              <p className="text-sm text-brand-gray-600 mb-3">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Subscribe & Save</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 mb-3 transition-colors">
                 Never forget to change your filter again. Get automatic deliveries and save up to 10%.
               </p>
               <a href="/auto-delivery" className="text-brand-orange hover:underline text-sm font-medium">Learn More →</a>

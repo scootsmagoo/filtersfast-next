@@ -55,7 +55,7 @@ function OrderSuccessContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
         <div className="max-w-3xl mx-auto">
           {/* Success Header */}
@@ -293,7 +293,7 @@ function OrderSuccessContent() {
 
 export default function OrderSuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">Loading...</div>}>
       <OrderSuccessContent />
     </Suspense>
   );

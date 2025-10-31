@@ -6,7 +6,7 @@ export default function CustomAirFiltersPage() {
   return (
     <div className="min-h-screen bg-brand-gray-50">
       {/* Custom Filter Builder Section */}
-      <section className="bg-gradient-to-br from-green-50 to-blue-50 border-b-2 border-green-200 py-12">
+      <section className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 border-b-2 border-green-200 dark:border-gray-600 py-12 transition-colors">
         <div className="container-custom">
           <CustomFilterBuilder />
         </div>

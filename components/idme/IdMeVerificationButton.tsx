@@ -60,8 +60,8 @@ export default function IdMeVerificationButton({
         aria-live="polite"
         aria-label="Loading verification status"
       >
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400" aria-hidden="true" />
-        <span className="ml-2 text-sm text-gray-600">Checking status...</span>
+        <Loader2 className="w-5 h-5 animate-spin text-gray-400 dark:text-gray-500" aria-hidden="true" />
+        <span className="ml-2 text-sm text-gray-600 dark:text-gray-300 transition-colors">Checking status...</span>
         <span className="sr-only">Loading your verification status, please wait</span>
       </div>
     );
@@ -70,20 +70,20 @@ export default function IdMeVerificationButton({
   if (status?.isVerified) {
     return (
       <div 
-        className="flex items-center p-4 bg-green-50 rounded-lg border border-green-200"
+        className="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 transition-colors"
         role="status"
         aria-live="polite"
       >
-        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" aria-hidden="true" />
+        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" aria-hidden="true" />
         <div className="ml-3 flex-1">
-          <p className="text-sm font-medium text-green-800">
+          <p className="text-sm font-medium text-green-800 dark:text-green-300 transition-colors">
             {status.verificationType === 'military' && 'Military Discount Active'}
             {status.verificationType === 'responder' && 'First Responder Discount Active'}
             {status.verificationType === 'employee' && 'Employee Discount Active'}
             {!['military', 'responder', 'employee'].includes(status.verificationType || '') && 'Verified Discount Active'}
           </p>
           {status.discountPercentage && (
-            <p className="text-xs text-green-700 mt-1">
+            <p className="text-xs text-green-700 dark:text-green-200 mt-1 transition-colors">
               {status.discountPercentage}% off eligible items
             </p>
           )}
@@ -98,7 +98,7 @@ export default function IdMeVerificationButton({
         onClick={handleVerify}
         disabled={verifying}
         variant="outline"
-        className="w-full border-blue-600 bg-white text-blue-700 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="w-full border-blue-600 dark:border-blue-400 bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-400 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         aria-label="Verify military or first responder status with ID.me"
       >
         {verifying ? (
@@ -118,17 +118,17 @@ export default function IdMeVerificationButton({
 
   return (
     <div 
-      className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200"
+      className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors"
       role="region"
       aria-label="Military and first responder discount"
     >
       <div className="flex items-start">
-        <Shield className="w-8 h-8 text-blue-600 flex-shrink-0" aria-hidden="true" />
+        <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />
         <div className="ml-4 flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
             Military & First Responder Discount
           </h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">
             Verify your status to receive an exclusive discount on your order
           </p>
           

@@ -48,11 +48,11 @@ export default function AdminCharitiesPage() {
   // Show loading during auth check
   if (isPending || loading) {
     return (
-      <div className="container-custom py-12">
+      <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="animate-pulse space-y-4" aria-live="polite" aria-busy="true">
           <span className="sr-only">Loading charity management...</span>
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
@@ -73,13 +73,13 @@ export default function AdminCharitiesPage() {
         Skip to main content
       </a>
       
-      <div className="container-custom py-12">
+      <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="mb-8">
-          <h1 id="main-content" className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <Heart className="w-8 h-8 text-red-500" aria-hidden="true" />
+          <h1 id="main-content" className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3 transition-colors">
+            <Heart className="w-8 h-8 text-red-500 dark:text-red-400 transition-colors" aria-hidden="true" />
             Charity Management
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300 transition-colors">
             Manage charitable organizations and track donation impact
           </p>
         </div>
@@ -89,13 +89,13 @@ export default function AdminCharitiesPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Donations</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 transition-colors">Total Donations</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
                 ${totalDonations.toFixed(2)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center transition-colors">
+              <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400 transition-colors" />
             </div>
           </div>
         </Card>
@@ -103,13 +103,13 @@ export default function AdminCharitiesPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Contributions</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 transition-colors">Total Contributions</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
                 {totalDonationCount}
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center transition-colors">
+              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400 transition-colors" />
             </div>
           </div>
         </Card>
@@ -117,13 +117,13 @@ export default function AdminCharitiesPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active Charities</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 transition-colors">Active Charities</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
                 {charities.filter(c => c.active).length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <Heart className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center transition-colors">
+              <Heart className="w-6 h-6 text-purple-600 dark:text-purple-400 transition-colors" />
             </div>
           </div>
         </Card>
@@ -139,7 +139,7 @@ export default function AdminCharitiesPage() {
                 <img
                   src={charity.logo}
                   alt={charity.name}
-                  className="w-32 h-24 object-contain rounded-lg bg-white border border-gray-200 p-2"
+                  className="w-32 h-24 object-contain rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-2 transition-colors"
                 />
               )}
 
@@ -148,25 +148,25 @@ export default function AdminCharitiesPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
                         {charity.name}
                       </h3>
                       {charity.featured && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
+                        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs font-medium rounded transition-colors">
                           Featured
                         </span>
                       )}
                       {charity.active ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs font-medium rounded transition-colors">
                           Active
                         </span>
                       ) : (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-medium rounded transition-colors">
                           Inactive
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 transition-colors">
                       {charity.shortDescription}
                     </p>
                     {charity.website && (
@@ -174,7 +174,7 @@ export default function AdminCharitiesPage() {
                         href={charity.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
                       >
                         Visit website <ExternalLink className="w-3 h-3" />
                       </a>
@@ -184,21 +184,21 @@ export default function AdminCharitiesPage() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">Total Raised</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 transition-colors">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 transition-colors">Total Raised</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">
                       ${charity.totalDonations.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">Donations</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 transition-colors">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 transition-colors">Donations</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">
                       {charity.donationCount}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">Avg. Donation</p>
-                    <p className="text-lg font-bold text-gray-900">
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 transition-colors">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 transition-colors">Avg. Donation</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">
                       ${charity.donationCount > 0 
                         ? (charity.totalDonations / charity.donationCount).toFixed(2)
                         : '0.00'}
@@ -208,8 +208,8 @@ export default function AdminCharitiesPage() {
 
                 {/* Campaign Period */}
                 {(charity.startDate || charity.endDate) && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-blue-800">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4 transition-colors">
+                    <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300 transition-colors">
                       <Calendar className="w-4 h-4" />
                       <span className="font-medium">Campaign Period:</span>
                       {charity.startDate && (
@@ -230,25 +230,25 @@ export default function AdminCharitiesPage() {
                 {/* Donation Settings */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {charity.allowRoundUp && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded transition-colors">
                       Round-up enabled
                     </span>
                   )}
                   {charity.allowCustomAmount && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded transition-colors">
                       Custom amounts
                     </span>
                   )}
                   {charity.suggestedAmounts.length > 0 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded transition-colors">
                       Suggested: ${charity.suggestedAmounts.join(', $')}
                     </span>
                   )}
                 </div>
 
                 {/* Description */}
-                <details className="text-sm text-gray-600">
-                  <summary className="cursor-pointer font-medium text-gray-900 mb-2">
+                <details className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                  <summary className="cursor-pointer font-medium text-gray-900 dark:text-gray-100 mb-2 transition-colors">
                     Full Description
                   </summary>
                   <p className="pl-4">{charity.description}</p>
@@ -261,11 +261,11 @@ export default function AdminCharitiesPage() {
 
       {charities.length === 0 && (
         <Card className="p-12 text-center">
-          <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" aria-hidden="true" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <Heart className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4 transition-colors" aria-hidden="true" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
             No Charities Yet
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">
             Add your first charity to start collecting donations
           </p>
           <Button>Add Charity</Button>

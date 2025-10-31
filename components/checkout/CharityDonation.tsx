@@ -151,11 +151,11 @@ export default function CharityDonation({
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6" aria-live="polite" aria-busy="true">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-colors" aria-live="polite" aria-busy="true">
         <span className="sr-only">Loading charitable donation options...</span>
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
+          <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
@@ -166,7 +166,7 @@ export default function CharityDonation({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-colors">
       <div className="flex items-start gap-4 mb-4">
         {featuredCharity?.logo && (
           <img 
@@ -176,11 +176,11 @@ export default function CharityDonation({
           />
         )}
         <div className="flex-1">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
             Support {featuredCharity?.name || 'a Charity'}
           </h2>
           {featuredCharity && (
-            <p className="text-sm text-gray-600 leading-relaxed">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed transition-colors">
               {featuredCharity.shortDescription}
             </p>
           )}
@@ -190,14 +190,14 @@ export default function CharityDonation({
       {/* Charity Selection (if multiple) */}
       {charities.length > 1 && (
         <div className="mb-4">
-          <label htmlFor="charity-select" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="charity-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
             Select Charity
           </label>
           <select
             id="charity-select"
             value={selectedCharity}
             onChange={(e) => setSelectedCharity(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition-shadow"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition-shadow bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             aria-describedby="charity-description"
           >
             {charities.map(charity => (
@@ -211,7 +211,7 @@ export default function CharityDonation({
 
       {/* Donation Amount Selection */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
           Donation Amount (Optional)
         </label>
 
@@ -225,7 +225,7 @@ export default function CharityDonation({
                 onChange={() => setDonationType('none')}
                 className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-brand-orange"
               />
-          <span className="text-sm text-gray-700">No donation</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">No donation</span>
         </label>
 
         {/* Round Up */}
@@ -239,7 +239,7 @@ export default function CharityDonation({
                 onChange={() => setDonationType('roundup')}
                 className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-brand-orange"
               />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
               Round up to next dollar <span className="font-medium">(${roundUpAmount.toFixed(2)})</span>
             </span>
           </label>
@@ -259,7 +259,7 @@ export default function CharityDonation({
                 }}
                 className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-brand-orange"
               />
-            <span className="text-sm text-gray-700 font-medium">${amount.toFixed(2)}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors">${amount.toFixed(2)}</span>
           </label>
         ))}
 
@@ -275,7 +275,7 @@ export default function CharityDonation({
                 onChange={() => setDonationType('custom')}
                 className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-brand-orange"
               />
-              <span className="text-sm text-gray-700 font-medium">Custom amount</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium transition-colors">Custom amount</span>
             </label>
             {donationType === 'custom' && (
               <div className="ml-7">
@@ -283,7 +283,7 @@ export default function CharityDonation({
                   <label htmlFor="custom-donation-input" className="sr-only">
                     Enter custom donation amount
                   </label>
-                  <span className="absolute left-3 top-2 text-gray-500" aria-hidden="true">$</span>
+                  <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400" aria-hidden="true">$</span>
                   <input
                     id="custom-donation-input"
                     type="number"
@@ -299,16 +299,16 @@ export default function CharityDonation({
                     placeholder="0.00"
                     aria-invalid={!!customError}
                     aria-describedby={customError ? 'custom-donation-error custom-donation-hint' : 'custom-donation-hint'}
-                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition-shadow"
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition-shadow bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
                 {currentCharity.minDonation && (
-                  <p id="custom-donation-hint" className="text-xs text-gray-500 mt-1">
+                  <p id="custom-donation-hint" className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
                     Min: ${currentCharity.minDonation.toFixed(2)} • Max: ${(currentCharity.maxDonation || 100).toFixed(2)}
                   </p>
                 )}
                 {customError && (
-                  <p id="custom-donation-error" className="text-sm text-red-600 mt-1" role="alert" aria-live="assertive">
+                  <p id="custom-donation-error" className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors" role="alert" aria-live="assertive">
                     {customError}
                   </p>
                 )}
@@ -320,19 +320,19 @@ export default function CharityDonation({
 
       {/* Error Message */}
       {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md" role="alert" aria-live="assertive">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors" role="alert" aria-live="assertive">
+          <p className="text-sm text-red-600 dark:text-red-300 transition-colors">{error}</p>
         </div>
       )}
 
       {/* Learn More Link */}
       {currentCharity?.website && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 transition-colors">
           <a
             href={currentCharity.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:text-blue-700 underline"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors"
           >
             Learn more about {currentCharity.name} →
           </a>

@@ -136,7 +136,7 @@ export default function BrowseBySizePage() {
   return (
     <div className="min-h-screen bg-brand-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-brand-orange/10 via-brand-blue/10 to-green-50 border-b-2 border-brand-orange/20">
+      <div className="bg-gradient-to-br from-brand-orange/10 via-brand-blue/10 to-green-50 dark:from-brand-orange/20 dark:via-brand-blue/20 dark:to-gray-800 border-b-2 border-brand-orange/20 dark:border-gray-700 transition-colors">
         <div className="container-custom py-12">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-orange/10 mb-4">

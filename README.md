@@ -2,9 +2,23 @@
 
 A modern, performant redesign of the FiltersFast e-commerce platform built with Next.js 16, TypeScript, and Tailwind CSS.
 
-## 🆕 Latest Updates (October 30, 2025)
+## 🆕 Latest Updates (October 31, 2025)
 
 **Recent Improvements:**
+- ✅ **Complete Dark Mode Implementation** - Full site-wide dark theme! 🆕
+  - Available on ALL pages: homepage, products, checkout, account, admin, support
+  - User preference toggle (Light/Dark/System) in `/account/settings`
+  - Theme persists across sessions (database + localStorage)
+  - **Proper contrast ratios** - WCAG 2.1 AA compliant (4.5:1+ contrast)
+  - Dynamic Stripe Elements theme switching (light/dark)
+  - Account pages: orders, models, subscriptions, payment methods, SMS, referrals
+  - Admin pages: dashboard, partners, promo codes, giveaways, referrals, abandoned carts, returns, reminders, MFA
+  - All components: chatbot, header, footer, cards, modals, forms
+  - OWASP Top 10 secure + WCAG 2.1 AA accessible
+- ✅ **Enhanced Account Settings** - Comprehensive settings page
+  - Notification preferences (email, SMS, newsletter, filter reminders)
+  - Dark mode toggle with real-time preview
+  - All preferences saved to database
 - ✅ **Partner Landing Pages** - Dynamic co-marketing pages for charity & corporate partners! 🆕
   - Flexible content block system (hero, text, stats, gallery, timeline, CTA, video, perks)
   - Admin interface at `/admin/partners` for creating and managing partner pages
@@ -63,6 +77,8 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ Custom air filter builder
 
 **Customer Features:**
+- ✅ **Enhanced Account Settings** - Dark mode, notification preferences, theme management 🆕
+- ✅ **Dark Mode** - Full site-wide dark theme with proper contrast (Light/Dark/System) 🆕
 - ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
 - ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
 - ✅ **SMS Marketing (Attentive)** - Text notifications with 98% open rate 🆕
@@ -212,6 +228,7 @@ npm run init:sms              # Initialize SMS system
 npm run init:abandoned-carts  # Initialize cart recovery
 npm run init:payment-methods  # Initialize payment vault
 npm run init:idme             # Initialize ID.me verification
+npx tsx scripts/init-user-preferences.ts  # Initialize user preferences (dark mode, notifications)
 
 # Cron Jobs
 npm run cron:abandoned-carts  # Send cart recovery emails

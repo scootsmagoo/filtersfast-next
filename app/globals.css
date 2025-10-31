@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark Mode Variables */
+@layer base {
+  :root {
+    --bg-primary: 255 255 255;
+    --bg-secondary: 249 250 251;
+    --text-primary: 17 24 39;
+    --text-secondary: 75 85 99;
+    --border-color: 229 231 235;
+  }
+
+  .dark {
+    --bg-primary: 17 24 39;
+    --bg-secondary: 31 41 55;
+    --text-primary: 249 250 251;
+    --text-secondary: 209 213 219;
+    --border-color: 55 65 81;
+  }
+}
+
 /* Accessibility utilities */
 .sr-only {
   position: absolute;
@@ -108,7 +127,7 @@ textarea:focus-visible {
   }
   
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all;
+    @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500;
   }
   
   .card {

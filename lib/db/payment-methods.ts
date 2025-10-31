@@ -163,6 +163,8 @@ export function createPaymentMethod(data: {
 
 /**
  * Update payment method (mainly for setting default or updating billing address)
+ * 
+ * OWASP A03: SQL Injection Prevention - Uses allowlist for dynamic fields
  */
 export function updatePaymentMethod(
   id: number,
@@ -183,40 +185,27 @@ export function updatePaymentMethod(
     unsetDefaultPaymentMethods(userId);
   }
 
+  // OWASP A03: Allowlist of valid column names to prevent SQL injection
+  const allowedFields = new Map<string, string>([
+    ['is_default', 'is_default = ?'],
+    ['billing_name', 'billing_name = ?'],
+    ['billing_address_line1', 'billing_address_line1 = ?'],
+    ['billing_address_line2', 'billing_address_line2 = ?'],
+    ['billing_address_city', 'billing_address_city = ?'],
+    ['billing_address_state', 'billing_address_state = ?'],
+    ['billing_address_zip', 'billing_address_zip = ?'],
+    ['billing_address_country', 'billing_address_country = ?'],
+  ]);
+
   const fields: string[] = [];
   const values: any[] = [];
 
-  if (updates.is_default !== undefined) {
-    fields.push('is_default = ?');
-    values.push(updates.is_default ? 1 : 0);
-  }
-  if (updates.billing_name !== undefined) {
-    fields.push('billing_name = ?');
-    values.push(updates.billing_name);
-  }
-  if (updates.billing_address_line1 !== undefined) {
-    fields.push('billing_address_line1 = ?');
-    values.push(updates.billing_address_line1);
-  }
-  if (updates.billing_address_line2 !== undefined) {
-    fields.push('billing_address_line2 = ?');
-    values.push(updates.billing_address_line2);
-  }
-  if (updates.billing_address_city !== undefined) {
-    fields.push('billing_address_city = ?');
-    values.push(updates.billing_address_city);
-  }
-  if (updates.billing_address_state !== undefined) {
-    fields.push('billing_address_state = ?');
-    values.push(updates.billing_address_state);
-  }
-  if (updates.billing_address_zip !== undefined) {
-    fields.push('billing_address_zip = ?');
-    values.push(updates.billing_address_zip);
-  }
-  if (updates.billing_address_country !== undefined) {
-    fields.push('billing_address_country = ?');
-    values.push(updates.billing_address_country);
+  // Only process fields that exist in the allowlist
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined && allowedFields.has(key)) {
+      fields.push(allowedFields.get(key)!);
+      values.push(key === 'is_default' ? (value ? 1 : 0) : value);
+    }
   }
 
   if (fields.length === 0) {

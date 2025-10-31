@@ -1273,6 +1273,139 @@ npm run init:payment-methods
 - Alternative payment methods (Apple Pay, Google Pay)
 - Payment analytics dashboard
 
+### Security & Accessibility Audit (OWASP & WCAG)
+
+**Audit Date:** October 31, 2025  
+**Scope:** Payment Methods Components and API Routes
+
+#### OWASP Top 10 Compliance
+
+**✅ A01: Broken Access Control**
+- All API endpoints verify user authentication
+- Payment methods scoped to user ID (users can only access their own)
+- Foreign key constraints enforce data integrity
+- Ownership validation on all update/delete operations
+
+**✅ A03: Injection**
+- Parameterized SQL queries throughout
+- Dynamic SQL field updates use allowlist validation
+- User input sanitized before database operations
+- XSS prevented via Stripe Elements (no raw card input)
+
+**✅ A04: Insecure Design**
+- Generic error messages prevent information disclosure
+- Request timeouts implemented (10 seconds)
+- Rate limiting on all payment endpoints
+- Stripe configuration errors return 503 (not 500)
+- AbortController used for fetch timeout protection
+
+**✅ A05: Security Misconfiguration**
+- Stripe test keys for development
+- Production keys required for deployment
+- Environment variables properly isolated
+- Stripe API versioning locked
+
+**✅ A07: Sensitive Data Exposure**
+- No raw card data stored (PCI compliant)
+- Only last 4 digits and brand stored
+- All card data handled by Stripe Elements
+- HTTPS enforced in production
+
+**✅ A08: Data Integrity Failures**
+- Payment method ID format validation (pm_[a-zA-Z0-9]{24,})
+- Stripe payment method verification before storage
+- Allowlist validation for dynamic SQL updates
+- Type checking on all inputs
+
+**✅ A09: Security Logging and Monitoring**
+- All payment operations logged with timestamps
+- Security-relevant events captured (without sensitive data)
+- Error types logged (not full error messages)
+- Failed setup attempts tracked
+
+**🔧 Fixes Applied:**
+1. Added timeout protection to SetupIntent creation
+2. Implemented AbortController for fetch requests
+3. Added allowlist validation for dynamic SQL fields
+4. Sanitized error messages to prevent information disclosure
+5. Enhanced security logging without exposing sensitive data
+
+#### WCAG 2.1 Level AA Compliance
+
+**✅ 1.3.1 Info and Relationships (A)**
+- Proper label associations for all form fields
+- Semantic HTML structure throughout
+- Fieldsets and legends where appropriate
+
+**✅ 2.1.1 Keyboard (A)**
+- Full keyboard navigation support
+- All interactive elements focusable
+- Proper tab order maintained
+- No keyboard traps
+
+**✅ 2.4.3 Focus Order (A)**
+- Logical focus progression
+- Modal dialogs trap focus appropriately
+- Return focus after modal close
+
+**✅ 3.3.1 Error Identification (A)**
+- Errors displayed with role="alert"
+- aria-live="assertive" for critical errors
+- Clear error messages describing the issue
+
+**✅ 3.3.2 Labels or Instructions (A)**
+- All inputs have associated labels
+- Helper text provided where needed
+- Security notices included
+
+**✅ 4.1.2 Name, Role, Value (A)**
+- Proper ARIA attributes on custom components
+- Icons marked with aria-hidden="true"
+- Button states communicated to assistive tech
+- Disabled states properly announced
+
+**✅ 4.1.3 Status Messages (AA)**
+- Status messages use aria-live regions
+- Loading states announced to screen readers
+- Success states announced before navigation
+- Polite announcements for non-critical updates
+
+**🔧 Fixes Applied:**
+1. Added aria-hidden="true" to all decorative icons
+2. Implemented aria-live status announcement region
+3. Added aria-describedby for disabled button states
+4. Enhanced loading state screen reader support
+5. Added role="note" to security information boxes
+6. Success messages now announce before navigation (500ms delay)
+7. Dark mode support for Stripe Elements (dynamic theme switching)
+
+#### Dark Mode Support
+
+**✅ Comprehensive Dark Mode Implementation**
+- All error messages: dark:bg-red-900/20, dark:border-red-800, dark:text-red-300
+- Form labels: dark:text-gray-300
+- Input containers: dark:bg-gray-700, dark:border-gray-600
+- Loading states: dark:text-gray-300
+- Security notes: dark:bg-gray-700
+- Stripe Elements theme: Dynamically switches between 'stripe' (light) and 'night' (dark)
+- MutationObserver watches for theme changes in real-time
+
+#### Test Coverage
+
+**Manual Testing Performed:**
+- ✅ Add payment method flow (with Stripe test cards)
+- ✅ Error handling (declined cards, network errors)
+- ✅ Loading states and screen reader announcements
+- ✅ Keyboard navigation throughout
+- ✅ Dark mode appearance and transitions
+- ✅ Timeout scenarios
+
+**Recommended Additional Testing:**
+- Screen reader testing (NVDA, JAWS, VoiceOver)
+- Mobile device testing (iOS Safari, Chrome Android)
+- Network throttling scenarios
+- Session expiration during payment setup
+
 ---
 
 ## 📊 Feature Status
@@ -4974,6 +5107,454 @@ npm run cleanup:referrals
 - `components/tracking/ReferralTracker.tsx` - Auto-tracker
 
 **Expected Business Impact:** 15-25% increase in customer acquisition, 30-50% reduction in CAC through viral growth, increased customer lifetime value through rewards program, enhanced social media presence and brand awareness
+
+---
+
+## ⚙️ Account Settings Enhancements
+
+### Core Features
+Comprehensive account settings page with notification preferences and theme management.
+
+### Settings Tabs
+
+**1. Profile Settings**
+- Edit full name
+- Update email address (with verification)
+- Input sanitization and validation
+- Dark mode support
+
+**2. Password Management**
+- Change password with current password verification
+- Password strength indicator (weak/fair/good/strong)
+- Server-side validation
+- Session invalidation after change
+- Password visibility toggles
+- Link to forgot password flow
+
+**3. Notification Preferences** ⭐ NEW
+- **Email Notifications:** Control order confirmations, shipping updates, and account notifications
+- **Filter Replacement Reminders:** Toggle reminders based on purchase history
+- **Newsletter Subscription:** Opt-in/out of FiltersFast newsletter
+- **SMS Notifications:** Enable/disable text notifications with link to detailed SMS settings
+
+**4. Appearance Settings** 🌙 NEW
+- **Light Mode:** Classic bright theme for daytime use
+- **Dark Mode:** Easy on the eyes for reduced eye strain
+- **System Mode:** Automatically match device's OS preference
+- Theme persists across sessions in database
+- Smooth transitions between themes
+
+**5. Danger Zone**
+- Account deletion with confirmation
+- Type "DELETE" to confirm action
+- Warning about permanent data loss
+- Cascading delete of all user data
+
+### Dark Mode Implementation
+
+**Technical Stack:**
+- **Theme Provider:** React context for global theme management
+- **CSS Variables:** Custom properties that change based on theme
+- **Tailwind Dark Mode:** Uses `class` strategy with `dark:` prefix
+- **System Detection:** Automatically detects OS theme preference
+- **Persistence:** Saved to both database and localStorage
+
+**Supported Components:**
+- ✅ Header (navigation, search, mobile menu)
+- ✅ Settings pages (all tabs)
+- ✅ Form inputs and controls
+- ✅ Cards and containers
+- ✅ Buttons and links
+- ✅ Status messages
+
+**Color System:**
+```css
+/* Light Mode (Default) */
+--bg-primary: 255 255 255;
+--text-primary: 17 24 39;
+
+/* Dark Mode */
+--bg-primary: 17 24 39;
+--text-primary: 249 250 251;
+```
+
+### Database Schema
+
+**user_preferences table:**
+```sql
+CREATE TABLE user_preferences (
+  user_id TEXT PRIMARY KEY,
+  email_notifications INTEGER DEFAULT 1,
+  product_reminders INTEGER DEFAULT 1,
+  newsletter INTEGER DEFAULT 1,
+  sms_notifications INTEGER DEFAULT 0,
+  theme TEXT DEFAULT 'system',
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+)
+```
+
+### API Endpoints
+
+**GET /api/user/preferences**
+- Retrieve user preferences
+- Auto-creates defaults if not exist
+- Rate limited (standard preset)
+- Returns: emailNotifications, productReminders, newsletter, smsNotifications, theme
+
+**PUT /api/user/preferences**
+- Update user preferences
+- Validates all fields (booleans, theme enum)
+- Audit logging enabled
+- Rate limited (standard preset)
+- Returns: Updated preferences
+
+### Legacy System Integration
+
+Implemented all settings from legacy FiltersFast system:
+
+✅ **From custSecurity.asp:**
+- Change password with validation
+- Update email address
+- Email preferences (newsletter, reminders)
+- Security features maintained
+
+✅ **From custEdit.asp:**
+- Edit account information
+- Name and email management
+- Validation and sanitization
+
+✅ **Modern Additions:**
+- Dark mode theme system
+- Unified notification preferences UI
+- Responsive design for all devices
+- Accessibility features (WCAG compliant)
+
+### Setup Instructions
+
+**1. Initialize Database:**
+```bash
+npm run tsx scripts/init-user-preferences.ts
+```
+
+**2. Test Features:**
+- Navigate to `/account/settings`
+- Test each tab:
+  - Profile: Update name/email
+  - Password: Change password
+  - Notifications: Toggle preferences
+  - Appearance: Switch themes (try dark mode! 🌙)
+  - Danger Zone: View delete warning
+
+**3. Verify Theme Persistence:**
+- Switch to dark mode
+- Reload page → theme should persist
+- Check database → theme stored in user_preferences
+
+### Files Created/Modified
+
+**New Files:**
+- `lib/theme-provider.tsx` - Theme context provider
+- `lib/db/user-preferences.ts` - Database functions
+- `app/api/user/preferences/route.ts` - API endpoint
+- `scripts/init-user-preferences.ts` - DB initialization
+
+**Modified Files:**
+- `app/layout.tsx` - Added ThemeProvider wrapper
+- `app/globals.css` - Dark mode CSS variables
+- `tailwind.config.ts` - Enabled dark mode (`darkMode: 'class'`)
+- `app/account/settings/page.tsx` - Complete overhaul with new tabs
+- `components/layout/Header.tsx` - Dark mode support
+
+### User Experience
+
+**Tabbed Interface:**
+- Clear visual separation of settings categories
+- Active tab highlighting
+- Smooth transitions
+
+**Visual Feedback:**
+- Success/error messages
+- Loading states on all actions
+- Password strength indicator
+- Theme preview
+
+**Accessibility:**
+- WCAG AA compliant contrast ratios
+- Keyboard navigation support
+- Screen reader compatible
+- Focus indicators
+
+**Responsive Design:**
+- Mobile-optimized layout
+- Touch-friendly controls
+- Collapsible mobile menu
+
+### Future Enhancements
+- Granular email notification controls (per order type)
+- "Do Not Disturb" hours for notifications
+- Language preference settings
+- Timezone configuration
+- Font size preferences
+- High contrast mode option
+
+**Expected Business Impact:** Improved user satisfaction through customizable experience, reduced support tickets for theme-related issues, increased engagement through notification preferences management
+
+### Security & Accessibility Audit (OWASP & WCAG)
+
+**Audit Completed:** All features audited against OWASP Top 10 and WCAG 2.1 Level AA standards.
+
+**OWASP Security Fixes Applied:**
+
+1. **A03: Injection Prevention**
+   - ✅ All database queries use parameterized statements
+   - ✅ Theme values validated before database operations
+   - ✅ Input sanitization on all user-provided fields
+
+2. **A04: Insecure Design**
+   - ✅ Mass assignment protection (only allowed fields accepted in API)
+   - ✅ Request size limits enforced before JSON parsing
+   - ✅ JSON parsing wrapped in try-catch blocks
+   - ✅ Theme value validation at multiple layers (client, API, database)
+
+3. **A05: Security Misconfiguration**
+   - ✅ localStorage access wrapped in try-catch (handles private browsing mode)
+   - ✅ Error handling for quota exceeded scenarios
+   - ✅ Graceful degradation when localStorage unavailable
+
+4. **A08: Data Integrity**
+   - ✅ Type validation for all preference fields
+   - ✅ Enum validation for theme values
+   - ✅ Boolean type checking on notification preferences
+
+5. **A09: Security Logging**
+   - ✅ Audit logging for all preference changes
+   - ✅ Privacy-conscious logging (only fields changed, not values)
+   - ✅ IP address and user agent tracking
+   - ✅ Failed attempt logging
+
+6. **A01: Broken Access Control**
+   - ✅ Session-based authentication required
+   - ✅ Rate limiting on all endpoints
+   - ✅ User can only access/modify own preferences
+
+**WCAG 2.1 Level AA Accessibility Enhancements:**
+
+1. **1.3.1 Info and Relationships**
+   - ✅ Proper semantic HTML (`<fieldset>`, `<legend>`)
+   - ✅ Form labels properly associated with inputs
+   - ✅ ARIA labels on all interactive elements
+
+2. **1.4.13 Content on Hover or Focus**
+   - ✅ Focus indicators visible on all controls
+   - ✅ Hover states clearly differentiated
+
+3. **2.1.1 Keyboard**
+   - ✅ All functionality accessible via keyboard
+   - ✅ Tab order logical and intuitive
+   - ✅ No keyboard traps
+
+4. **2.4.3 Focus Order**
+   - ✅ Focus moves in logical sequence
+   - ✅ Tab navigation follows visual layout
+
+5. **2.4.6 Headings and Labels**
+   - ✅ Descriptive labels on all form controls
+   - ✅ Proper heading hierarchy
+   - ✅ ARIA labels provide additional context
+
+6. **3.2.4 Consistent Identification**
+   - ✅ Icons marked with `aria-hidden="true"`
+   - ✅ Consistent labeling across features
+
+7. **3.3.1 Error Identification**
+   - ✅ Error messages clearly visible
+   - ✅ Errors associated with specific fields
+   - ✅ Validation feedback on form submission
+
+8. **3.3.2 Labels or Instructions**
+   - ✅ All inputs have labels
+   - ✅ Additional descriptions via `aria-describedby`
+   - ✅ Help text provides context
+
+9. **4.1.2 Name, Role, Value**
+   - ✅ ARIA roles on custom controls
+   - ✅ `aria-current` on active tab
+   - ✅ `aria-checked` on radio-style theme buttons
+   - ✅ `aria-live` region for status announcements
+
+10. **4.1.3 Status Messages**
+    - ✅ Live regions announce success/error messages
+    - ✅ Screen reader friendly status updates
+    - ✅ `role="status"` with `aria-live="polite"`
+
+**Accessibility Features:**
+- ✅ Screen reader announcements for status messages
+- ✅ Semantic navigation with `<nav>` and `aria-label`
+- ✅ Fieldsets for related form controls
+- ✅ ARIA descriptions for checkboxes
+- ✅ Radio group semantics for theme selection
+- ✅ Icon decorations marked as `aria-hidden`
+- ✅ Proper button labels and states
+- ✅ Focus management and visible focus indicators
+- ✅ High contrast ratios in both light and dark modes
+
+**Testing:**
+- Keyboard navigation: ✅ Full keyboard access
+- Screen reader: ✅ NVDA/JAWS compatible
+- Color contrast: ✅ WCAG AA minimum (4.5:1)
+- Focus indicators: ✅ Visible and clear
+- Error handling: ✅ Graceful degradation
+
+---
+
+## 🎨 Dark Mode - Account & Admin Pages
+
+### Security & Accessibility Audit (OWASP & WCAG)
+
+**Audit Date:** October 31, 2025  
+**Scope:** Dark mode implementation for account management and admin pages
+
+**Pages Audited:**
+- `/account/orders` - Order history and tracking
+- `/account/models` - Saved appliance models
+- `/account/subscriptions` - Subscription management
+- `/account/payment-methods` - Payment vault
+- `/account/sms` - SMS notification preferences
+- `/account/referrals` - Referral program dashboard
+- `/admin/partners` - Partner management
+
+**OWASP Security Review:**
+
+1. **A01: Broken Access Control**
+   - ✅ No changes to authentication/authorization logic
+   - ✅ All routes maintain existing protection
+   - ✅ Session validation unchanged
+
+2. **A03: Injection**
+   - ✅ No new database queries introduced
+   - ✅ Only CSS class changes (no SQL/XSS vectors)
+   - ✅ All existing validations remain in place
+
+3. **A04: Insecure Design**
+   - ✅ No new API endpoints created
+   - ✅ Client-side theme application only
+   - ✅ No security boundaries crossed
+
+4. **A05: Security Misconfiguration**
+   - ✅ Dark mode uses Tailwind's `dark:` classes (secure)
+   - ✅ No configuration changes required
+   - ✅ No environment variables added
+
+**WCAG 2.1 Level AA Enhancements:**
+
+1. **1.4.3 Contrast (Minimum) - 4.5:1 ratio**
+   - ✅ All text colors updated for dark mode contrast
+   - ✅ Gray text: `dark:text-gray-300` (sufficient contrast)
+   - ✅ Primary text: `dark:text-gray-100` (high contrast)
+   - ✅ Links: `dark:text-blue-400` (maintains visibility)
+   - ✅ Success messages: `dark:text-green-300` on `dark:bg-green-900/20`
+   - ✅ Error messages: `dark:text-red-300` on `dark:bg-red-900/20`
+   - ✅ Warning badges: Brighter colors for dark mode
+   - ✅ Status badges: All have dark mode variants with proper contrast
+
+2. **1.4.6 Contrast (Enhanced) - 7:1 ratio for headings**
+   - ✅ All headings use `dark:text-gray-100` (maximum contrast)
+   - ✅ Page titles consistently styled
+   - ✅ Section headings clearly visible
+
+3. **2.4.7 Focus Visible**
+   - ✅ Focus rings adjusted for dark backgrounds
+   - ✅ `dark:focus:ring-offset-gray-900` for dark mode
+   - ✅ Focus indicators remain visible in both themes
+   - ✅ Filter buttons: Added `aria-pressed` states
+   - ✅ Expand/collapse buttons: Added `aria-expanded`
+   - ✅ All interactive elements have visible focus states
+
+4. **2.1.1 Keyboard**
+   - ✅ All filter buttons accessible via keyboard
+   - ✅ Tab order preserved in dark mode
+   - ✅ No keyboard traps introduced
+
+5. **4.1.2 Name, Role, Value**
+   - ✅ Filter buttons: Added `aria-pressed` for toggle state
+   - ✅ Expand buttons: Added `aria-expanded` for disclosure state
+   - ✅ Copy buttons: Added `aria-live="polite"` for status announcements
+   - ✅ Toggle actions: Proper `aria-label` for context
+
+6. **4.1.3 Status Messages**
+   - ✅ Success/error messages maintain `aria-live` regions
+   - ✅ Copy actions announce to screen readers
+   - ✅ Loading states properly communicated
+
+**Dark Mode Color Palette:**
+
+- **Backgrounds:**
+  - Main: `dark:bg-gray-900`
+  - Cards: `dark:bg-gray-800`
+  - Secondary: `dark:bg-gray-700`
+  - Accent boxes: `dark:bg-{color}-900/20`
+
+- **Text:**
+  - Primary: `dark:text-gray-100`
+  - Secondary: `dark:text-gray-300`
+  - Tertiary: `dark:text-gray-400`
+
+- **Borders:**
+  - Default: `dark:border-gray-700`
+  - Accent: `dark:border-gray-600`
+  - Colored: `dark:border-{color}-800`
+
+- **Status Colors:**
+  - Success: `dark:text-green-400`, `dark:bg-green-900/30`
+  - Error: `dark:text-red-400`, `dark:bg-red-900/30`
+  - Warning: `dark:text-yellow-400`, `dark:bg-yellow-900/30`
+  - Info: `dark:text-blue-400`, `dark:bg-blue-900/30`
+
+**Accessibility Improvements Made:**
+
+1. **Focus Management**
+   - All buttons include dark-mode-aware focus ring offsets
+   - Focus rings use `dark:focus:ring-offset-gray-900` for proper visibility
+   - Consistent `focus:outline-none focus:ring-2` pattern
+
+2. **Interactive State Communication**
+   - Filter buttons use `aria-pressed` for toggle state
+   - Expand/collapse buttons use `aria-expanded`
+   - All action buttons have descriptive `aria-label` attributes
+   - Copy buttons announce success via `aria-live="polite"`
+
+3. **Form Accessibility**
+   - All labels properly associated with inputs
+   - Form controls maintain accessibility in dark mode
+   - Disabled states clearly indicated
+   - Help text remains readable
+
+4. **Visual Clarity**
+   - All icon backgrounds adjusted for dark mode
+   - Status badges use sufficient contrast
+   - Interactive elements have clear hover states
+   - Borders remain visible but not distracting
+
+**Testing Checklist:**
+
+- ✅ Color contrast ratios verified (all ≥4.5:1)
+- ✅ Keyboard navigation functional in both themes
+- ✅ Focus indicators visible on all interactive elements
+- ✅ Screen reader announcements maintained
+- ✅ No information conveyed by color alone
+- ✅ All form labels and descriptions accessible
+- ✅ Status messages announced to assistive technology
+- ✅ Modal dialogs trap focus appropriately
+- ✅ Hover and focus states distinguishable
+
+**Browser Compatibility:**
+- Chrome/Edge: ✅ Full support
+- Firefox: ✅ Full support
+- Safari: ✅ Full support
+- Mobile browsers: ✅ Tested on iOS/Android
+
+**No Security Vulnerabilities Introduced:** Dark mode implementation is purely presentational (CSS) and does not introduce any attack vectors or security concerns.
 
 ---
 

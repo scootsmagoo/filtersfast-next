@@ -21,7 +21,7 @@ export default function AutoDeliveryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
+    <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-brand-blue to-brand-blue-dark text-white">
         <div className="container-custom py-16">
@@ -42,8 +42,8 @@ export default function AutoDeliveryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">Save Up to 10%</h3>
-            <p className="text-brand-gray-600">Automatic discount applied to every subscription order</p>
+            <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Save Up to 10%</h3>
+            <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Automatic discount applied to every subscription order</p>
           </Card>
 
           <Card className="p-6 text-center">
@@ -52,8 +52,8 @@ export default function AutoDeliveryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">FREE Shipping</h3>
-            <p className="text-brand-gray-600">Get free shipping on every subscription order, no minimum</p>
+            <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">FREE Shipping</h3>
+            <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Get free shipping on every subscription order, no minimum</p>
           </Card>
 
           <Card className="p-6 text-center">
@@ -62,14 +62,14 @@ export default function AutoDeliveryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">Flexible Schedule</h3>
-            <p className="text-brand-gray-600">Choose your delivery frequency: every 30, 60, 90, or 180 days</p>
+            <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Flexible Schedule</h3>
+            <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Choose your delivery frequency: every 30, 60, 90, or 180 days</p>
           </Card>
         </div>
 
         {/* How It Works */}
         <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold text-center text-brand-gray-900 mb-8">How It Works</h2>
+          <h2 className="text-3xl font-bold text-center text-brand-gray-900 dark:text-gray-100 mb-8 transition-colors">How It Works</h2>
           
           <div className="space-y-6">
             <div className="flex items-start gap-4">
@@ -77,8 +77,8 @@ export default function AutoDeliveryPage() {
                 1
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">Choose Your Filter</h3>
-                <p className="text-brand-gray-600">Browse our selection and select the filters you need for your home</p>
+                <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Choose Your Filter</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Browse our selection and select the filters you need for your home</p>
               </div>
             </div>
 
@@ -87,8 +87,8 @@ export default function AutoDeliveryPage() {
                 2
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">Set Your Schedule</h3>
-                <p className="text-brand-gray-600">Pick how often you want your filters delivered - every 1, 2, 3, or 6 months</p>
+                <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Set Your Schedule</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Pick how often you want your filters delivered - every 1, 2, 3, or 6 months</p>
               </div>
             </div>
 
@@ -97,8 +97,8 @@ export default function AutoDeliveryPage() {
                 3
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-brand-gray-900 mb-2">Relax & Save</h3>
-                <p className="text-brand-gray-600">We'll automatically send your filters on your schedule. Modify or cancel anytime!</p>
+                <h3 className="text-xl font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Relax & Save</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">We'll automatically send your filters on your schedule. Modify or cancel anytime!</p>
               </div>
             </div>
           </div>
@@ -106,105 +106,109 @@ export default function AutoDeliveryPage() {
 
         {/* Pricing Plans */}
         <div className="max-w-5xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold text-center text-brand-gray-900 mb-8">Subscription Benefits</h2>
+          <h2 className="text-3xl font-bold text-center text-brand-gray-900 dark:text-gray-100 mb-8 transition-colors">Subscription Benefits</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="p-8 border-2 border-brand-gray-200">
-              <h3 className="text-2xl font-bold text-brand-gray-900 mb-4">Standard Subscription</h3>
+            <Card className="p-8 border-2 border-brand-gray-200 dark:border-gray-700 transition-colors flex flex-col">
+              <h3 className="text-2xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">Standard Subscription</h3>
               <div className="mb-6">
                 <div className="text-4xl font-bold text-brand-orange mb-2">5% OFF</div>
-                <p className="text-brand-gray-600">Applied to every order automatically</p>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Applied to every order automatically</p>
               </div>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">FREE shipping on all orders</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">FREE shipping on all orders</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">Flexible delivery schedule</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">Flexible delivery schedule</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">Cancel or modify anytime</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">Cancel or modify anytime</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full" onClick={handleGetStarted}>
-                {session?.user ? 'Manage Subscriptions' : 'Get Started'}
-              </Button>
+              <div className="mt-auto">
+                <Button variant="outline" className="w-full" onClick={handleGetStarted}>
+                  {session?.user ? 'Manage Subscriptions' : 'Get Started'}
+                </Button>
+              </div>
             </Card>
 
-            <Card className="p-8 border-2 border-brand-orange bg-brand-orange/5">
+            <Card className="p-8 border-2 border-brand-orange bg-brand-orange/5 dark:bg-brand-orange/10 transition-colors flex flex-col">
               <div className="inline-block bg-brand-orange text-white px-3 py-1 rounded-full text-sm font-semibold mb-4">
                 BEST VALUE
               </div>
-              <h3 className="text-2xl font-bold text-brand-gray-900 mb-4">Premium Subscription</h3>
+              <h3 className="text-2xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">Premium Subscription</h3>
               <div className="mb-6">
                 <div className="text-4xl font-bold text-brand-orange mb-2">10% OFF</div>
-                <p className="text-brand-gray-600">For 3+ filter subscriptions</p>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">For 3+ filter subscriptions</p>
               </div>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">Everything in Standard</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">Everything in Standard</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">10% savings (vs. 5%)</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">10% savings (vs. 5%)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-brand-gray-700">Priority customer support</span>
+                  <span className="text-brand-gray-700 dark:text-gray-300 transition-colors">Priority customer support</span>
                 </li>
               </ul>
-              <Button variant="primary" className="w-full" onClick={handleGetStarted}>
-                {session?.user ? 'Manage Subscriptions' : 'Get Started'}
-              </Button>
+              <div className="mt-auto">
+                <Button variant="primary" className="w-full" onClick={handleGetStarted}>
+                  {session?.user ? 'Manage Subscriptions' : 'Get Started'}
+                </Button>
+              </div>
             </Card>
           </div>
         </div>
 
         {/* FAQ Section */}
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-brand-gray-900 mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-center text-brand-gray-900 dark:text-gray-100 mb-8 transition-colors">Frequently Asked Questions</h2>
           
           <div className="space-y-4">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">Can I cancel my subscription anytime?</h3>
-              <p className="text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Can I cancel my subscription anytime?</h3>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Yes! You can cancel, pause, or modify your subscription at any time with no penalties or fees.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">What if I need to skip a delivery?</h3>
-              <p className="text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">What if I need to skip a delivery?</h3>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Simply log into your account and skip your next delivery. You can do this as many times as needed.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">Can I change my delivery frequency?</h3>
-              <p className="text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Can I change my delivery frequency?</h3>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Absolutely! Adjust your delivery schedule anytime to match your needs - monthly, bi-monthly, quarterly, or semi-annually.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">How do I manage my subscription?</h3>
-              <p className="text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">How do I manage my subscription?</h3>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Log into your account to view, modify, pause, or cancel your subscriptions. You have full control at all times.
               </p>
             </Card>

@@ -131,8 +131,8 @@ export default function AdminGiveawaysPage() {
 
   if (loading && !giveaways.length) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center" role="status" aria-live="polite">
+      <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="text-center text-gray-900 dark:text-gray-100" role="status" aria-live="polite">
           <span className="sr-only">Loading giveaways...</span>
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="progressbar">
             <span className="sr-only">Loading...</span>
@@ -143,15 +143,15 @@ export default function AdminGiveawaysPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 transition-colors">
             <Gift className="w-8 h-8 text-orange-500" />
             Giveaways & Sweepstakes
           </h1>
-          <p className="text-gray-600 mt-1">Manage promotional giveaways and contests</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1 transition-colors">Manage promotional giveaways and contests</p>
         </div>
         <Button onClick={() => setShowCreateModal(true)} className="btn-primary">
           <Plus className="w-5 h-5 mr-2" />
@@ -165,17 +165,17 @@ export default function AdminGiveawaysPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Giveaways</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Total Giveaways</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{stats.total_giveaways}</p>
               </div>
-              <Gift className="w-8 h-8 text-gray-400" />
+              <Gift className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{stats.active_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Active</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors">{stats.active_giveaways}</p>
               </div>
               <Calendar className="w-8 h-8 text-green-400" />
             </div>
@@ -183,17 +183,17 @@ export default function AdminGiveawaysPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Ended</p>
-                <p className="text-2xl font-bold text-gray-600">{stats.ended_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Ended</p>
+                <p className="text-2xl font-bold text-gray-600 dark:text-gray-300 transition-colors">{stats.ended_giveaways}</p>
               </div>
-              <Calendar className="w-8 h-8 text-gray-400" />
+              <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Entries</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.total_entries}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Total Entries</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors">{stats.total_entries}</p>
               </div>
               <Users className="w-8 h-8 text-blue-400" />
             </div>
@@ -201,8 +201,8 @@ export default function AdminGiveawaysPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Winners Selected</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.winners_selected}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Winners Selected</p>
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 transition-colors">{stats.winners_selected}</p>
               </div>
               <Award className="w-8 h-8 text-orange-400" />
             </div>
@@ -217,7 +217,7 @@ export default function AdminGiveawaysPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             filter === 'all'
               ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
           All
@@ -227,7 +227,7 @@ export default function AdminGiveawaysPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             filter === 'active'
               ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
           Active
@@ -237,7 +237,7 @@ export default function AdminGiveawaysPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             filter === 'upcoming'
               ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
           Upcoming
@@ -247,7 +247,7 @@ export default function AdminGiveawaysPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             filter === 'ended'
               ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
           Ended
@@ -257,9 +257,9 @@ export default function AdminGiveawaysPage() {
       {/* Giveaways List */}
       {giveaways.length === 0 ? (
         <Card className="p-12 text-center">
-          <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No giveaways found</h3>
-          <p className="text-gray-600 mb-6">Get started by creating your first giveaway</p>
+          <Gift className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4 transition-colors" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">No giveaways found</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 transition-colors">Get started by creating your first giveaway</p>
           <Button onClick={() => setShowCreateModal(true)} className="btn-primary">
             Create Giveaway
           </Button>
@@ -274,48 +274,52 @@ export default function AdminGiveawaysPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{giveaway.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.color}`}>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors">{giveaway.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        status.label === 'Upcoming' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                        status.label === 'Ended' ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300' :
+                        'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                      }`}>
                         {status.label}
                       </span>
                       {!giveaway.is_active && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 transition-colors">
                           Inactive
                         </span>
                       )}
                     </div>
                     
-                    <p className="text-gray-600 mb-3">{giveaway.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-3 transition-colors">{giveaway.description}</p>
                     
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-medium text-gray-700">Campaign:</span>{' '}
-                        <span className="text-gray-600">{giveaway.campaign_name}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">Campaign:</span>{' '}
+                        <span className="text-gray-600 dark:text-gray-400 transition-colors">{giveaway.campaign_name}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">Entries:</span>{' '}
-                        <span className="text-blue-600 font-semibold">{giveaway.entry_count}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">Entries:</span>{' '}
+                        <span className="text-blue-600 dark:text-blue-400 font-semibold transition-colors">{giveaway.entry_count}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">Start:</span>{' '}
-                        <span className="text-gray-600">{new Date(giveaway.start_date).toLocaleDateString()}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">Start:</span>{' '}
+                        <span className="text-gray-600 dark:text-gray-400 transition-colors">{new Date(giveaway.start_date).toLocaleDateString()}</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-700">End:</span>{' '}
-                        <span className="text-gray-600">{new Date(giveaway.end_date).toLocaleDateString()}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">End:</span>{' '}
+                        <span className="text-gray-600 dark:text-gray-400 transition-colors">{new Date(giveaway.end_date).toLocaleDateString()}</span>
                       </div>
                     </div>
 
                     {giveaway.winner_id && (
-                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center gap-2 text-green-800">
+                      <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg transition-colors">
+                        <div className="flex items-center gap-2 text-green-800 dark:text-green-300 transition-colors">
                           <Award className="w-5 h-5" />
                           <span className="font-medium">Winner:</span>
                           <span>{giveaway.winner_first_name} {giveaway.winner_last_name} ({giveaway.winner_email})</span>
                           {giveaway.winner_notified ? (
-                            <span className="text-xs bg-green-200 px-2 py-1 rounded">Notified</span>
+                            <span className="text-xs bg-green-200 dark:bg-green-900/40 dark:text-green-300 px-2 py-1 rounded transition-colors">Notified</span>
                           ) : (
-                            <span className="text-xs bg-yellow-200 px-2 py-1 rounded">Not Notified</span>
+                            <span className="text-xs bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300 px-2 py-1 rounded transition-colors">Not Notified</span>
                           )}
                         </div>
                       </div>
@@ -325,7 +329,7 @@ export default function AdminGiveawaysPage() {
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => window.open(`/api/admin/giveaways/${giveaway.id}/entries`, '_blank')}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                       aria-label={`View ${giveaway.entry_count} entries for ${giveaway.title}`}
                     >
                       <Eye className="w-5 h-5" aria-hidden="true" />
@@ -334,7 +338,7 @@ export default function AdminGiveawaysPage() {
                     {!giveaway.winner_id && giveaway.entry_count > 0 && (
                       <button
                         onClick={() => pickWinner(giveaway.id)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                         aria-label={`Pick winner from ${giveaway.entry_count} entries for ${giveaway.title}`}
                       >
                         <Award className="w-5 h-5" aria-hidden="true" />
@@ -343,7 +347,7 @@ export default function AdminGiveawaysPage() {
                     
                     <button
                       onClick={() => setEditingGiveaway(giveaway)}
-                      className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                      className="p-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
                       aria-label={`Edit ${giveaway.title} giveaway`}
                     >
                       <Edit className="w-5 h-5" aria-hidden="true" />
@@ -351,7 +355,7 @@ export default function AdminGiveawaysPage() {
                     
                     <button
                       onClick={() => deleteGiveaway(giveaway.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       aria-label={`Delete ${giveaway.title} giveaway`}
                     >
                       <Trash2 className="w-5 h-5" aria-hidden="true" />
@@ -440,19 +444,19 @@ function GiveawayFormModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4 transition-colors"
       role="dialog"
       aria-modal="true"
       aria-labelledby="giveaway-form-title"
     >
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 id="giveaway-form-title" className="text-2xl font-bold text-gray-900">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 px-6 py-4 flex items-center justify-between transition-colors">
+          <h2 id="giveaway-form-title" className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
             {giveaway ? 'Edit Giveaway' : 'Create Giveaway'}
           </h2>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             aria-label="Close form"
           >
             ✕
@@ -461,8 +465,8 @@ function GiveawayFormModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4" noValidate>
           <div>
-            <label htmlFor="admin-campaignName" className="block text-sm font-medium text-gray-700 mb-1">
-              Campaign Name (unique identifier) <span className="text-red-600" aria-label="required">*</span>
+            <label htmlFor="admin-campaignName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+              Campaign Name (unique identifier) <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
             </label>
             <input
               id="admin-campaignName"
@@ -480,8 +484,8 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label htmlFor="admin-title" className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-red-600" aria-label="required">*</span>
+            <label htmlFor="admin-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+              Title <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
             </label>
             <input
               id="admin-title"
@@ -497,8 +501,8 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label htmlFor="admin-description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description <span className="text-red-600" aria-label="required">*</span>
+            <label htmlFor="admin-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+              Description <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
             </label>
             <textarea
               id="admin-description"
@@ -514,8 +518,8 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label htmlFor="admin-prizeDescription" className="block text-sm font-medium text-gray-700 mb-1">
-              Prize Description <span className="text-red-600" aria-label="required">*</span>
+            <label htmlFor="admin-prizeDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+              Prize Description <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
             </label>
             <textarea
               id="admin-prizeDescription"
@@ -532,8 +536,8 @@ function GiveawayFormModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="admin-startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date <span className="text-red-600" aria-label="required">*</span>
+              <label htmlFor="admin-startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                Start Date <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
               </label>
               <input
                 id="admin-startDate"
@@ -548,8 +552,8 @@ function GiveawayFormModal({
             </div>
 
             <div>
-              <label htmlFor="admin-endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                End Date <span className="text-red-600" aria-label="required">*</span>
+              <label htmlFor="admin-endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                End Date <span className="text-red-600 dark:text-red-400" aria-label="required">*</span>
               </label>
               <input
                 id="admin-endDate"
@@ -565,7 +569,7 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
               Product Name (optional)
             </label>
             <input
@@ -578,7 +582,7 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
               Product URL (optional)
             </label>
             <input
@@ -591,7 +595,7 @@ function GiveawayFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
               Product Image URL (optional)
             </label>
             <input
@@ -611,7 +615,7 @@ function GiveawayFormModal({
               onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
               className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
             />
-            <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
               Active (giveaway is visible to users)
             </label>
           </div>

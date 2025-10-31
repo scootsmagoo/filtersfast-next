@@ -183,11 +183,11 @@ export default function SMSPreferencesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]" role="status" aria-live="polite">
+      <div className="flex items-center justify-center min-h-[400px] bg-gray-50 dark:bg-gray-900 transition-colors" role="status" aria-live="polite">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" aria-hidden="true" />
           <span className="sr-only">Loading SMS preferences, please wait</span>
-          <p className="mt-4 text-gray-600" aria-hidden="true">Loading SMS preferences...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300 transition-colors" aria-hidden="true">Loading SMS preferences...</p>
         </div>
       </div>
     );
@@ -195,14 +195,14 @@ export default function SMSPreferencesPage() {
 
   if (!subscribed) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+      <div className="max-w-4xl mx-auto p-6 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors">
           <div className="text-center mb-8">
-            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" role="img" aria-label="SMS notification icon">
-              <MessageSquare className="w-8 h-8 text-blue-600" aria-hidden="true" />
+            <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors" role="img" aria-label="SMS notification icon">
+              <MessageSquare className="w-8 h-8 text-blue-600 dark:text-blue-400 transition-colors" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Enable SMS Notifications</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Enable SMS Notifications</h1>
+            <p className="text-gray-600 dark:text-gray-300 transition-colors">
               Get order updates and exclusive offers sent directly to your phone
             </p>
           </div>
@@ -210,10 +210,10 @@ export default function SMSPreferencesPage() {
           {/* Status Message */}
           {message && (
             <div 
-              className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+              className={`mb-6 p-4 rounded-lg flex items-center gap-3 transition-colors ${
                 message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200 text-green-800' 
-                  : 'bg-red-50 border border-red-200 text-red-800'
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' 
+                  : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
               }`}
               role="alert"
               aria-live="assertive"
@@ -231,11 +231,11 @@ export default function SMSPreferencesPage() {
           <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
             {/* Phone Number Input */}
             <div className="mb-6">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                 Mobile Phone Number
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 transition-colors" />
                 <input
                   type="tel"
                   id="phone"
@@ -243,20 +243,20 @@ export default function SMSPreferencesPage() {
                   onChange={handlePhoneChange}
                   placeholder="(555) 123-4567"
                   maxLength={14}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 transition-colors"
                   required
                   disabled={subscribing}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors">
                 We'll send order updates and notifications to this number
               </p>
             </div>
 
             {/* What You'll Receive */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h2 className="font-semibold text-gray-900 mb-2">What you'll receive:</h2>
-              <ul className="space-y-2 text-sm text-gray-700" role="list">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">What you'll receive:</h2>
+              <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300 transition-colors" role="list">
                 <li className="flex items-start gap-2" role="listitem">
                   <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
                   <span>Order confirmations and shipping updates</span>
@@ -270,7 +270,7 @@ export default function SMSPreferencesPage() {
                   <span>Return and refund updates</span>
                 </li>
               </ul>
-              <p className="mt-3 text-xs text-gray-600">
+              <p className="mt-3 text-xs text-gray-600 dark:text-gray-400 transition-colors">
                 Marketing messages are optional and can be enabled later in preferences
               </p>
             </div>
@@ -282,11 +282,11 @@ export default function SMSPreferencesPage() {
                   type="checkbox"
                   checked={tcpaConsent}
                   onChange={(e) => setTcpaConsent(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 transition-colors"
                   required
                   disabled={subscribing}
                 />
-                <span className="text-sm text-gray-700 leading-relaxed">
+                <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed transition-colors">
                   I agree to receive text messages from FiltersFast. Message & data rates may apply. 
                   Text <strong>STOP</strong> to opt out. Standard message and data rates apply.
                 </span>
@@ -297,7 +297,7 @@ export default function SMSPreferencesPage() {
             <button
               type="submit"
               disabled={subscribing || !tcpaConsent || newPhoneNumber.replace(/\D/g, '').length !== 10}
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
               aria-disabled={subscribing || !tcpaConsent || newPhoneNumber.replace(/\D/g, '').length !== 10}
               aria-label={subscribing ? 'Subscribing to SMS notifications' : 'Enable SMS notifications'}
             >
@@ -316,13 +316,13 @@ export default function SMSPreferencesPage() {
             </button>
 
             {/* Privacy Notice */}
-            <p className="mt-4 text-xs text-center text-gray-500">
+            <p className="mt-4 text-xs text-center text-gray-500 dark:text-gray-400 transition-colors">
               Your privacy is important to us. View our{' '}
-              <a href="/privacy" className="text-blue-600 hover:text-blue-700 underline">
+              <a href="/privacy" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors">
                 Privacy Policy
               </a>
               {' '}and{' '}
-              <a href="/terms/sms-terms" className="text-blue-600 hover:text-blue-700 underline">
+              <a href="/terms/sms-terms" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors">
                 SMS Terms
               </a>
             </p>
@@ -333,16 +333,16 @@ export default function SMSPreferencesPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <MessageSquare className="w-6 h-6 text-blue-600" />
+          <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg transition-colors">
+            <MessageSquare className="w-6 h-6 text-blue-600 dark:text-blue-400 transition-colors" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">SMS Preferences</h1>
-            <p className="text-gray-600">Manage your text message notifications</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">SMS Preferences</h1>
+            <p className="text-gray-600 dark:text-gray-300 transition-colors">Manage your text message notifications</p>
           </div>
         </div>
       </div>
@@ -350,10 +350,10 @@ export default function SMSPreferencesPage() {
       {/* Status Message */}
       {message && (
         <div 
-          className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+          className={`mb-6 p-4 rounded-lg flex items-center gap-3 transition-colors ${
             message.type === 'success' 
-              ? 'bg-green-50 border border-green-200 text-green-800' 
-              : 'bg-red-50 border border-red-200 text-red-800'
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' 
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
           }`}
           role="alert"
           aria-live="assertive"
@@ -368,16 +368,16 @@ export default function SMSPreferencesPage() {
       )}
 
       {/* Current Phone Number */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6" role="region" aria-labelledby="phone-section">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6 transition-colors" role="region" aria-labelledby="phone-section">
         <div className="flex items-center justify-between">
           <div>
-            <p id="phone-section" className="text-sm font-medium text-gray-700">Subscribed Phone Number</p>
-            <p className="text-lg font-semibold text-gray-900">{phoneNumber}</p>
+            <p id="phone-section" className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">Subscribed Phone Number</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">{phoneNumber}</p>
           </div>
           <button
             onClick={handleUnsubscribe}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
             aria-label="Unsubscribe from SMS notifications"
             aria-disabled={saving}
           >
@@ -390,12 +390,12 @@ export default function SMSPreferencesPage() {
       {preferences && (
         <>
           {/* Transactional Messages */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6" role="region" aria-labelledby="order-updates-heading">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6 transition-colors" role="region" aria-labelledby="order-updates-heading">
             <div className="flex items-center gap-2 mb-4">
-              <Package className="w-5 h-5 text-blue-600" aria-hidden="true" />
-              <h2 id="order-updates-heading" className="text-lg font-semibold text-gray-900">Order Updates</h2>
+              <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 transition-colors" aria-hidden="true" />
+              <h2 id="order-updates-heading" className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">Order Updates</h2>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 transition-colors">
               Receive important updates about your orders
             </p>
             
@@ -432,12 +432,12 @@ export default function SMSPreferencesPage() {
           </div>
 
           {/* Marketing Messages */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6" role="region" aria-labelledby="marketing-heading">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6 transition-colors" role="region" aria-labelledby="marketing-heading">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-600" aria-hidden="true" />
-              <h2 id="marketing-heading" className="text-lg font-semibold text-gray-900">Marketing & Promotions</h2>
+              <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-colors" aria-hidden="true" />
+              <h2 id="marketing-heading" className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">Marketing & Promotions</h2>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 transition-colors">
               Opt in to exclusive deals and product announcements
             </p>
             
@@ -474,21 +474,21 @@ export default function SMSPreferencesPage() {
           </div>
 
           {/* Frequency Control */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6" role="region" aria-labelledby="frequency-heading">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6 transition-colors" role="region" aria-labelledby="frequency-heading">
             <div className="flex items-center gap-2 mb-4">
-              <Settings className="w-5 h-5 text-gray-600" aria-hidden="true" />
-              <h2 id="frequency-heading" className="text-lg font-semibold text-gray-900">Frequency & Quiet Hours</h2>
+              <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400 transition-colors" aria-hidden="true" />
+              <h2 id="frequency-heading" className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">Frequency & Quiet Hours</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   Maximum Messages Per Week
                 </label>
                 <select
                   value={preferences.max_messages_per_week}
                   onChange={(e) => updatePreference('max_messages_per_week', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
                   aria-label="Maximum marketing messages per week"
                   id="max-messages-select"
                 >
@@ -499,14 +499,14 @@ export default function SMSPreferencesPage() {
                   <option value={10}>10 messages</option>
                   <option value={999}>Unlimited</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors">
                   Order updates are not affected by this limit
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="quiet-start" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="quiet-start" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                     Quiet Hours Start
                   </label>
                   <input
@@ -514,12 +514,12 @@ export default function SMSPreferencesPage() {
                     id="quiet-start"
                     value={preferences.quiet_hours_start}
                     onChange={(e) => updatePreference('quiet_hours_start', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
                     aria-label="Quiet hours start time"
                   />
                 </div>
                 <div>
-                  <label htmlFor="quiet-end" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="quiet-end" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                     Quiet Hours End
                   </label>
                   <input
@@ -527,12 +527,12 @@ export default function SMSPreferencesPage() {
                     id="quiet-end"
                     value={preferences.quiet_hours_end}
                     onChange={(e) => updatePreference('quiet_hours_end', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
                     aria-label="Quiet hours end time"
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors">
                 No marketing messages will be sent during quiet hours (urgent order updates may still be sent)
               </p>
             </div>
@@ -543,7 +543,7 @@ export default function SMSPreferencesPage() {
             <button
               onClick={handleSavePreferences}
               disabled={saving}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
               aria-disabled={saving}
               aria-label={saving ? 'Saving preferences' : 'Save SMS preferences'}
             >
@@ -584,24 +584,24 @@ function PreferenceToggle({
   const id = `pref-${label.toLowerCase().replace(/\s+/g, '-')}`;
   
   return (
-    <label htmlFor={id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+    <label htmlFor={id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
       <div className="flex items-center h-5">
         <input
           type="checkbox"
           id={id}
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 transition-colors"
           aria-label={`${label}: ${description}`}
           aria-checked={checked}
         />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-gray-600" aria-hidden="true">{icon}</span>
-          <span className="text-sm font-medium text-gray-900">{label}</span>
+          <span className="text-gray-600 dark:text-gray-400 transition-colors" aria-hidden="true">{icon}</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors">{label}</span>
         </div>
-        <p className="text-xs text-gray-600 mt-0.5">{description}</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 transition-colors">{description}</p>
       </div>
     </label>
   );

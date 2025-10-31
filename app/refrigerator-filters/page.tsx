@@ -86,15 +86,15 @@ const products = [
 
 export default function RefrigeratorFiltersPage() {
   return (
-    <div className="bg-brand-gray-50 min-h-screen">
+    <div className="bg-brand-gray-50 dark:bg-gray-900 min-h-screen transition-colors">
       {/* Page Header */}
-      <div className="bg-white border-b border-brand-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-brand-gray-200 dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
           <div className="max-w-3xl">
-            <h1 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">
               Refrigerator Water Filters
             </h1>
-            <p className="text-lg text-brand-gray-600">
+            <p className="text-lg text-brand-gray-600 dark:text-gray-100 transition-colors">
               Premium replacement water filters for all major refrigerator brands. 
               Genuine OEM and compatible options with free shipping on orders $99+.
             </p>
@@ -103,12 +103,12 @@ export default function RefrigeratorFiltersPage() {
       </div>
 
       {/* Breadcrumbs */}
-      <div className="bg-white border-b border-brand-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-b border-brand-gray-200 dark:border-gray-700 transition-colors">
         <div className="container-custom py-3">
-          <nav className="flex text-sm text-brand-gray-600">
+          <nav className="flex text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
             <a href="/" className="hover:text-brand-orange transition-colors">Home</a>
             <span className="mx-2">/</span>
-            <span className="text-brand-gray-900 font-medium">Refrigerator Water Filters</span>
+            <span className="text-brand-gray-900 dark:text-gray-100 font-medium transition-colors">Refrigerator Water Filters</span>
           </nav>
         </div>
       </div>

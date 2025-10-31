@@ -86,10 +86,10 @@ function AccountPageContent() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-brand-orange mx-auto mb-4" />
-          <p className="text-gray-600">Loading your account...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading your account...</p>
         </div>
       </div>
     );
@@ -102,20 +102,20 @@ function AccountPageContent() {
   const user = session.user;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">My Account</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
             Welcome back, {user.name || 'there'}!
           </p>
         </div>
 
         {/* Email Verified Success Banner */}
         {showEmailVerified && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-green-900">Email verified successfully!</p>
               <p className="text-sm text-green-800 mt-1">
@@ -130,8 +130,8 @@ function AccountPageContent() {
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
             <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-900">Verification email sent!</p>
-              <p className="text-sm text-blue-800 mt-1">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Verification email sent!</p>
+              <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
                 Check your inbox for the verification link. The link expires in 24 hours.
               </p>
             </div>
@@ -140,14 +140,14 @@ function AccountPageContent() {
 
         {/* Verify Email Prompt Banner */}
         {showVerifyEmailPrompt && !verificationSent && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-900 mb-2">
+                <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
                   Please verify your email address
                 </p>
-                <p className="text-sm text-yellow-800 mb-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-4">
                   We've sent a verification email to <strong>{user.email}</strong>. 
                   Click the link in the email to verify your account and unlock all features.
                 </p>
@@ -172,7 +172,7 @@ function AccountPageContent() {
                   </Button>
                   <button
                     onClick={() => setShowVerifyEmailPrompt(false)}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                   >
                     Dismiss
                   </button>
@@ -190,10 +190,10 @@ function AccountPageContent() {
                 <div className="w-20 h-20 bg-brand-orange text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
                   {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {user.name || 'User'}
                 </h2>
-                <p className="text-sm text-gray-600 mt-1">{user.email}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{user.email}</p>
               </div>
 
               <nav className="space-y-2">
@@ -201,35 +201,35 @@ function AccountPageContent() {
                   <User className="w-5 h-5" />
                   Profile
                 </button>
-                <Link href="/account/orders" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/orders" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <ShoppingBag className="w-5 h-5" />
                   Orders
                 </Link>
-                <Link href="/account/models" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/models" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Package className="w-5 h-5" />
                   My Models
                 </Link>
-                <Link href="/account/subscriptions" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/subscriptions" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <RefreshCw className="w-5 h-5" />
                   Subscriptions
                 </Link>
-                <Link href="/account/payment-methods" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/payment-methods" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <CreditCard className="w-5 h-5" />
                   Payment Methods
                 </Link>
-                <Link href="/account/sms" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/sms" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <MessageSquare className="w-5 h-5" />
                   SMS Preferences
                 </Link>
-                <Link href="/account/referrals" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/referrals" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Gift className="w-5 h-5" />
                   Referral Program
                 </Link>
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Heart className="w-5 h-5" />
                   Favorites
                 </button>
-                <Link href="/account/settings" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <Link href="/account/settings" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Settings className="w-5 h-5" />
                   Settings
                 </Link>
@@ -263,7 +263,7 @@ function AccountPageContent() {
             {/* Account Information */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   Account Information
                 </h2>
                 <Link href="/account/settings">
@@ -274,19 +274,19 @@ function AccountPageContent() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-3 pb-4 border-b border-gray-200">
-                  <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                <div className="flex items-start gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <User className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-gray-600">Full Name</p>
-                    <p className="font-medium text-gray-900">{user.name || 'Not set'}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Full Name</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{user.name || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 pb-4 border-b border-gray-200">
-                  <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                <div className="flex items-start gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <Mail className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-gray-600">Email Address</p>
-                    <p className="font-medium text-gray-900">{user.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Email Address</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{user.email}</p>
                   </div>
                 </div>
               </div>
@@ -295,7 +295,7 @@ function AccountPageContent() {
             {/* Recent Orders */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   Recent Orders
                 </h2>
                 <Link href="/account/orders">
@@ -308,18 +308,18 @@ function AccountPageContent() {
               <div className="space-y-4">
                 {/* Order 1 */}
                 <Link href="/account/orders/1" className="block">
-                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
-                        <ShoppingBag className="w-8 h-8 text-green-600" />
+                      <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center transition-colors">
+                        <ShoppingBag className="w-8 h-8 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-gray-900">Order #FF-2025-001</p>
-                        <span className="text-sm font-medium text-green-600">Delivered</span>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">Order #FF-2025-001</p>
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400 transition-colors">Delivered</span>
                       </div>
-                      <p className="text-sm text-gray-600">January 15, 2025 • 2 items</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">January 15, 2025 • 2 items</p>
                       <p className="text-sm font-medium text-brand-orange mt-1">$89.99</p>
                     </div>
                   </div>
@@ -327,18 +327,18 @@ function AccountPageContent() {
 
                 {/* Order 2 */}
                 <Link href="/account/orders/2" className="block">
-                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <ShoppingBag className="w-8 h-8 text-purple-600" />
+                      <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center transition-colors">
+                        <ShoppingBag className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-gray-900">Order #FF-2025-002</p>
-                        <span className="text-sm font-medium text-purple-600">Shipped</span>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">Order #FF-2025-002</p>
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400 transition-colors">Shipped</span>
                       </div>
-                      <p className="text-sm text-gray-600">January 20, 2025 • 4 items</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">January 20, 2025 • 4 items</p>
                       <p className="text-sm font-medium text-brand-orange mt-1">$159.98</p>
                     </div>
                   </div>
@@ -346,18 +346,18 @@ function AccountPageContent() {
 
                 {/* Order 3 */}
                 <Link href="/account/orders/3" className="block">
-                  <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-brand-orange hover:shadow-md transition-all">
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <ShoppingBag className="w-8 h-8 text-blue-600" />
+                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center transition-colors">
+                        <ShoppingBag className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-gray-900">Order #FF-2025-003</p>
-                        <span className="text-sm font-medium text-blue-600">Processing</span>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">Order #FF-2025-003</p>
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors">Processing</span>
                       </div>
-                      <p className="text-sm text-gray-600">January 22, 2025 • 1 item</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">January 22, 2025 • 1 item</p>
                       <p className="text-sm font-medium text-brand-orange mt-1">$49.99</p>
                     </div>
                   </div>
@@ -374,7 +374,7 @@ function AccountPageContent() {
             {/* Saved Addresses */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                   Saved Addresses
                 </h2>
                 <Button variant="secondary" size="sm">
@@ -382,18 +382,18 @@ function AccountPageContent() {
                 </Button>
               </div>
               <div className="text-center py-12">
-                <p className="text-gray-600">No saved addresses</p>
+                <p className="text-gray-600 dark:text-gray-400 transition-colors">No saved addresses</p>
               </div>
             </Card>
 
             {/* Subscription */}
-            <Card className="p-6 bg-gradient-to-br from-brand-orange/10 to-brand-blue/10 border-brand-orange/20">
+            <Card className="p-6 bg-gradient-to-br from-brand-orange/10 to-brand-blue/10 dark:from-brand-orange/20 dark:to-brand-blue/20 border-brand-orange/20 transition-colors">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
                     🎯 Home Filter Club
                   </h2>
-                  <p className="text-gray-700">
+                  <p className="text-gray-700 dark:text-gray-300 transition-colors">
                     Save 5% and never forget to change your filters
                   </p>
                 </div>

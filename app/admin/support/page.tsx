@@ -57,25 +57,25 @@ export default function AdminSupportPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Support Portal Management</h1>
-            <p className="text-gray-600 mt-2">Manage knowledge base articles and categories</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Support Portal Management</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors">Manage knowledge base articles and categories</p>
           </div>
           <div className="flex gap-3">
             <Link
               href="/support"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
             >
               <Eye className="w-4 h-4" />
               View Portal
@@ -93,44 +93,44 @@ export default function AdminSupportPage() {
         {/* Stats Grid */}
         {analytics && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Total Articles</h3>
-                <BookOpen className="w-5 h-5 text-orange-600" />
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">Total Articles</h3>
+                <BookOpen className="w-5 h-5 text-orange-600 dark:text-orange-400 transition-colors" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{analytics.total_articles}</p>
-              <p className="text-sm text-gray-500 mt-1">Published articles</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{analytics.total_articles}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors">Published articles</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Categories</h3>
-                <FolderOpen className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">Categories</h3>
+                <FolderOpen className="w-5 h-5 text-blue-600 dark:text-blue-400 transition-colors" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{analytics.total_categories}</p>
-              <p className="text-sm text-gray-500 mt-1">Active categories</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{analytics.total_categories}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors">Active categories</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Total Views</h3>
-                <Eye className="w-5 h-5 text-green-600" />
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">Total Views</h3>
+                <Eye className="w-5 h-5 text-green-600 dark:text-green-400 transition-colors" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">
                 {analytics.total_views.toLocaleString()}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors">
                 {analytics.views_last_30_days.toLocaleString()} in last 30 days
               </p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-600">Helpful Rating</h3>
-                <ThumbsUp className="w-5 h-5 text-purple-600" />
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">Helpful Rating</h3>
+                <ThumbsUp className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-colors" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{analytics.helpful_percentage}%</p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{analytics.helpful_percentage}%</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors">
                 From {analytics.total_feedback.toLocaleString()} responses
               </p>
             </div>
@@ -138,12 +138,12 @@ export default function AdminSupportPage() {
         )}
 
         {/* Category Performance */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Category Performance</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Category Performance</h2>
             <Link
               href="/admin/support/categories"
-              className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+              className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium transition-colors"
             >
               Manage Categories →
             </Link>
@@ -152,38 +152,38 @@ export default function AdminSupportPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700">Articles</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700">Total Views</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700">Helpful Votes</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700 transition-colors">
+                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Category</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Articles</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Total Views</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Helpful Votes</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categoryAnalytics.map((category) => (
-                  <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={category.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     <td className="py-4 px-4">
                       <Link
                         href={`/support/${category.slug}`}
-                        className="font-medium text-gray-900 hover:text-orange-600"
+                        className="font-medium text-gray-900 dark:text-gray-100 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                       >
                         {category.name}
                       </Link>
                     </td>
-                    <td className="py-4 px-4 text-right text-gray-600">
+                    <td className="py-4 px-4 text-right text-gray-600 dark:text-gray-400 transition-colors">
                       {category.article_count}
                     </td>
-                    <td className="py-4 px-4 text-right text-gray-600">
+                    <td className="py-4 px-4 text-right text-gray-600 dark:text-gray-400 transition-colors">
                       {(category.total_views || 0).toLocaleString()}
                     </td>
-                    <td className="py-4 px-4 text-right text-gray-600">
+                    <td className="py-4 px-4 text-right text-gray-600 dark:text-gray-400 transition-colors">
                       {(category.helpful_count || 0).toLocaleString()}
                     </td>
                     <td className="py-4 px-4 text-right">
                       <Link
                         href={`/admin/support/categories/${category.slug}`}
-                        className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+                        className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium transition-colors"
                       >
                         Edit
                       </Link>
@@ -197,52 +197,52 @@ export default function AdminSupportPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <BookOpen className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg transition-colors">
+                <BookOpen className="w-6 h-6 text-orange-600 dark:text-orange-400 transition-colors" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Manage Articles</h3>
-                <p className="text-sm text-gray-600">Create, edit, and organize support articles</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">Manage Articles</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Create, edit, and organize support articles</p>
               </div>
             </div>
             <div className="space-y-2">
               <Link
                 href="/admin/support/articles"
-                className="block text-orange-600 hover:text-orange-700 text-sm font-medium"
+                className="block text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium transition-colors"
               >
                 View All Articles →
               </Link>
               <Link
                 href="/admin/support/articles/new"
-                className="block text-orange-600 hover:text-orange-700 text-sm font-medium"
+                className="block text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 text-sm font-medium transition-colors"
               >
                 Create New Article →
               </Link>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <FolderOpen className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg transition-colors">
+                <FolderOpen className="w-6 h-6 text-blue-600 dark:text-blue-400 transition-colors" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Manage Categories</h3>
-                <p className="text-sm text-gray-600">Organize articles into categories</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">Manage Categories</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Organize articles into categories</p>
               </div>
             </div>
             <div className="space-y-2">
               <Link
                 href="/admin/support/categories"
-                className="block text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium transition-colors"
               >
                 View All Categories →
               </Link>
               <Link
                 href="/admin/support/categories/new"
-                className="block text-blue-600 hover:text-blue-700 text-sm font-medium"
+                className="block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium transition-colors"
               >
                 Create New Category →
               </Link>
@@ -251,9 +251,9 @@ export default function AdminSupportPage() {
         </div>
 
         {/* Note about full admin implementation */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-semibold text-blue-900 mb-2">Admin Dashboard</h4>
-          <p className="text-sm text-blue-800">
+        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 transition-colors">
+          <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 transition-colors">Admin Dashboard</h4>
+          <p className="text-sm text-blue-800 dark:text-blue-300 transition-colors">
             This is the support portal analytics dashboard. Full CRUD interfaces for articles and categories 
             can be added based on your needs. The database schema and API routes are fully functional.
             You can create articles via the seed script or by building out the full admin UI.

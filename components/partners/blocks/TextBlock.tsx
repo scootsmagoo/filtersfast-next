@@ -15,21 +15,28 @@ export default function TextBlock({ data }: TextBlockProps) {
 
   return (
     <div 
-      className="py-12 px-4"
-      style={{ backgroundColor: bgColor }}
+      className={`py-12 px-4 transition-colors ${bgColor === 'transparent' ? 'bg-transparent' : ''}`}
+      style={bgColor !== 'transparent' ? { backgroundColor: bgColor } : {}}
     >
-      <div className="container-custom max-w-4xl mx-auto">
+      <div className="container-custom max-w-4xl mx-auto text-gray-700 dark:text-gray-100">
         {data.heading && (
-          <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${alignmentClass}`}>
+          <h2 className={`text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors ${alignmentClass}`}>
             {data.heading}
           </h2>
         )}
         <div 
-          className={`prose prose-lg max-w-none ${alignmentClass}`}
-          style={{ color: bgColor !== 'transparent' ? '#ffffff' : 'inherit' }}
+          className={`max-w-none ${alignmentClass}`}
         >
           {data.content.split('\n\n').map((paragraph, idx) => (
-            <p key={idx} className="mb-4 leading-relaxed">
+            <p 
+              key={idx} 
+              className="mb-4 text-lg leading-relaxed"
+              style={
+                bgColor !== 'transparent' 
+                  ? { color: '#ffffff' } 
+                  : undefined
+              }
+            >
               {paragraph}
             </p>
           ))}

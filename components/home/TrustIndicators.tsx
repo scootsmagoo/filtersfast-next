@@ -33,13 +33,13 @@ const trustFeatures = [
 
 export default function TrustIndicators() {
   return (
-    <section className="py-16 bg-brand-gray-50">
+    <section className="py-16 bg-brand-gray-50 dark:bg-gray-800 transition-colors">
       <div className="container-custom">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">
             Why Choose FiltersFast?
           </h2>
-          <p className="text-lg text-brand-gray-600">
+          <p className="text-lg text-brand-gray-600 dark:text-gray-300 transition-colors">
             America&apos;s most trusted online filtration retailer
           </p>
         </div>
@@ -55,10 +55,10 @@ export default function TrustIndicators() {
                 <div className={`${feature.bgColor} w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
                   <Icon className={`w-10 h-10 ${feature.color}`} />
                 </div>
-                <h3 className="text-lg font-bold text-brand-gray-900 mb-2">
+                <h3 className="text-lg font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-brand-gray-600">
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
                   {feature.description}
                 </p>
               </div>
@@ -67,30 +67,30 @@ export default function TrustIndicators() {
         </div>
 
         {/* Social Proof Bar */}
-        <div className="mt-16 bg-white rounded-xl shadow-lg p-8">
+        <div className="mt-16 bg-white dark:bg-gray-700 rounded-xl shadow-lg p-8 transition-colors">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-3xl md:text-4xl font-bold text-brand-orange mb-2">2M+</div>
-              <div className="text-brand-gray-600">Happy Customers</div>
+              <div className="text-brand-gray-600 dark:text-gray-300 transition-colors">Happy Customers</div>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-brand-orange mb-2">5,000+</div>
-              <div className="text-brand-gray-600">Products</div>
+              <div className="text-brand-gray-600 dark:text-gray-300 transition-colors">Products</div>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-brand-orange mb-2">99.7%</div>
-              <div className="text-brand-gray-600">Customer Satisfaction</div>
+              <div className="text-brand-gray-600 dark:text-gray-300 transition-colors">Customer Satisfaction</div>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-brand-orange mb-2">20+</div>
-              <div className="text-brand-gray-600">Years in Business</div>
+              <div className="text-brand-gray-600 dark:text-gray-300 transition-colors">Years in Business</div>
             </div>
           </div>
         </div>
 
         {/* CTA Section */}
         <div className="mt-12 text-center">
-          <p className="text-xl text-brand-gray-700 mb-6">
+          <p className="text-xl text-brand-gray-700 dark:text-gray-300 mb-6 transition-colors">
             Join millions of customers who trust FiltersFast for their filtration needs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -103,7 +103,7 @@ export default function TrustIndicators() {
             </a>
             <a
               href="/reviews"
-              className="inline-flex items-center justify-center gap-2 bg-white border-2 border-brand-blue text-brand-blue font-bold py-3 px-8 rounded hover:bg-brand-blue hover:text-white transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 border-2 border-brand-blue dark:border-blue-400 text-brand-blue dark:text-blue-400 font-bold py-3 px-8 rounded hover:bg-brand-blue hover:text-white transition-colors"
             >
               <Star className="w-5 h-5" />
               Read Reviews

@@ -47,9 +47,21 @@ export async function POST(request: NextRequest) {
       session.user.name
     );
 
-    // Create SetupIntent
-    const setupIntent = await createSetupIntent(customerId, {
+    // Create SetupIntent with timeout (OWASP A04: Insecure Design)
+    const setupIntentPromise = createSetupIntent(customerId, {
       user_id: session.user.id,
+    });
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('SetupIntent creation timed out')), 10000)
+    );
+
+    const setupIntent = await Promise.race([setupIntentPromise, timeoutPromise]) as any;
+
+    // OWASP A09: Security logging
+    console.log('[SECURITY] SetupIntent created:', {
+      user_id: session.user.id,
+      timestamp: new Date().toISOString(),
     });
 
     return NextResponse.json({
@@ -57,17 +69,37 @@ export async function POST(request: NextRequest) {
       customer_id: customerId,
     });
   } catch (error: any) {
-    console.error('Error creating setup intent:', error);
+    // OWASP A09: Security logging without sensitive data
+    console.error('[ERROR] SetupIntent creation failed:', {
+      error_type: error.type || 'unknown',
+      error_message: error.message?.substring(0, 100) || 'unknown',
+      timestamp: new Date().toISOString(),
+    });
+    
+    // OWASP A04: Generic error messages to prevent information disclosure
+    if (error.message && error.message.includes('Stripe is not configured')) {
+      return NextResponse.json(
+        { error: 'Payment processing is currently unavailable. Please contact support.' },
+        { status: 503 }
+      );
+    }
+    
+    if (error.message && error.message.includes('timed out')) {
+      return NextResponse.json(
+        { error: 'Request timed out. Please check your connection and try again.' },
+        { status: 504 }
+      );
+    }
     
     if (error.type === 'StripeInvalidRequestError') {
       return NextResponse.json(
-        { error: 'Invalid request to payment provider' },
+        { error: 'Unable to initialize payment setup. Please try again.' },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to initialize payment method setup' },
+      { error: 'Failed to initialize payment method setup. Please try again or contact support.' },
       { status: 500 }
     );
   }
