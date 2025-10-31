@@ -92,6 +92,13 @@ export default function AdminDashboard() {
       color: 'purple'
     },
     {
+      title: 'Affiliate Program',
+      description: 'Manage affiliates and commissions',
+      icon: TrendingUp,
+      href: '/admin/affiliates',
+      color: 'emerald'
+    },
+    {
       title: 'Abandoned Carts',
       description: 'View cart recovery metrics and analytics',
       icon: ShoppingCart,

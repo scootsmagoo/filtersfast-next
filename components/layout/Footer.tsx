@@ -181,6 +181,7 @@ export default function Footer() {
               <li><Link href="/our-story" className="hover:text-brand-orange transition-colors">Our Story</Link></li>
               <li><Link href="/our-brand" className="hover:text-brand-orange transition-colors">Our Brand</Link></li>
               <li><Link href="/partners" className="hover:text-brand-orange transition-colors">Our Partners</Link></li>
+              <li><Link href="/affiliate" className="hover:text-brand-orange transition-colors">Affiliate Program</Link></li>
               <li><Link href="/reviews" className="hover:text-brand-orange transition-colors">Reviews</Link></li>
               <li><Link href="/business-services" className="hover:text-brand-orange transition-colors">Business Services</Link></li>
               <li><Link href="/careers" className="hover:text-brand-orange transition-colors">Careers</Link></li>

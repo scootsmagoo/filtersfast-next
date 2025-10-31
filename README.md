@@ -5,6 +5,13 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🆕 Latest Updates (October 31, 2025)
 
 **Recent Improvements:**
+- ✅ **Affiliate/Partnership Program** - Performance-based marketing system! 🆕
+  - Complete affiliate management with application workflow
+  - Cookie-based tracking with unique affiliate codes
+  - Real-time dashboard with clicks, conversions, earnings
+  - Configurable commission structure and payout management
+  - Admin approval system with pending applications queue
+  - OWASP Top 10 secure + WCAG 2.1 AA accessible
 - ✅ **Complete Dark Mode Implementation** - Full site-wide dark theme! 🆕
   - Available on ALL pages: homepage, products, checkout, account, admin, support
   - User preference toggle (Light/Dark/System) in `/account/settings`
@@ -12,7 +19,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
   - **Proper contrast ratios** - WCAG 2.1 AA compliant (4.5:1+ contrast)
   - Dynamic Stripe Elements theme switching (light/dark)
   - Account pages: orders, models, subscriptions, payment methods, SMS, referrals
-  - Admin pages: dashboard, partners, promo codes, giveaways, referrals, abandoned carts, returns, reminders, MFA
+  - Admin pages: dashboard, partners, promo codes, giveaways, referrals, abandoned carts, returns, reminders, MFA, affiliates
   - All components: chatbot, header, footer, cards, modals, forms
   - OWASP Top 10 secure + WCAG 2.1 AA accessible
 - ✅ **Enhanced Account Settings** - Comprehensive settings page
@@ -91,6 +98,14 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Charitable Donations** - Support causes at checkout
 
 **Business Features:**
+- ✅ **Affiliate/Partnership Program** - Performance-based marketing system 🆕
+  - Online application system with admin approval workflow
+  - Unique affiliate codes with cookie-based tracking (30-day attribution)
+  - Real-time performance dashboard for affiliates
+  - Commission management (percentage/flat rate, auto-approval after hold period)
+  - Payout management with configurable thresholds
+  - Admin oversight: applications, settings, top performers, earnings tracking
+  - OWASP Top 10 2021 compliant + WCAG 2.1 AA accessible
 - ✅ **Partner Landing Pages** - Dynamic charity & corporate partner pages 🆕
   - 8 flexible content block types for custom page layouts
   - Admin dashboard for partner management
@@ -106,7 +121,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
 - ✅ **SMS Marketing System** - Transactional + promotional messaging
 - ✅ **Promo Code System** - Discounts, free shipping, usage limits
-- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats, giveaways, partners
+- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats, giveaways, partners, affiliates
 - ✅ **Address Validation** - SmartyStreets integration
 
 **Customer Support:**

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard, Shield, MessageSquare, Gift } from 'lucide-react';
+import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard, Shield, MessageSquare, Gift, TrendingUp } from 'lucide-react';
 import SavedModels from '@/components/models/SavedModels';
 import QuickReorder from '@/components/orders/QuickReorder';
 import { isAdmin } from '@/lib/auth-admin';
@@ -224,6 +224,10 @@ function AccountPageContent() {
                 <Link href="/account/referrals" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Gift className="w-5 h-5" />
                   Referral Program
+                </Link>
+                <Link href="/affiliate" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                  <TrendingUp className="w-5 h-5" />
+                  Become an Affiliate
                 </Link>
                 <button className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <Heart className="w-5 h-5" />
