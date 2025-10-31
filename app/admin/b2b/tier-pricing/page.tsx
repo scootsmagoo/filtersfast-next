@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { TrendingUp, ChevronLeft, Plus, Package } from 'lucide-react';
+import { TrendingUp, ChevronLeft, Plus, Package, Trash2 } from 'lucide-react';
 import { TierPricing } from '@/lib/types/b2b';
+import TierPricingModal, { TierPricingData } from '@/components/admin/TierPricingModal';
 
 export default function AdminTierPricingPage() {
   const [pricingRules, setPricingRules] = useState<TierPricing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<TierPricing | undefined>(undefined);
 
   useEffect(() => {
     fetchPricingRules();
@@ -15,13 +18,55 @@ export default function AdminTierPricingPage() {
 
   const fetchPricingRules = async () => {
     try {
-      // This would be implemented when you create the API route
-      // For now, just show empty state
-      setPricingRules([]);
+      const response = await fetch('/api/admin/b2b/tier-pricing');
+      
+      if (!response.ok) {
+        throw new Error('Failed to load pricing rules');
+      }
+
+      const data = await response.json();
+      setPricingRules(data.pricingRules);
     } catch (error) {
       console.error('Error loading pricing rules:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateRule = async (data: TierPricingData) => {
+    const response = await fetch('/api/admin/b2b/tier-pricing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create rule');
+    }
+
+    // Refresh list
+    await fetchPricingRules();
+  };
+
+  const handleDeleteRule = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this pricing rule?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/b2b/tier-pricing/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete rule');
+      }
+
+      // Refresh list
+      await fetchPricingRules();
+    } catch (error: any) {
+      alert(error.message);
     }
   };
 
@@ -48,7 +93,10 @@ export default function AdminTierPricingPage() {
             </p>
           </div>
           <button
-            onClick={() => alert('Create tier pricing form would open here')}
+            onClick={() => {
+              setEditingRule(undefined);
+              setIsModalOpen(true);
+            }}
             className="inline-flex items-center px-4 py-2 bg-brand-orange hover:bg-orange-600 text-white font-semibold rounded-md transition-colors"
             aria-label="Create new tier pricing rule"
           >
@@ -120,7 +168,10 @@ export default function AdminTierPricingPage() {
                 Rules can apply to specific products, SKUs, or entire categories.
               </p>
               <button
-                onClick={() => alert('Create tier pricing form would open here')}
+                onClick={() => {
+                  setEditingRule(undefined);
+                  setIsModalOpen(true);
+                }}
                 className="inline-flex items-center px-6 py-3 bg-brand-orange hover:bg-orange-600 text-white font-semibold rounded-md transition-colors"
               >
                 <Plus className="w-5 h-5 mr-2" />
@@ -157,7 +208,7 @@ export default function AdminTierPricingPage() {
               {pricingRules.map((rule) => (
                 <div key={rule.id} className="p-6">
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                         {rule.productId ? `Product ID: ${rule.productId}` : 
                          rule.sku ? `SKU: ${rule.sku}` : 
@@ -169,31 +220,64 @@ export default function AdminTierPricingPage() {
                           <p key={idx} className="text-sm text-gray-600 dark:text-gray-400">
                             • Buy {tier.minQuantity}
                             {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'}
-                            : {tier.discountPercentage && `${tier.discountPercentage}% off`}
-                            {tier.discountAmount && `$${tier.discountAmount} off`}
-                            {tier.fixedPrice && `$${tier.fixedPrice}`}
+                            : {tier.discountPercentage !== undefined && `${tier.discountPercentage}% off`}
+                            {tier.discountAmount !== undefined && `$${tier.discountAmount} off per unit`}
+                            {tier.fixedPrice !== undefined && `$${tier.fixedPrice} fixed price`}
                           </p>
                         ))}
                       </div>
                     </div>
-                    <button
-                      onClick={() => alert('Edit form would open here')}
-                      className="text-brand-orange hover:underline text-sm"
-                      aria-label={`Edit pricing rule for ${
-                        rule.productId ? `Product ID ${rule.productId}` : 
-                        rule.sku ? `SKU ${rule.sku}` : 
-                        rule.categoryId ? `Category ${rule.categoryId}` : 
-                        'Global Rule'
-                      }`}
-                    >
-                      Edit
-                    </button>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => {
+                          setEditingRule(rule);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-brand-orange hover:underline text-sm"
+                        aria-label={`Edit pricing rule for ${
+                          rule.productId ? `Product ID ${rule.productId}` : 
+                          rule.sku ? `SKU ${rule.sku}` : 
+                          rule.categoryId ? `Category ${rule.categoryId}` : 
+                          'Global Rule'
+                        }`}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="text-red-600 hover:text-red-700 dark:text-red-400 text-sm"
+                        aria-label={`Delete pricing rule for ${
+                          rule.productId ? `Product ID ${rule.productId}` : 
+                          rule.sku ? `SKU ${rule.sku}` : 
+                          rule.categoryId ? `Category ${rule.categoryId}` : 
+                          'Global Rule'
+                        }`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Modal */}
+        <TierPricingModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingRule(undefined);
+          }}
+          onSave={handleCreateRule}
+          existingRule={editingRule ? {
+            productId: editingRule.productId,
+            sku: editingRule.sku,
+            categoryId: editingRule.categoryId,
+            tiers: editingRule.tiers,
+          } : undefined}
+        />
       </div>
     </div>
   );
