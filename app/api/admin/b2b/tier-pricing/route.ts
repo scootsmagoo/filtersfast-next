@@ -9,9 +9,10 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { isAdmin } from '@/lib/auth-admin';
 import { getAllTierPricing, createTierPricing } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 import { validateTierPricing } from '@/lib/b2b-pricing';
+import { sanitizeInput } from '@/lib/sanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,10 +73,41 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const { productId, sku, categoryId, tiers } = data;
 
-    // Validate that at least one identifier is provided
+    // OWASP A03: Validate that at least one identifier is provided
     if (!productId && !sku && !categoryId) {
       return NextResponse.json(
         { error: 'Must specify productId, sku, or categoryId' },
+        { status: 400 }
+      );
+    }
+
+    // OWASP A03: Input sanitization and length validation
+    let sanitizedSku: string | undefined;
+    let sanitizedCategoryId: string | undefined;
+
+    if (sku) {
+      if (typeof sku !== 'string' || sku.length > 100) {
+        return NextResponse.json(
+          { error: 'Invalid SKU format or length' },
+          { status: 400 }
+        );
+      }
+      sanitizedSku = sanitizeInput(sku);
+    }
+
+    if (categoryId) {
+      if (typeof categoryId !== 'string' || categoryId.length > 100) {
+        return NextResponse.json(
+          { error: 'Invalid category ID format or length' },
+          { status: 400 }
+        );
+      }
+      sanitizedCategoryId = sanitizeInput(categoryId);
+    }
+
+    if (productId && (typeof productId !== 'number' || productId <= 0)) {
+      return NextResponse.json(
+        { error: 'Invalid product ID' },
         { status: 400 }
       );
     }
@@ -92,22 +124,22 @@ export async function POST(request: NextRequest) {
     // Create tier pricing
     const tierPricing = createTierPricing({
       productId,
-      sku,
-      categoryId,
+      sku: sanitizedSku,
+      categoryId: sanitizedCategoryId,
       tiers,
     });
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'tier_pricing_created',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'tier_pricing',
+      resourceId: tierPricing.id,
+      status: 'success',
       details: {
-        id: tierPricing.id,
         productId,
-        sku,
-        categoryId,
+        sku: sanitizedSku,
+        categoryId: sanitizedCategoryId,
         tierCount: tiers.length,
       },
     });

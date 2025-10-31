@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 
 interface TierPricingModalProps {
@@ -35,6 +35,30 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  // WCAG: Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen && !isSubmitting) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Focus first input when modal opens
+      setTimeout(() => firstInputRef.current?.focus(), 100);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen) return null;
 
@@ -76,9 +100,19 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
     setIsSubmitting(true);
 
     try {
-      // Validate
-      if (!identifier) {
+      // OWASP A03: Input validation
+      if (!identifier || identifier.trim().length === 0) {
         throw new Error('Please specify a product ID, SKU, or category');
+      }
+
+      // OWASP A03: Validate identifier length to prevent buffer overflow
+      if (identifier.length > 100) {
+        throw new Error('Identifier is too long (max 100 characters)');
+      }
+
+      // Validate product ID is numeric
+      if (ruleType === 'product' && isNaN(parseInt(identifier))) {
+        throw new Error('Product ID must be a number');
       }
 
       // Build data
@@ -95,9 +129,9 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
       if (ruleType === 'product') {
         data.productId = parseInt(identifier);
       } else if (ruleType === 'sku') {
-        data.sku = identifier;
+        data.sku = identifier.trim();
       } else {
-        data.categoryId = identifier;
+        data.categoryId = identifier.trim();
       }
 
       await onSave(data);
@@ -110,90 +144,117 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      onClick={(e) => {
+        // WCAG: Allow closing by clicking backdrop
+        if (e.target === e.currentTarget && !isSubmitting) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        ref={modalRef}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 id="modal-title" className="text-2xl font-bold text-gray-900 dark:text-white">
             {existingRule ? 'Edit' : 'Create'} Tier Pricing Rule
           </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
             aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6" aria-hidden="true" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Rule Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <fieldset>
+            <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Apply To
-            </label>
-            <div className="grid grid-cols-3 gap-4">
-              <label className="flex items-center">
+            </legend>
+            <div className="grid grid-cols-3 gap-4" role="radiogroup" aria-label="Rule type selection">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
+                  name="ruleType"
                   value="product"
                   checked={ruleType === 'product'}
                   onChange={(e) => setRuleType(e.target.value as any)}
-                  className="mr-2"
+                  className="mr-2 focus:ring-2 focus:ring-brand-orange"
+                  aria-label="Product ID"
                 />
                 <span className="text-gray-700 dark:text-gray-300">Product ID</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
+                  name="ruleType"
                   value="sku"
                   checked={ruleType === 'sku'}
                   onChange={(e) => setRuleType(e.target.value as any)}
-                  className="mr-2"
+                  className="mr-2 focus:ring-2 focus:ring-brand-orange"
+                  aria-label="SKU"
                 />
                 <span className="text-gray-700 dark:text-gray-300">SKU</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
+                  name="ruleType"
                   value="category"
                   checked={ruleType === 'category'}
                   onChange={(e) => setRuleType(e.target.value as any)}
-                  className="mr-2"
+                  className="mr-2 focus:ring-2 focus:ring-brand-orange"
+                  aria-label="Category"
                 />
                 <span className="text-gray-700 dark:text-gray-300">Category</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           {/* Identifier */}
           <div>
             <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {ruleType === 'product' ? 'Product ID' : ruleType === 'sku' ? 'SKU' : 'Category ID'}
+              {ruleType === 'product' ? 'Product ID' : ruleType === 'sku' ? 'SKU' : 'Category ID'} <span className="text-red-600" aria-label="required">*</span>
             </label>
             <input
+              ref={firstInputRef}
               type="text"
               id="identifier"
+              name="identifier"
               required
+              maxLength={100}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder={ruleType === 'product' ? 'e.g., 12345' : ruleType === 'sku' ? 'e.g., 16x20x1-MERV8' : 'e.g., air-filters'}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-brand-orange focus:border-transparent dark:bg-gray-700 dark:text-white"
+              aria-describedby={error ? 'error-message' : undefined}
             />
           </div>
 
           {/* Tiers */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Pricing Tiers
-              </label>
+              </h3>
               <button
                 type="button"
                 onClick={addTier}
-                className="text-brand-orange hover:text-orange-600 text-sm font-medium flex items-center"
+                className="text-brand-orange hover:text-orange-600 text-sm font-medium flex items-center focus:ring-2 focus:ring-brand-orange rounded px-2 py-1"
+                aria-label="Add pricing tier"
               >
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus className="w-4 h-4 mr-1" aria-hidden="true" />
                 Add Tier
               </button>
             </div>
@@ -209,10 +270,10 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
                       <button
                         type="button"
                         onClick={() => removeTier(index)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 focus:ring-2 focus:ring-red-500 rounded p-1"
                         aria-label={`Remove tier ${index + 1}`}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -357,7 +418,12 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
           </div>
 
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+            <div 
+              id="error-message"
+              role="alert"
+              aria-live="assertive"
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm"
+            >
               {error}
             </div>
           )}
@@ -367,7 +433,8 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-md transition-colors disabled:opacity-50"
+              className="flex-1 bg-brand-orange hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-md transition-colors disabled:opacity-50 focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+              aria-busy={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : existingRule ? 'Update Rule' : 'Create Rule'}
             </button>
@@ -375,7 +442,7 @@ export default function TierPricingModal({ isOpen, onClose, onSave, existingRule
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
             >
               Cancel
             </button>

@@ -9,7 +9,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { isAdmin } from '@/lib/auth-admin';
 import { getB2BAccountById, updateB2BAccount } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 
 export async function GET(
   request: NextRequest,
@@ -84,14 +84,14 @@ export async function PATCH(
     }
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'b2b_account_updated',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'b2b_account',
+      resourceId: params.id,
+      status: 'success',
       details: {
-        accountId: params.id,
-        updates: Object.keys(updates),
+        updatedFields: Object.keys(updates),
       },
     });
 

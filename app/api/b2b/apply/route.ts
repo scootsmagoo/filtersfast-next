@@ -8,7 +8,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { createB2BAccount, getB2BAccountByUserId } from '@/lib/db/b2b';
 import { B2BApplicationForm } from '@/lib/types/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 import { sanitizeInput } from '@/lib/sanitize';
 
@@ -125,14 +125,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'b2b_application_submitted',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'b2b_account',
+      resourceId: account.id,
+      status: 'success',
       details: {
-        accountId: account.id,
-        companyName: formData.companyName,
+        companyName: sanitizedCompanyName,
         businessType: formData.businessType,
       },
     });

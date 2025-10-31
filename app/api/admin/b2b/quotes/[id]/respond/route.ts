@@ -8,7 +8,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { isAdmin } from '@/lib/auth-admin';
 import { getQuoteRequestById, updateQuoteRequest } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 import { sanitizeInput } from '@/lib/sanitize';
 
@@ -113,13 +113,13 @@ export async function POST(
     }
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'quote_responded',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'quote_request',
+      resourceId: params.id,
+      status: 'success',
       details: {
-        quoteId: params.id,
         quoteNumber: quote.quoteNumber,
         subtotal,
       },

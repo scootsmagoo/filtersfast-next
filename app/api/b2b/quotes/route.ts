@@ -12,7 +12,7 @@ import {
   getQuotesByB2BAccountId, 
   createQuoteRequest 
 } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 import { sanitizeInput } from '@/lib/sanitize';
 
@@ -151,15 +151,15 @@ export async function POST(request: NextRequest) {
     });
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'quote_request_created',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'quote_request',
+      resourceId: quote.id,
+      status: 'success',
       details: {
-        quoteId: quote.id,
         quoteNumber: quote.quoteNumber,
-        itemCount: items.length,
+        itemCount: sanitizedItems.length,
       },
     });
 

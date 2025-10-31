@@ -8,7 +8,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { isAdmin } from '@/lib/auth-admin';
 import { approveB2BAccount, getB2BAccountById } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(
@@ -113,13 +113,13 @@ export async function POST(
     }
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'b2b_account_approved',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'b2b_account',
+      resourceId: params.id,
+      status: 'success',
       details: {
-        accountId: params.id,
         companyName: account.companyName,
         pricingTier: approvalData.pricingTier,
         discountPercentage: approvalData.discountPercentage,

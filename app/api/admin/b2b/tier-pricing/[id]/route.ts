@@ -9,7 +9,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { isAdmin } from '@/lib/auth-admin';
 import { deleteTierPricing, updateTierPricing } from '@/lib/db/b2b';
-import { logAudit } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
 import { validateTierPricing } from '@/lib/b2b-pricing';
 
@@ -55,14 +55,12 @@ export async function DELETE(
     }
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'tier_pricing_deleted',
-      category: 'b2b',
-      severity: 'warning',
-      details: {
-        id: params.id,
-      },
+      userId: session.user.id,
+      resource: 'tier_pricing',
+      resourceId: params.id,
+      status: 'success',
     });
 
     return NextResponse.json({ success: true });
@@ -129,13 +127,13 @@ export async function PATCH(
     }
 
     // Log audit trail
-    logAudit({
-      userId: session.user.id,
+    await auditLog({
       action: 'tier_pricing_updated',
-      category: 'b2b',
-      severity: 'info',
+      userId: session.user.id,
+      resource: 'tier_pricing',
+      resourceId: params.id,
+      status: 'success',
       details: {
-        id: params.id,
         tierCount: tiers.length,
       },
     });

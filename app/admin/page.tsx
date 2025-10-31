@@ -153,8 +153,7 @@ export default function AdminDashboard() {
       description: 'Manage wholesale accounts and quotes',
       icon: Building2,
       href: '/admin/b2b',
-      color: 'indigo',
-      badge: 'NEW'
+      color: 'indigo'
     },
     {
       title: 'Customers',
