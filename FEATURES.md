@@ -1708,6 +1708,139 @@ FiltersFast-Next includes a comprehensive charitable donations system that allow
 
 ---
 
+## 📦 Shipping Insurance
+
+### Overview
+Optional shipping insurance for high-value orders provides customers with peace of mind and protection against loss or damage during transit. Based on the legacy system's tiered pricing model, the feature offers two coverage levels with transparent pricing.
+
+### Customer Features
+- **Smart Display Logic** - Only shown for orders $50+ (when insurance makes sense)
+- **Two Coverage Levels:**
+  - **Standard Coverage** - Tiered pricing based on order value
+  - **Premium Coverage** - Percentage-based pricing (0.35%) with expedited claims
+- **No Insurance Option** - Customer can decline coverage (default)
+- **Intelligent Recommendations** - System recommends coverage level based on order value
+- **Risk Warnings** - Alert for high-value orders ($200+) without insurance
+- **Informational Content** - Expandable section explaining benefits
+- **Order Integration** - Insurance included in Stripe checkout as separate line item
+- **Order Review** - Insurance selection displayed on review step
+
+### Coverage Options
+
+**Standard Coverage** (Recommended for orders $50-$200)
+- Tiered pricing structure based on order value:
+  - $50-$99: $2.20
+  - $100-$199: $3.20
+  - $200-$299: $4.20
+  - $300-$399: $5.20
+  - $400-$499: $6.20
+  - $500-$599: $7.20
+  - $600-$699: $8.20
+  - $700-$799: $9.20
+  - $800-$899: $10.20
+  - $900-$999: $11.20
+  - $1,000+: $11.20 + $1 per additional $100
+- Based on legacy USPS insurance pricing model
+- Full coverage against loss, theft, or damage
+- Standard claims processing (5-7 business days)
+
+**Premium Coverage** (Recommended for orders $200+)
+- 0.35% of order value (minimum $100 order required)
+- Based on legacy UPS insurance pricing model
+- Enhanced protection with dedicated support
+- Expedited claims processing (2-3 business days)
+- Priority handling for high-value shipments
+
+### UI/UX Features
+- **Card-Based Design** - Clean, modern interface matching checkout flow
+- **Radio Button Selection** - Clear visual selection state
+- **Recommended Badges** - Green "Recommended" badge on optimal choice
+- **Information Toggle** - Expandable section with benefits explanation
+- **Availability Constraints** - Options disabled if order doesn't meet minimum
+- **Warning Alerts** - Yellow warning for high-value orders without coverage
+- **Real-Time Pricing** - Insurance cost updates as order value changes
+- **Order Summary Integration** - Shows insurance cost with shield icon
+- **Review Step Display** - Clear insurance confirmation before checkout
+
+### Technical Implementation
+
+**Components:**
+- `ShippingInsurance` - Main insurance selector component (`components/checkout/ShippingInsurance.tsx`)
+- Integrates seamlessly into checkout payment step
+- Responsive design with dark mode support
+
+**Type System:**
+```typescript
+// lib/types/insurance.ts
+InsuranceCarrier = 'standard' | 'premium' | 'none'
+InsuranceSelection { carrier, cost, coverageAmount }
+InsuranceOption { carrier, name, description, calculateCost, minOrderValue }
+```
+
+**Calculation Functions:**
+- `calculateStandardInsurance(subtotal)` - Tiered pricing logic
+- `calculatePremiumInsurance(subtotal)` - Percentage-based pricing (0.35%)
+- `getRecommendedInsurance(orderSubtotal)` - Smart recommendation engine
+- `validateInsurance(carrier, orderSubtotal)` - Validation with helpful messages
+- `formatInsuranceSelection(selection)` - Display formatting
+
+**API Integration:**
+- Insurance added to Stripe checkout as line item
+- Metadata includes carrier type and coverage amount
+- Description shows coverage type and maximum coverage
+- Proper amount formatting for Stripe (cents)
+
+**Checkout Flow Integration:**
+1. Customer proceeds to payment step
+2. Insurance component appears before donation section (if order ≥ $50)
+3. Recommended option highlighted based on order value
+4. Selection updates order total in real-time
+5. Insurance appears on review step with edit option
+6. Insurance included in order summary sidebar
+7. Insurance passed to Stripe as separate line item
+
+### Business Logic
+
+**Display Rules:**
+- Show insurance only for orders ≥ $50
+- Recommend Standard for $50-$199 orders
+- Recommend Premium for $200+ orders
+- Default to "No Insurance" (customer opt-in)
+
+**Validation Rules:**
+- Standard requires $50+ order
+- Premium requires $100+ order
+- Invalid selections show helpful error message
+
+**Pricing Transparency:**
+- Insurance cost shown clearly next to each option
+- Total insurance cost in order summary
+- Detailed description in Stripe line item
+
+### Data Tracking
+- Insurance selection stored in Stripe metadata
+- Coverage type (Standard/Premium/None) recorded
+- Coverage amount preserved for claims
+- Integration ready for future analytics dashboard
+
+### Business Impact
+- **Risk Mitigation** - Reduces company liability for lost/damaged shipments
+- **Customer Peace of Mind** - Protection for high-value filter orders
+- **Revenue Stream** - Additional revenue from insurance fees
+- **Customer Satisfaction** - Faster resolution of shipping issues
+- **Competitive Advantage** - Professional service matching major retailers
+- **Claims Management** - Clear coverage amounts simplify disputes
+
+### Legacy Migration Notes
+- Based on `_INCinsurancecheck_.asp` and `INCMod.asp`
+- Preserved legacy pricing tiers (USPS model for Standard)
+- Preserved legacy percentage pricing (UPS model for Premium)
+- Simplified UI from legacy two-carrier system to two coverage levels
+- Modern React component replaces ASP form dropdowns
+- Removed carrier-specific branding (UPS/USPS) for cleaner messaging
+
+---
+
 ## 📚 Support Portal / Knowledge Base
 
 ### Overview
@@ -2176,11 +2309,12 @@ This section documents features found in the legacy ASP FiltersFast site that co
 
 #### Lower Priority (Nice-to-Have)
 
-**10. Shipping Insurance** 📦
-- **Description:** Optional insurance for high-value orders
-- **Legacy File:** `_INCinsurancecheck_.asp`
-- **Implementation:** Low complexity, 1 week
-- **Value:** Medium - Protects high-value orders
+**10. Shipping Insurance** 📦 ✅ **IMPLEMENTED**
+- **Description:** Optional insurance for high-value orders with tiered and percentage-based pricing
+- **Legacy File:** `_INCinsurancecheck_.asp`, `INCMod.asp`
+- **Implementation:** Completed - Two coverage levels (Standard/Premium), smart recommendations, Stripe integration
+- **Value:** Medium - Protects high-value orders, reduces liability, additional revenue stream
+- **Components:** `ShippingInsurance.tsx`, `lib/types/insurance.ts`
 
 **11. Newsletter Preference Center** 📧
 - **Description:** Granular email subscription settings

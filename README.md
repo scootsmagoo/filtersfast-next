@@ -5,6 +5,13 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 ## 🆕 Latest Updates (October 31, 2025)
 
 **Recent Improvements:**
+- ✅ **Shipping Insurance** - Optional protection for high-value orders! 🆕
+  - Two coverage levels: Standard (tiered) & Premium (0.35%)
+  - Smart recommendations based on order value ($50/$200 thresholds)
+  - Intelligent display logic (only shown for orders $50+)
+  - Risk warnings for high-value orders without coverage
+  - Full Stripe integration with insurance as line item
+  - OWASP Top 10 2021 secure + WCAG 2.1 AA accessible
 - ✅ **Affiliate/Partnership Program** - Performance-based marketing system! 🆕
   - Complete affiliate management with application workflow
   - Cookie-based tracking with unique affiliate codes
@@ -89,6 +96,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
 - ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
 - ✅ **SMS Marketing (Attentive)** - Text notifications with 98% open rate 🆕
+- ✅ **Shipping Insurance** - Optional coverage for orders $50+ with tiered/percentage pricing 🆕
 - ✅ **ID.me Verification** - Military & first responder discounts (10% off)
 - ✅ **Filter Reminders** - Never forget to replace filters
 - ✅ **Subscriptions** (Subscribe & Save with 5% discount)
@@ -265,7 +273,7 @@ Based on legacy FiltersFast features and business priorities:
 - [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
 
 ### Medium Priority (6-12 months)
-- [ ] **Shipping Insurance** - Optional insurance for high-value orders
+- [x] **Shipping Insurance** - Optional insurance for high-value orders ✅
 - [ ] **Newsletter Preferences** - Granular email subscription settings
 - [ ] **Multi-Currency Support** - CAD, GBP, EUR, AUD for international customers
 

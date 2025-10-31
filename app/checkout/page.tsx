@@ -10,9 +10,11 @@ import { RecaptchaAction } from '@/lib/recaptcha';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CharityDonation from '@/components/checkout/CharityDonation';
+import ShippingInsurance from '@/components/checkout/ShippingInsurance';
 import SavedPaymentSelector from '@/components/checkout/SavedPaymentSelector';
 import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
 import { DonationSelection } from '@/lib/types/charity';
+import { InsuranceSelection } from '@/lib/types/insurance';
 import { 
   ShoppingBag, 
   User, 
@@ -24,6 +26,7 @@ import {
   Loader2,
   Lock,
   Heart,
+  Shield,
   Plus
 } from 'lucide-react';
 
@@ -53,6 +56,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [donation, setDonation] = useState<DonationSelection | null>(null);
+  const [insurance, setInsurance] = useState<InsuranceSelection | null>(null);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [savePaymentMethod, setSavePaymentMethod] = useState(false);
@@ -91,7 +95,8 @@ export default function CheckoutPage() {
   const shippingCost = total >= 50 ? 0 : 9.99;
   const tax = total * 0.08; // 8% tax (would be calculated by TaxJar in production)
   const donationAmount = donation?.amount || 0;
-  const orderTotal = total + shippingCost + tax + donationAmount;
+  const insuranceCost = insurance?.cost || 0;
+  const orderTotal = total + shippingCost + tax + donationAmount + insuranceCost;
 
   // Step navigation
   const handleContinueAsGuest = () => {
@@ -176,6 +181,7 @@ export default function CheckoutPage() {
             image: item.image,
           })),
           donation: donation || null,
+          insurance: insurance || null,
         }),
       });
       
@@ -467,9 +473,16 @@ export default function CheckoutPage() {
               {/* Payment Step */}
               {currentStep === 'payment' && (
                 <div className="space-y-6">
+                  {/* Shipping Insurance Section */}
+                  <ShippingInsurance
+                    orderSubtotal={total}
+                    onInsuranceChange={setInsurance}
+                    initialSelection={insurance}
+                  />
+                  
                   {/* Charity Donation Section */}
                   <CharityDonation
-                    orderSubtotal={total + shippingCost + tax}
+                    orderSubtotal={total + shippingCost + tax + insuranceCost}
                     onDonationChange={setDonation}
                     initialDonation={donation}
                   />
@@ -618,6 +631,32 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   
+                  {/* Insurance Review */}
+                  {insurance && insurance.carrier !== 'none' && (
+                    <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 transition-colors">
+                          <Shield className="w-5 h-5 text-blue-600" />
+                          Shipping Insurance
+                        </h3>
+                        <button
+                          onClick={() => setCurrentStep('payment')}
+                          className="text-sm text-brand-orange hover:underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 transition-colors">
+                        <p className="font-medium text-blue-800 dark:text-blue-300 transition-colors">
+                          {insurance.carrier === 'premium' ? 'Premium' : 'Standard'} Coverage - ${insuranceCost.toFixed(2)}
+                        </p>
+                        <p className="text-blue-700 dark:text-blue-200 mt-1 transition-colors">
+                          Your order is protected against loss or damage during shipping.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Donation Review */}
                   {donation && (
                     <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 transition-colors">
@@ -715,6 +754,15 @@ export default function CheckoutPage() {
                     <span className="text-gray-600 dark:text-gray-300 transition-colors">Tax (estimated)</span>
                     <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">${tax.toFixed(2)}</span>
                   </div>
+                  {insurance && insurance.carrier !== 'none' && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors">
+                        <Shield className="w-3 h-3 text-blue-600" />
+                        Insurance
+                      </span>
+                      <span className="font-medium text-blue-600 dark:text-blue-400 transition-colors">${insuranceCost.toFixed(2)}</span>
+                    </div>
+                  )}
                   {donation && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors">
