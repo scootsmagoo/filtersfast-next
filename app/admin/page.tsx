@@ -20,7 +20,8 @@ import {
   HelpCircle,
   Heart,
   Gift,
-  Handshake
+  Handshake,
+  Building2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -146,6 +147,14 @@ export default function AdminDashboard() {
       icon: Handshake,
       href: '/admin/partners',
       color: 'blue'
+    },
+    {
+      title: 'B2B Portal',
+      description: 'Manage wholesale accounts and quotes',
+      icon: Building2,
+      href: '/admin/b2b',
+      color: 'indigo',
+      badge: 'NEW'
     },
     {
       title: 'Customers',
