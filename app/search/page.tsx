@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useCart } from '@/lib/cart-context';
 import { SearchResponse, SearchResult } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
+import { Price } from '@/components/products/Price';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -395,13 +395,12 @@ function SearchPageContent() {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-brand-orange">
-                              {formatPrice(result.product.price)}
+                              <Price 
+                                amountUSD={result.product.price}
+                                originalPrice={result.product.originalPrice}
+                                showCurrency
+                              />
                             </div>
-                            {result.product.originalPrice && (
-                              <div className="text-sm text-gray-500 line-through">
-                                {formatPrice(result.product.originalPrice)}
-                              </div>
-                            )}
                           </div>
                         </div>
 

@@ -6,10 +6,10 @@ import { Star, ShoppingCart, Check, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useCart } from '@/lib/cart-context';
-import { formatPrice } from '@/lib/utils';
 import { SearchableProduct } from '@/lib/types';
 import Link from 'next/link';
 import SocialShare from '@/components/social/SocialShare';
+import { HeroPrice, Savings } from '@/components/products/Price';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -305,19 +305,13 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="space-y-2">
-              <div className="flex items-center gap-4">
-                <span className="text-4xl font-bold text-brand-orange">
-                  {formatPrice(product.price)}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-xl text-gray-500 line-through">
-                    {formatPrice(product.originalPrice)}
-                  </span>
-                )}
-              </div>
+              <HeroPrice 
+                amountUSD={product.price}
+                originalPrice={product.originalPrice}
+              />
               {product.originalPrice && (
-                <div className="text-sm text-green-600 font-semibold">
-                  Save {formatPrice(product.originalPrice - product.price)}!
+                <div className="text-sm font-semibold">
+                  <Savings amountUSD={product.originalPrice - product.price} />
                 </div>
               )}
             </div>

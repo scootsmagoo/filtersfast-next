@@ -3,11 +3,11 @@
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { ShoppingCart, Check } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/lib/cart-context';
 import { useStatusAnnouncement } from '@/components/ui/StatusAnnouncementProvider';
 import ReviewStars from './ReviewStars';
 import { useState } from 'react';
+import { Price, Savings } from './Price';
 
 interface Product {
   id: number;
@@ -128,13 +128,12 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           {/* Price & Actions */}
           <div className="md:col-span-3 flex flex-col justify-center items-end">
             <div className="text-right mb-4">
-              {product.originalPrice && (
-                <div className="text-sm text-brand-gray-500 line-through">
-                  {formatPrice(product.originalPrice)}
-                </div>
-              )}
               <div className="text-2xl font-bold text-brand-orange">
-                {formatPrice(product.price)}
+                <Price 
+                  amountUSD={product.price}
+                  originalPrice={product.originalPrice}
+                  showCurrency
+                />
               </div>
               <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
                 <Check className="w-4 h-4" aria-hidden="true" />
@@ -215,13 +214,12 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
 
         {/* Price */}
         <div className="mb-3">
-          {product.originalPrice && (
-            <div className="text-sm text-brand-gray-500 line-through">
-              {formatPrice(product.originalPrice)}
-            </div>
-          )}
           <div className="text-2xl font-bold text-brand-orange">
-            {formatPrice(product.price)}
+            <Price 
+              amountUSD={product.price}
+              originalPrice={product.originalPrice}
+              showCurrency
+            />
           </div>
           <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
             <Check className="w-4 h-4" />

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { SearchableProduct } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
 import { Star, Search } from 'lucide-react';
+import { Price } from '@/components/products/Price';
 
 interface SearchPreviewProps {
   query: string;
@@ -172,13 +172,12 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                   </div>
                   <div className="text-right ml-2">
                     <div className="text-sm font-bold text-brand-orange">
-                      {formatPrice(suggestion.product.price)}
+                      <Price 
+                        amountUSD={suggestion.product.price}
+                        originalPrice={suggestion.product.originalPrice}
+                        className="text-sm"
+                      />
                     </div>
-                    {suggestion.product.originalPrice && (
-                      <div className="text-xs text-gray-500 line-through">
-                        {formatPrice(suggestion.product.originalPrice)}
-                      </div>
-                    )}
                     <div className="flex items-center gap-1 mt-1">
                       <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                       <span className="text-xs text-gray-600">

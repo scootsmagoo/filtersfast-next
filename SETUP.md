@@ -469,6 +469,172 @@ Conversations are automatically saved to SQLite:
 
 ---
 
+## 💱 Multi-Currency Support Setup
+
+### Overview
+FiltersFast supports 5 currencies: USD, CAD, AUD, EUR, and GBP with automatic geo-detection and real-time exchange rates.
+
+### Quick Setup (5 minutes)
+
+#### Step 1: Initialize Currency Tables
+```bash
+npm run init:currency
+```
+
+This creates:
+- `currency_rates` table with supported currencies
+- Adds currency columns to orders table
+- Seeds default rates (all 1.0 initially)
+
+#### Step 2: Fetch Real Exchange Rates
+```bash
+npm run update:currency-rates
+```
+
+This fetches current exchange rates from Open Exchange Rates API and updates the database.
+
+#### Step 3: Test It Out
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` and you should see the currency selector in the header!
+
+### Environment Variables (Optional)
+
+The default API key has rate limits. For production, get your own:
+
+```env
+# Optional: Custom API key for Open Exchange Rates
+OPEN_EXCHANGE_RATES_APP_ID=your_app_id_here
+```
+
+**Getting Your API Key:**
+1. Sign up at https://openexchangerates.org/
+2. Get your App ID from the dashboard
+3. Add to `.env.local`
+
+**Free Tier Limits:**
+- 1,000 requests/month
+- Hourly updates recommended
+- Plenty for most deployments
+
+### Verify Installation
+
+Check that rates are loaded:
+```bash
+# View currency rates in database
+sqlite3 filtersfast.db "SELECT * FROM currency_rates;"
+```
+
+Expected output:
+```
+USD|US Dollar|$|1.0|[timestamp]
+CAD|Canadian Dollar|CA$|1.35|[timestamp]
+AUD|Australian Dollar|A$|1.52|[timestamp]
+EUR|Euro|€|0.92|[timestamp]
+GBP|British Pound|£|0.79|[timestamp]
+```
+
+### Testing Checklist
+
+- [ ] Currency selector visible in header
+- [ ] All 5 currencies display correctly
+- [ ] Selecting currency updates all prices instantly
+- [ ] Currency preference persists on page refresh
+- [ ] Cart totals update when currency changes
+- [ ] Prices show proper currency symbols (€, £, CA$, A$, $)
+- [ ] Mobile currency selector works
+
+### Scheduled Updates (Recommended)
+
+Set up a daily cron job to keep rates current:
+
+**Linux/Mac:**
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line (runs at 2 AM daily)
+0 2 * * * cd /path/to/FiltersFast-Next && npm run update:currency-rates
+```
+
+**Windows Task Scheduler:**
+1. Open Task Scheduler
+2. Create Basic Task
+3. Trigger: Daily at 2:00 AM
+4. Action: Start a program
+5. Program: `C:\Program Files\nodejs\npm.cmd`
+6. Arguments: `run update:currency-rates`
+7. Start in: `C:\Users\adam\source\repos\FiltersFast-Next`
+
+### Usage in Components
+
+Replace hardcoded prices with the Price component:
+
+```tsx
+// ❌ Wrong - doesn't convert
+<span>${product.price}</span>
+
+// ✅ Correct - auto-converts to selected currency
+import { Price } from '@/components/products/Price';
+<Price amountUSD={product.price} showCurrency />
+```
+
+**Available Price Components:**
+- `<Price>` - Basic price with conversion
+- `<PriceRange>` - Min/max price ranges
+- `<StartingAtPrice>` - "Starting at" prefix
+- `<Savings>` - Discount amounts
+- `<PricePerUnit>` - Unit pricing
+- `<HeroPrice>` - Large product page display
+
+### API Endpoints
+
+**Public:**
+- `GET /api/currency/rates` - Get all current rates
+- `POST /api/currency/convert` - Convert between currencies
+
+**Admin (requires authentication):**
+- `POST /api/admin/currency/update-rates` - Manually trigger rate update
+
+### Troubleshooting
+
+**Currency selector not showing:**
+- Verify CurrencyProvider is in app layout (already configured)
+- Check browser console for errors
+
+**Rates not updating:**
+```bash
+# Test the update script
+npm run update:currency-rates
+
+# Check for API errors in output
+```
+
+**Prices not converting:**
+- Use `<Price>` component instead of hardcoded values
+- Check rates loaded: visit `/api/currency/rates`
+
+**API rate limit exceeded:**
+- Check usage at https://openexchangerates.org/dashboard
+- Add your own API key to `.env.local`
+- Reduce update frequency
+
+### Features
+
+✅ **Automatic geo-detection** via Cloudflare headers  
+✅ **Manual selection** with persistent preference  
+✅ **Real-time conversion** using live exchange rates  
+✅ **5 currencies supported:** USD, CAD, AUD, EUR, GBP  
+✅ **Mobile optimized** with compact selector  
+✅ **Accessible** with keyboard navigation  
+✅ **Admin controls** for manual rate updates  
+
+For complete documentation, see the Multi-Currency Support section in `FEATURES.md`.
+
+---
+
 ## 🛠️ Troubleshooting
 
 ### "BETTER_AUTH_SECRET is required"

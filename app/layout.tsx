@@ -11,6 +11,7 @@ import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import { Suspense } from "react";
 import ReferralTracker from "@/components/tracking/ReferralTracker";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { CurrencyProvider } from "@/lib/currency-context";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -88,33 +89,35 @@ export default function RootLayout({
       <body className={`${lato.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
         <ThemeProvider>
           <StatusAnnouncementProvider>
-            <CartProvider>
-            {/* Skip Links */}
-            <a 
-              href="#main-content" 
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-orange text-white px-4 py-2 rounded z-50"
-            >
-              Skip to main content
-            </a>
-            <a 
-              href="#main-navigation" 
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-32 bg-brand-orange text-white px-4 py-2 rounded z-50"
-            >
-              Skip to navigation
-            </a>
-            
-            <ScrollToTopOnMount />
-            <Suspense fallback={null}>
-              <ReferralTracker />
-            </Suspense>
-            <Header />
-            <main id="main-content" className="min-h-screen bg-white dark:bg-gray-900 transition-colors" role="main">
-              {children}
-            </main>
-            <Footer />
-            <ScreenReaderAnnouncements />
-            <ChatbotWidget />
-            </CartProvider>
+            <CurrencyProvider>
+              <CartProvider>
+              {/* Skip Links */}
+              <a 
+                href="#main-content" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-orange text-white px-4 py-2 rounded z-50"
+              >
+                Skip to main content
+              </a>
+              <a 
+                href="#main-navigation" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-32 bg-brand-orange text-white px-4 py-2 rounded z-50"
+              >
+                Skip to navigation
+              </a>
+              
+              <ScrollToTopOnMount />
+              <Suspense fallback={null}>
+                <ReferralTracker />
+              </Suspense>
+              <Header />
+              <main id="main-content" className="min-h-screen bg-white dark:bg-gray-900 transition-colors" role="main">
+                {children}
+              </main>
+              <Footer />
+              <ScreenReaderAnnouncements />
+              <ChatbotWidget />
+              </CartProvider>
+            </CurrencyProvider>
           </StatusAnnouncementProvider>
         </ThemeProvider>
       </body>

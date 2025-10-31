@@ -9,6 +9,7 @@ import { useCart } from '@/lib/cart-context';
 import { useSession } from '@/lib/auth-client';
 import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
+import { CurrencySelector } from '@/components/layout/CurrencySelector';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -94,6 +95,9 @@ export default function Header() {
               <Link href="/track-order" className="hidden sm:inline hover:underline font-medium">
                 Track Order
               </Link>
+              <div className="hidden md:flex items-center">
+                <CurrencySelector />
+              </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
                 <span className="font-semibold">1-866-438-3458</span>

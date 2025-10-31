@@ -29,6 +29,7 @@ import {
   Shield,
   Plus
 } from 'lucide-react';
+import { useCurrency } from '@/lib/currency-context';
 
 type CheckoutStep = 'account' | 'shipping' | 'payment' | 'review';
 
@@ -50,6 +51,7 @@ export default function CheckoutPage() {
   const { items, total, itemCount, clearCart } = useCart();
   const { data: session } = useSession();
   const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
+  const { convertPrice, formatPrice: formatPriceCurrency, currency } = useCurrency();
   
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('account');
   const [isGuest, setIsGuest] = useState(false);
@@ -102,6 +104,14 @@ export default function CheckoutPage() {
   const donationAmount = donation?.amount || 0;
   const insuranceCost = insurance?.cost || 0;
   const orderTotal = total + shippingCost + tax + donationAmount + insuranceCost;
+  
+  // Convert totals to selected currency for display
+  const displayTotal = convertPrice(total);
+  const displayShipping = convertPrice(shippingCost);
+  const displayTax = convertPrice(tax);
+  const displayInsurance = convertPrice(insuranceCost);
+  const displayDonation = convertPrice(donationAmount);
+  const displayOrderTotal = convertPrice(orderTotal);
 
   // Step navigation
   const handleContinueAsGuest = () => {
@@ -629,7 +639,7 @@ export default function CheckoutPage() {
                             <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">Qty: {item.quantity}</p>
                           </div>
                           <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {formatPriceCurrency(convertPrice(item.price * item.quantity))}
                           </p>
                         </div>
                       ))}
@@ -653,7 +663,7 @@ export default function CheckoutPage() {
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 transition-colors">
                         <p className="font-medium text-blue-800 dark:text-blue-300 transition-colors">
-                          {insurance.carrier === 'premium' ? 'Premium' : 'Standard'} Coverage - ${insuranceCost.toFixed(2)}
+                          {insurance.carrier === 'premium' ? 'Premium' : 'Standard'} Coverage - {formatPriceCurrency(displayInsurance)}
                         </p>
                         <p className="text-blue-700 dark:text-blue-200 mt-1 transition-colors">
                           Your order is protected against loss or damage during shipping.
@@ -679,7 +689,7 @@ export default function CheckoutPage() {
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 transition-colors">
                         <p className="font-medium text-green-800 dark:text-green-300 transition-colors">
-                          Thank you for your ${donationAmount.toFixed(2)} donation!
+                          Thank you for your {formatPriceCurrency(displayDonation)} donation!
                         </p>
                         <p className="text-green-700 dark:text-green-200 mt-1 transition-colors">
                           Your generosity helps make a difference.
@@ -738,7 +748,7 @@ export default function CheckoutPage() {
                         {item.name} × {item.quantity}
                       </span>
                       <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatPriceCurrency(convertPrice(item.price * item.quantity))}
                       </span>
                     </div>
                   ))}
@@ -747,17 +757,17 @@ export default function CheckoutPage() {
                 <div className="space-y-2 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-300 transition-colors">Subtotal</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">${total.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">{formatPriceCurrency(displayTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-300 transition-colors">Shipping</span>
                     <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">
-                      {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+                      {shippingCost === 0 ? 'FREE' : formatPriceCurrency(displayShipping)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-300 transition-colors">Tax (estimated)</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">${tax.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">{formatPriceCurrency(displayTax)}</span>
                   </div>
                   {insurance && insurance.carrier !== 'none' && (
                     <div className="flex justify-between text-sm">
@@ -765,7 +775,7 @@ export default function CheckoutPage() {
                         <Shield className="w-3 h-3 text-blue-600" />
                         Insurance
                       </span>
-                      <span className="font-medium text-blue-600 dark:text-blue-400 transition-colors">${insuranceCost.toFixed(2)}</span>
+                      <span className="font-medium text-blue-600 dark:text-blue-400 transition-colors">{formatPriceCurrency(displayInsurance)}</span>
                     </div>
                   )}
                   {donation && (
@@ -774,19 +784,26 @@ export default function CheckoutPage() {
                         <Heart className="w-3 h-3 text-red-500" />
                         Donation
                       </span>
-                      <span className="font-medium text-green-600 dark:text-green-400 transition-colors">${donationAmount.toFixed(2)}</span>
+                      <span className="font-medium text-green-600 dark:text-green-400 transition-colors">{formatPriceCurrency(displayDonation)}</span>
                     </div>
                   )}
                 </div>
                 
                 <div className="flex justify-between text-lg font-bold mb-4">
                   <span className="text-gray-900 dark:text-gray-100 transition-colors">Total</span>
-                  <span className="text-brand-orange">${orderTotal.toFixed(2)}</span>
+                  <span className="text-brand-orange">{formatPriceCurrency(displayOrderTotal)}</span>
                 </div>
                 
                 {total < 50 && (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-300 transition-colors">
-                    Add ${(50 - total).toFixed(2)} more for free shipping!
+                    Add {formatPriceCurrency(convertPrice(50 - total))} more for free shipping!
+                  </div>
+                )}
+                
+                {currency !== 'USD' && (
+                  <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center transition-colors">
+                    <p>Prices displayed in {currency}.</p>
+                    <p className="mt-1">You will be charged in USD using current exchange rates.</p>
                   </div>
                 )}
               </Card>
