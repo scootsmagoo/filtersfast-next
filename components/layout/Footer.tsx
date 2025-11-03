@@ -180,14 +180,9 @@ export default function Footer() {
             <h4 className="font-bold mb-4">Learn &amp; Resources</h4>
             <ul className="space-y-2 text-brand-gray-300">
               <li>
-                <a 
-                  href="https://blog.filtersfast.com/blog/" 
-                  className="hover:text-brand-orange transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href="/blog" className="hover:text-brand-orange transition-colors">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
                 <a 
