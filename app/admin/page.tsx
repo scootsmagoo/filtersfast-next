@@ -23,7 +23,8 @@ import {
   Handshake,
   Building2,
   Globe,
-  Receipt
+  Receipt,
+  Truck
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -105,6 +106,13 @@ export default function AdminDashboard() {
       icon: Receipt,
       href: '/admin/taxjar',
       color: 'green'
+    },
+    {
+      title: 'Shipping Configuration',
+      description: 'Configure FedEx, USPS, and UPS APIs',
+      icon: Truck,
+      href: '/admin/shipping',
+      color: 'blue'
     },
     {
       title: 'Promo Codes',

@@ -13,8 +13,10 @@ import CharityDonation from '@/components/checkout/CharityDonation';
 import ShippingInsurance from '@/components/checkout/ShippingInsurance';
 import SavedPaymentSelector from '@/components/checkout/SavedPaymentSelector';
 import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
+import ShippingRateSelector from '@/components/checkout/ShippingRateSelector';
 import { DonationSelection } from '@/lib/types/charity';
 import { InsuranceSelection } from '@/lib/types/insurance';
+import type { ShippingRate } from '@/lib/types/shipping';
 import { 
   ShoppingBag, 
   User, 
@@ -64,6 +66,7 @@ export default function CheckoutPage() {
   const [savePaymentMethod, setSavePaymentMethod] = useState(false);
   const [calculatedTax, setCalculatedTax] = useState<number>(0);
   const [taxCalculating, setTaxCalculating] = useState(false);
+  const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null);
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -101,7 +104,8 @@ export default function CheckoutPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  const shippingCost = total >= 50 ? 0 : 9.99;
+  // Use selected shipping rate or default to free shipping if over $50
+  const shippingCost = selectedShippingRate?.rate || (total >= 50 ? 0 : 9.99);
   const tax = calculatedTax; // Real-time tax from TaxJar
   const donationAmount = donation?.amount || 0;
   const insuranceCost = insurance?.cost || 0;
@@ -385,12 +389,13 @@ export default function CheckoutPage() {
 
               {/* Shipping Step */}
               {currentStep === 'shipping' && (
-                <Card className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors">
-                    Shipping Address
-                  </h2>
-                  
-                  <form onSubmit={handleShippingSubmit} className="space-y-4">
+                <div className="space-y-6">
+                  <Card className="p-8">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors">
+                      Shipping Address
+                    </h2>
+                    
+                    <form onSubmit={handleShippingSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
@@ -526,12 +531,73 @@ export default function CheckoutPage() {
                         type="submit"
                         className="flex-1 flex items-center justify-center gap-2"
                       >
-                        Continue to Payment
+                        Continue to Shipping Method
                         <ArrowRight className="w-4 h-4" />
                       </Button>
                     </div>
                   </form>
                 </Card>
+
+                {/* Shipping Rate Selector - Only show after address is filled */}
+                {shippingAddress.address1 && shippingAddress.city && shippingAddress.state && shippingAddress.zipCode && (
+                  <>
+                    <ShippingRateSelector
+                      address={{
+                        address_line1: shippingAddress.address1,
+                        city: shippingAddress.city,
+                        state: shippingAddress.state,
+                        postal_code: shippingAddress.zipCode,
+                        country: shippingAddress.country,
+                      }}
+                      totalWeight={items.reduce((sum, item) => sum + (item.quantity * 0.5), 0)} // Estimate 0.5 lb per item
+                      onRateSelect={setSelectedShippingRate}
+                      selectedRate={selectedShippingRate || undefined}
+                    />
+                    
+                    <div className="flex gap-4">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          setShippingAddress({
+                            firstName: '',
+                            lastName: '',
+                            email: session?.user?.email || '',
+                            phone: '',
+                            address1: '',
+                            address2: '',
+                            city: '',
+                            state: '',
+                            zipCode: '',
+                            country: 'US',
+                          });
+                          setSelectedShippingRate(null);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Edit Address
+                      </Button>
+                      
+                      <Button
+                        onClick={async () => {
+                          if (!selectedShippingRate) {
+                            setError('Please select a shipping method');
+                            return;
+                          }
+                          await calculateTax();
+                          setCurrentStep('payment');
+                        }}
+                        disabled={!selectedShippingRate}
+                        className="flex-1 flex items-center justify-center gap-2"
+                      >
+                        Continue to Payment
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
               )}
 
               {/* Payment Step */}
@@ -809,7 +875,14 @@ export default function CheckoutPage() {
                     <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">{formatPriceCurrency(displayTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-300 transition-colors">Shipping</span>
+                    <span className="text-gray-600 dark:text-gray-300 transition-colors">
+                      Shipping
+                      {selectedShippingRate && (
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {selectedShippingRate.service_name}
+                        </span>
+                      )}
+                    </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">
                       {shippingCost === 0 ? 'FREE' : formatPriceCurrency(displayShipping)}
                     </span>

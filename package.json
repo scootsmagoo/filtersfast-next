@@ -23,6 +23,7 @@
     "init:products": "tsx scripts/init-products.ts",
     "init:customers": "tsx scripts/init-customers.ts",
     "init:taxjar": "tsx scripts/init-taxjar.ts",
+    "init:shipping": "tsx scripts/init-shipping.ts",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"
@@ -39,6 +40,7 @@
     "better-sqlite3": "^12.4.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "fast-xml-parser": "^5.3.1",
     "isomorphic-dompurify": "^2.30.1",
     "lucide-react": "^0.445.0",
     "next": "^16.0.0",

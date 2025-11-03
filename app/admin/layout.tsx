@@ -14,9 +14,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const checkAdminAccess = async () => {
     try {
-      // Check if user has admin access via an admin API endpoint
-      const response = await fetch('/api/admin/partners');
+      // Check if user has admin access via dedicated verification endpoint
+      const response = await fetch('/api/admin/verify');
       
+      if (response.status === 401) {
+        // Not authenticated - redirect to sign in
+        router.push('/sign-in?redirect=/admin');
+        return;
+      }
+
       if (response.status === 403) {
         // Not an admin - redirect to home
         router.push('/');
@@ -24,11 +30,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       }
 
       if (!response.ok) {
-        throw new Error('Failed to verify admin access');
+        // Other error - redirect to home
+        console.error('Failed to verify admin access');
+        router.push('/');
+        return;
       }
 
-      // User is admin
-      setIsAdmin(true);
+      const data = await response.json();
+      
+      if (data.isAdmin) {
+        // User is admin
+        setIsAdmin(true);
+      } else {
+        // Not an admin
+        router.push('/');
+      }
     } catch (error) {
       console.error('Admin access check failed:', error);
       router.push('/');
