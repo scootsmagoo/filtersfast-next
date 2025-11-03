@@ -21,6 +21,7 @@
     "init:i18n": "tsx scripts/init-i18n.ts",
     "init:orders": "tsx scripts/init-orders.ts",
     "init:products": "tsx scripts/init-products.ts",
+    "init:customers": "tsx scripts/init-customers.ts",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"

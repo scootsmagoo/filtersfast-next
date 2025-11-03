@@ -95,10 +95,10 @@ export default function OrderDetailsPage() {
 
   if (isPending || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-brand-orange mx-auto mb-4" />
-          <p className="text-gray-600">Loading order details...</p>
+          <p className="text-gray-600 dark:text-gray-300 transition-colors">Loading order details...</p>
         </div>
       </div>
     );
@@ -109,14 +109,14 @@ export default function OrderDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <Link 
               href="/account/orders"
-              className="inline-flex items-center gap-2 text-brand-orange hover:underline mb-4"
+              className="inline-flex items-center gap-2 text-brand-orange hover:underline mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Orders
@@ -124,10 +124,10 @@ export default function OrderDetailsPage() {
             
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
                   Order #{order.orderNumber}
                 </h1>
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors">
                   Placed on {new Date(order.date).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -158,14 +158,14 @@ export default function OrderDetailsPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Order Timeline */}
               <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Timeline</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">Order Timeline</h2>
                 
                 <div className="relative">
                   {order.timeline.map((event, index) => (
                     <div key={index} className="flex gap-4 pb-8 last:pb-0">
                       <div className="flex flex-col items-center">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          event.completed ? 'bg-green-600' : 'bg-gray-300'
+                          event.completed ? 'bg-green-600 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                         }`}>
                           {event.completed ? (
                             <CheckCircle className="w-5 h-5 text-white" />
@@ -175,18 +175,18 @@ export default function OrderDetailsPage() {
                         </div>
                         {index < order.timeline.length - 1 && (
                           <div className={`w-0.5 h-full mt-2 ${
-                            event.completed ? 'bg-green-600' : 'bg-gray-300'
+                            event.completed ? 'bg-green-600 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                           }`} />
                         )}
                       </div>
                       
                       <div className="flex-1 pt-1">
-                        <h3 className={`font-semibold ${
-                          event.completed ? 'text-gray-900' : 'text-gray-500'
+                        <h3 className={`font-semibold transition-colors ${
+                          event.completed ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
                         }`}>
                           {event.status}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
                           {new Date(event.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -201,25 +201,25 @@ export default function OrderDetailsPage() {
                 </div>
 
                 {order.trackingNumber && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors">
                       <div className="flex items-start gap-3">
-                        <Truck className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-1">
+                          <h4 className="font-semibold text-gray-900 dark:text-white mb-1 transition-colors">
                             Tracking Information
                           </h4>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 transition-colors">
                             Carrier: {order.carrier}
                           </p>
-                          <p className="text-sm font-mono text-gray-900 mb-3">
+                          <p className="text-sm font-mono text-gray-900 dark:text-white mb-3 transition-colors">
                             {order.trackingNumber}
                           </p>
                           <a
                             href={order.trackingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-brand-orange hover:underline font-medium"
+                            className="text-sm text-brand-orange hover:underline font-medium transition-colors"
                           >
                             Track on {order.carrier} →
                           </a>
@@ -232,12 +232,12 @@ export default function OrderDetailsPage() {
 
               {/* Order Items */}
               <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Items</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">Order Items</h2>
                 
                 <div className="space-y-4">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
-                      <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                    <div key={item.id} className="flex gap-4 pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0 transition-colors">
+                      <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0 transition-colors">
                         <img
                           src={item.image}
                           alt={item.name}
@@ -249,16 +249,16 @@ export default function OrderDetailsPage() {
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                        <p className="text-sm text-gray-600">{item.brand} • SKU: {item.sku}</p>
-                        <p className="text-sm text-gray-600 mt-1">Quantity: {item.quantity}</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-white transition-colors">{item.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">{item.brand} • SKU: {item.sku}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors">Quantity: {item.quantity}</p>
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-gray-900 dark:text-white transition-colors">
                           ${(item.price * item.quantity).toFixed(2)}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
                           ${item.price.toFixed(2)} each
                         </p>
                       </div>
@@ -272,27 +272,27 @@ export default function OrderDetailsPage() {
             <div className="lg:col-span-1 space-y-6">
               {/* Order Summary */}
               <Card className="p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 transition-colors">Order Summary</h3>
                 
-                <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
+                <div className="space-y-2 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900">${order.subtotal.toFixed(2)}</span>
+                    <span className="text-gray-600 dark:text-gray-400 transition-colors">Subtotal</span>
+                    <span className="text-gray-900 dark:text-white transition-colors">${order.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="text-gray-900">
+                    <span className="text-gray-600 dark:text-gray-400 transition-colors">Shipping</span>
+                    <span className="text-gray-900 dark:text-white transition-colors">
                       {order.shipping === 0 ? 'FREE' : `$${order.shipping.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-900">${order.tax.toFixed(2)}</span>
+                    <span className="text-gray-600 dark:text-gray-400 transition-colors">Tax</span>
+                    <span className="text-gray-900 dark:text-white transition-colors">${order.tax.toFixed(2)}</span>
                   </div>
                 </div>
                 
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
+                  <span className="text-gray-900 dark:text-white transition-colors">Total</span>
                   <span className="text-brand-orange">${order.total.toFixed(2)}</span>
                 </div>
               </Card>
@@ -301,10 +301,10 @@ export default function OrderDetailsPage() {
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin className="w-5 h-5 text-brand-orange" />
-                  <h3 className="font-bold text-gray-900">Shipping Address</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white transition-colors">Shipping Address</h3>
                 </div>
                 
-                <div className="text-sm text-gray-700 space-y-1">
+                <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1 transition-colors">
                   <p className="font-medium">{order.shippingAddress.name}</p>
                   <p>{order.shippingAddress.address1}</p>
                   {order.shippingAddress.address2 && <p>{order.shippingAddress.address2}</p>}
@@ -319,25 +319,25 @@ export default function OrderDetailsPage() {
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <CreditCard className="w-5 h-5 text-brand-orange" />
-                  <h3 className="font-bold text-gray-900">Payment Method</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-white transition-colors">Payment Method</h3>
                 </div>
                 
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
                   <p className="font-medium">{order.paymentMethod.type}</p>
-                  <p className="text-gray-600">**** **** **** {order.paymentMethod.last4}</p>
+                  <p className="text-gray-600 dark:text-gray-400 transition-colors">**** **** **** {order.paymentMethod.last4}</p>
                 </div>
               </Card>
 
               {/* Need Help */}
-              <Card className="p-6 bg-gray-50">
-                <h3 className="font-bold text-gray-900 mb-4">Need Help?</h3>
+              <Card className="p-6 bg-gray-50 dark:bg-gray-800/50 transition-colors">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-4 transition-colors">Need Help?</h3>
                 
                 <div className="space-y-3 text-sm">
-                  <a href="mailto:support@filtersfast.com" className="flex items-center gap-2 text-brand-orange hover:underline">
+                  <a href="mailto:support@filtersfast.com" className="flex items-center gap-2 text-brand-orange hover:underline transition-colors">
                     <Mail className="w-4 h-4" />
                     support@filtersfast.com
                   </a>
-                  <a href="tel:1-800-555-0123" className="flex items-center gap-2 text-brand-orange hover:underline">
+                  <a href="tel:1-800-555-0123" className="flex items-center gap-2 text-brand-orange hover:underline transition-colors">
                     <Phone className="w-4 h-4" />
                     1-800-555-0123
                   </a>

@@ -92,6 +92,13 @@ export default function AdminDashboard() {
       color: 'cyan'
     },
     {
+      title: 'Customers',
+      description: 'View and manage customer accounts',
+      icon: Users,
+      href: '/admin/customers',
+      color: 'indigo'
+    },
+    {
       title: 'Promo Codes',
       description: 'Manage discount codes and promotions',
       icon: Tag,
@@ -181,14 +188,6 @@ export default function AdminDashboard() {
       icon: Globe,
       href: '/admin/translations',
       color: 'teal'
-    },
-    {
-      title: 'Customers',
-      description: 'View and manage customer accounts',
-      icon: Users,
-      href: '/admin/customers',
-      color: 'indigo',
-      comingSoon: true
     },
     {
       title: 'Analytics',
