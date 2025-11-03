@@ -62,6 +62,8 @@ export default function CheckoutPage() {
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [savePaymentMethod, setSavePaymentMethod] = useState(false);
+  const [calculatedTax, setCalculatedTax] = useState<number>(0);
+  const [taxCalculating, setTaxCalculating] = useState(false);
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -100,7 +102,7 @@ export default function CheckoutPage() {
   }, [currentStep]);
 
   const shippingCost = total >= 50 ? 0 : 9.99;
-  const tax = total * 0.08; // 8% tax (would be calculated by TaxJar in production)
+  const tax = calculatedTax; // Real-time tax from TaxJar
   const donationAmount = donation?.amount || 0;
   const insuranceCost = insurance?.cost || 0;
   const orderTotal = total + shippingCost + tax + donationAmount + insuranceCost;
@@ -124,7 +126,51 @@ export default function CheckoutPage() {
     router.push('/sign-in?redirect=/checkout');
   };
 
-  const handleShippingSubmit = (e: React.FormEvent) => {
+  // Calculate tax when shipping address is updated
+  const calculateTax = async () => {
+    if (!shippingAddress.address1 || !shippingAddress.city || 
+        !shippingAddress.state || !shippingAddress.zipCode) {
+      return;
+    }
+
+    setTaxCalculating(true);
+    
+    try {
+      const response = await fetch('/api/tax/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: shippingAddress.address1,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          zipCode: shippingAddress.zipCode,
+          country: shippingAddress.country,
+          subtotal: total,
+          shipping: shippingCost,
+          line_items: items.map(item => ({
+            quantity: item.quantity,
+            unit_price: item.price,
+          })),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCalculatedTax(data.tax.amount || 0);
+      } else {
+        // Fall back to zero tax on error
+        setCalculatedTax(0);
+      }
+    } catch (error) {
+      console.error('Tax calculation error:', error);
+      // Fall back to zero tax on error
+      setCalculatedTax(0);
+    } finally {
+      setTaxCalculating(false);
+    }
+  };
+
+  const handleShippingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -135,6 +181,9 @@ export default function CheckoutPage() {
       setError('Please fill in all required fields');
       return;
     }
+    
+    // Calculate tax before proceeding to payment
+    await calculateTax();
     
     setCurrentStep('payment');
   };

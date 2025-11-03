@@ -177,6 +177,22 @@ export async function POST(request: NextRequest) {
     // Create order
     const order = createOrder(sanitizedData)
 
+    // Report order to TaxJar asynchronously (don't block order creation)
+    if (order.payment_status === 'paid' || order.status === 'processing') {
+      // Call TaxJar reporting API in the background
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/tax/report-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: order.id,
+          action: 'create',
+        }),
+      }).catch(err => {
+        console.error('TaxJar order reporting error:', err);
+        // Silently fail - order is still created
+      });
+    }
+
     return NextResponse.json({ order }, { status: 201 })
 
   } catch (error) {

@@ -22,6 +22,7 @@
     "init:orders": "tsx scripts/init-orders.ts",
     "init:products": "tsx scripts/init-products.ts",
     "init:customers": "tsx scripts/init-customers.ts",
+    "init:taxjar": "tsx scripts/init-taxjar.ts",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"
@@ -48,6 +49,7 @@
     "react-dom": "^19",
     "stripe": "^19.1.0",
     "tailwind-merge": "^2.5.4",
+    "taxjar": "^4.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

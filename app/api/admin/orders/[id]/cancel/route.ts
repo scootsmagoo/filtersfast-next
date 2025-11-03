@@ -133,6 +133,25 @@ export async function POST(
       performed_by_name: userObj.name || userObj.email || 'Admin',
     })
 
+    // Report cancellation to TaxJar asynchronously (don't block cancellation)
+    // TaxJar allows deletion if in same month, otherwise should refund
+    const orderDate = new Date(order.created_at);
+    const now = new Date();
+    const sameMonth = orderDate.getMonth() === now.getMonth() && 
+                      orderDate.getFullYear() === now.getFullYear();
+    
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/tax/report-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id: id,
+        action: sameMonth ? 'delete' : 'refund',
+      }),
+    }).catch(err => {
+      console.error('TaxJar cancellation reporting error:', err);
+      // Silently fail - order is still cancelled
+    });
+
     // Note: In production, you would also:
     // 1. Void/refund the payment if applicable
     // 2. Send cancellation email to customer

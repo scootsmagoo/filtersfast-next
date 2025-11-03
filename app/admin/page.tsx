@@ -22,7 +22,8 @@ import {
   Gift,
   Handshake,
   Building2,
-  Globe
+  Globe,
+  Receipt
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -97,6 +98,13 @@ export default function AdminDashboard() {
       icon: Users,
       href: '/admin/customers',
       color: 'indigo'
+    },
+    {
+      title: 'TaxJar Integration',
+      description: 'Sales tax compliance and reporting',
+      icon: Receipt,
+      href: '/admin/taxjar',
+      color: 'green'
     },
     {
       title: 'Promo Codes',

@@ -170,6 +170,19 @@ export async function POST(
         )
       }
 
+      // Report refund to TaxJar asynchronously (don't block refund processing)
+      fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/tax/report-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: id,
+          action: 'refund',
+        }),
+      }).catch(err => {
+        console.error('TaxJar refund reporting error:', err);
+        // Silently fail - refund is still processed
+      });
+
       return NextResponse.json({
         success: true,
         refund,
