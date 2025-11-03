@@ -2282,6 +2282,249 @@ support_article_feedback (id, article_id, user_id, is_helpful, comment)
 
 ---
 
+## 📖 Educational Content & Links
+
+### Overview
+Comprehensive educational resources connecting customers to trusted industry organizations, government agencies, and FiltersFast content. Provides authoritative information about air and water filtration to help customers make informed decisions.
+
+### Educational Links Page
+
+**URL:** `/links`
+
+**Page Features:**
+- Clean, modern layout with hero section
+- Organized by category (Water Quality, Air Quality, FiltersFast Content)
+- External resource cards with descriptions
+- Trust indicators from industry authorities
+- Mobile-responsive design with dark mode support
+- SEO optimized for educational queries
+
+**FiltersFast Educational Content:**
+1. **Blog** - Expert articles on water and air filtration
+   - Link: `https://blog.filtersfast.com/blog/`
+   - "The Filtered Files" - Industry news, tips, and guides
+   - External link
+
+2. **Forums** - Community discussion and expert advice
+   - Link: `https://forums.filtersfast.com/forums/`
+   - Customer Q&A and filtration tips
+   - External link
+
+3. **Support Center** - Knowledge base and FAQs
+   - Link: `/support`
+   - 20+ comprehensive articles across 7 categories
+   - Internal link
+
+4. **Model Lookup Tool** - Find filters by appliance model
+   - Link: `/model-lookup`
+   - Brand and model number search
+   - Internal link
+
+**Water Quality Resources:**
+1. **Water Quality Association (WQA)**
+   - URL: `http://www.wqa.org`
+   - Trade association for water treatment industry
+   - Standards, certifications, and treatment technologies
+   - External, trusted source
+
+2. **EPA Drinking Water Quality**
+   - URL: `http://water.epa.gov/drink/`
+   - Official EPA resource
+   - Water standards, contaminants, regulations
+   - Government authority
+
+**Air Quality Resources:**
+1. **American Society of Heating, Refrigerating and Air-Conditioning Engineers (ASHRAE)**
+   - URL: `http://www.ashrae.org/`
+   - Global HVAC industry organization
+   - Standards, guidelines, and research
+   - Industry authority
+
+2. **EPA Indoor Air Quality Information**
+   - URL: `http://www.epa.gov/iaq/`
+   - Official EPA resource
+   - Indoor air pollutants, health effects, improvement strategies
+   - Government authority
+
+### Educational Content in Footer
+
+**New "Learn & Resources" Section:**
+Located in main footer navigation (6-column layout):
+- Blog (external link with target="_blank")
+- Forums (external link with target="_blank")
+- Educational Resources (links to `/links`)
+- Model Lookup Tool (links to `/model-lookup`)
+- Custom Filter Builder (links to `/custom-air-filters`)
+
+**Benefits:**
+- Increases footer utility
+- Provides educational pathways
+- Reduces support tickets
+- Builds trust and authority
+- Improves SEO with content depth
+
+### Educational Content in Support Portal
+
+**New Banner Section:**
+Added to support homepage between featured articles and contact section:
+- "Looking for Educational Resources?" heading
+- Brief description of available resources
+- Three prominent CTAs:
+  1. Educational Resources (internal)
+  2. Visit Our Blog (external)
+  3. Community Forums (external)
+- Blue gradient background for visual distinction
+- Fully accessible and mobile-responsive
+
+**Integration Benefits:**
+- Natural content flow in support experience
+- Guides users to additional self-service resources
+- Reduces support volume
+- Enhances customer education
+
+### Technical Implementation
+
+**Routes:**
+- `/links` - Main educational resources page
+
+**Components:**
+- `ResourceCard` - Internal FiltersFast resources with icons
+- `ExternalResourceCard` - External authority links
+- Hover states and transitions for better UX
+- Dark mode support throughout
+- Semantic HTML with proper ARIA labels
+
+**SEO Optimization:**
+- Descriptive meta title and description
+- Proper heading hierarchy (H1 → H2 → H3)
+- External links with rel="noopener noreferrer"
+- Internal linking strategy
+- Rich content with educational value
+- Schema-ready structure
+
+**Accessibility (WCAG 2.1 AA):**
+- Screen reader friendly descriptions
+- Keyboard navigation support
+- High contrast text (4.5:1 minimum)
+- Focus indicators on all interactive elements
+- Semantic HTML structure
+- ARIA labels where appropriate
+
+### Business Value
+
+**Customer Education:**
+- Empowers informed purchasing decisions
+- Builds trust through authoritative sources
+- Reduces pre-sale questions
+- Establishes FiltersFast as filtration expert
+- Provides value beyond just products
+
+**SEO Benefits:**
+- Educational keywords ("EPA water quality", "ASHRAE standards")
+- Authority signals from external links
+- Content depth improves site quality score
+- Long-tail search opportunities
+- Internal linking structure
+
+**Support Efficiency:**
+- Self-service education reduces tickets
+- Customers find answers from authorities
+- Less repetitive questions about standards
+- Forum community helps each other
+- Blog provides proactive information
+
+**Brand Positioning:**
+- Positions FiltersFast as education-focused
+- Aligns with industry authorities
+- Demonstrates expertise and credibility
+- Differentiates from competitors
+- Builds long-term customer relationships
+
+### Content Strategy
+
+**Why These Resources?**
+
+**Government Authorities (EPA):**
+- Official regulations and standards
+- Health and safety information
+- Trusted by consumers
+- Free and publicly accessible
+
+**Industry Organizations (WQA, ASHRAE):**
+- Technical specifications
+- Certification information
+- Industry best practices
+- Professional credibility
+
+**FiltersFast Content:**
+- Practical how-to guides
+- Product-specific information
+- Community support
+- Company expertise
+
+### Integration Points
+
+**Header Navigation:**
+- N/A (keeps header clean and focused on shopping)
+
+**Footer Navigation:**
+- New "Learn & Resources" column (6th column)
+- 5 educational links
+- External link indicators
+
+**Support Portal:**
+- Prominent banner before contact section
+- 3 CTA buttons
+- Visual distinction with blue gradient
+
+**Future Opportunities:**
+- Add to homepage (educational section)
+- Include in product pages (filter education)
+- Reference in checkout (trust building)
+- Link from email campaigns
+- Feature in onboarding flows
+
+### Maintenance
+
+**Quarterly Review:**
+- Verify all external links are active
+- Check for updated EPA/ASHRAE URLs
+- Review blog and forum engagement
+- Add new resources as discovered
+- Update content based on customer questions
+
+**Content Expansion:**
+- Add manufacturer resources (Whirlpool, LG guides)
+- Include NSF certification information
+- Link to filter comparison tools
+- Add video tutorials
+- Create downloadable guides
+
+### Metrics to Track
+
+**Engagement:**
+- Page views on `/links`
+- Click-through rates on external links
+- Time on page
+- Bounce rate
+- Return visitor percentage
+
+**Impact:**
+- Support ticket reduction
+- Pre-sale question volume
+- Customer education level (surveys)
+- Blog/forum participation increase
+- Conversion rate correlation
+
+**SEO Performance:**
+- Organic search traffic
+- Keyword rankings for educational terms
+- Referral traffic from authority sites
+- Page authority score
+- Internal linking effectiveness
+
+---
+
 ## 🚀 Upcoming Features (Planned)
 
 ### Phase 4 (Future)

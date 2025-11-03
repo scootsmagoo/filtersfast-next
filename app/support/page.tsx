@@ -230,6 +230,41 @@ export default function SupportPage() {
         )}
       </div>
 
+      {/* Educational Resources Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 py-12 transition-colors">
+        <div className="container mx-auto px-4 text-center">
+          <BookOpen className="w-12 h-12 mx-auto mb-4 text-blue-100" aria-hidden="true" />
+          <h2 className="text-2xl font-bold mb-4 text-white">Looking for Educational Resources?</h2>
+          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            Learn about water and air filtration from trusted industry sources including EPA, WQA, ASHRAE, plus read our blog articles and join our community forums.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+            <Link
+              href="/links"
+              className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              Educational Resources
+            </Link>
+            <a
+              href="https://blog.filtersfast.com/blog/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-400 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              Visit Our Blog
+            </a>
+            <a
+              href="https://forums.filtersfast.com/forums/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-400 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+            >
+              Community Forums
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Contact Section */}
       <div className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-12 transition-colors">
         <div className="container mx-auto px-4 text-center">

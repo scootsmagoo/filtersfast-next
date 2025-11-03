@@ -89,7 +89,7 @@ export default function Footer() {
 
       {/* Main Footer */}
       <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-4">
@@ -172,6 +172,36 @@ export default function Footer() {
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
               <li><Link href="/account/newsletter" className="hover:text-brand-orange transition-colors">Email Preferences</Link></li>
               <li><Link href="/contact" className="hover:text-brand-orange transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+
+          {/* Learn & Resources */}
+          <div>
+            <h4 className="font-bold mb-4">Learn &amp; Resources</h4>
+            <ul className="space-y-2 text-brand-gray-300">
+              <li>
+                <a 
+                  href="https://blog.filtersfast.com/blog/" 
+                  className="hover:text-brand-orange transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://forums.filtersfast.com/forums/" 
+                  className="hover:text-brand-orange transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Forums
+                </a>
+              </li>
+              <li><Link href="/links" className="hover:text-brand-orange transition-colors">Educational Resources</Link></li>
+              <li><Link href="/model-lookup" className="hover:text-brand-orange transition-colors">Model Lookup Tool</Link></li>
+              <li><Link href="/custom-air-filters" className="hover:text-brand-orange transition-colors">Custom Filter Builder</Link></li>
             </ul>
           </div>
 

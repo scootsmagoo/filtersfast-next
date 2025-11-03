@@ -95,6 +95,12 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 - ✅ **Admin Portal Access** - Admin users now have a visible link to the admin portal in their account sidebar
 - ✅ **Account Edit Button Fixed** - The "Edit" button in Account Information now properly navigates to settings
 - ✅ **Enhanced Admin UX** - Purple-themed admin portal link with Shield icon for easy identification
+- ✅ **Educational Content & Links** - Comprehensive resource page linking to EPA, WQA, ASHRAE 🆕
+  - New `/links` page with authoritative filtration resources
+  - Footer "Learn & Resources" section with blog and forums
+  - Support portal integration with educational banner
+  - SEO and customer education focused
+  - WCAG 2.1 AA accessible with dark mode support
 
 ## 🚀 Tech Stack
 
@@ -179,6 +185,7 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 **Customer Support:**
 - ✅ **AI Chatbot** - GPT-3.5-turbo powered assistant with RAG 🆕
 - ✅ **Support Articles** - Searchable knowledge base
+- ✅ **Educational Resources** - Links to EPA, WQA, ASHRAE + blog/forums 🆕
 - ✅ **Contact Forms** - Multiple support channels
 
 **Security & Quality:**
