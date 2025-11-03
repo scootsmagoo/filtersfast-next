@@ -92,9 +92,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">
-              <span className="text-brand-orange">Filters</span>
-              <span className="text-white">Fast</span>
+            <h3 className="text-xl font-bold mb-4 text-brand-orange">
+              FiltersFast
             </h3>
             <p className="text-brand-gray-300 mb-4">
               America&apos;s Top Online Filtration Retailer. Huge Selection. Unbeatable Quality. 365-Day Returns.

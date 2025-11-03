@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
     // Content Security Policy - OWASP compliant with development support
     'Content-Security-Policy': [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: 'unsafe-inline' and 'unsafe-eval' needed for Next.js dev mode
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.trustpilot.com", // Note: 'unsafe-inline' and 'unsafe-eval' needed for Next.js dev mode
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
@@ -37,6 +37,7 @@ export function middleware(request: NextRequest) {
       process.env.NODE_ENV === 'development' 
         ? "connect-src 'self' http://localhost:* https:" 
         : "connect-src 'self' https:",
+      "frame-src 'self' https://widget.trustpilot.com",
       "frame-ancestors 'none'",
     ].join('; '),
   };
