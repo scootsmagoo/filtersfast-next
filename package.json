@@ -20,6 +20,7 @@
     "init:b2b": "tsx scripts/init-b2b.ts",
     "init:i18n": "tsx scripts/init-i18n.ts",
     "init:orders": "tsx scripts/init-orders.ts",
+    "init:products": "tsx scripts/init-products.ts",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"
@@ -45,7 +46,8 @@
     "react": "^19",
     "react-dom": "^19",
     "stripe": "^19.1.0",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -85,6 +85,13 @@ export default function AdminDashboard() {
       color: 'blue'
     },
     {
+      title: 'Products',
+      description: 'Manage product catalog and inventory',
+      icon: Package,
+      href: '/admin/products',
+      color: 'cyan'
+    },
+    {
       title: 'Promo Codes',
       description: 'Manage discount codes and promotions',
       icon: Tag,
@@ -181,14 +188,6 @@ export default function AdminDashboard() {
       icon: Users,
       href: '/admin/customers',
       color: 'indigo',
-      comingSoon: true
-    },
-    {
-      title: 'Products',
-      description: 'Manage product catalog',
-      icon: Package,
-      href: '/admin/products',
-      color: 'cyan',
       comingSoon: true
     },
     {
