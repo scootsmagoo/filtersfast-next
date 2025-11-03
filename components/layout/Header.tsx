@@ -10,6 +10,7 @@ import { useSession } from '@/lib/auth-client';
 import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
 import { CurrencySelector } from '@/components/layout/CurrencySelector';
+import LanguageSelector from '@/components/layout/LanguageSelector';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -95,7 +96,8 @@ export default function Header() {
               <Link href="/track-order" className="hidden sm:inline hover:underline font-medium">
                 Track Order
               </Link>
-              <div className="hidden md:flex items-center">
+              <div className="hidden md:flex items-center gap-2">
+                <LanguageSelector />
                 <CurrencySelector />
               </div>
               <div className="flex items-center gap-2">

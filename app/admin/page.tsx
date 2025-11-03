@@ -21,7 +21,8 @@ import {
   Heart,
   Gift,
   Handshake,
-  Building2
+  Building2,
+  Globe
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -34,7 +35,12 @@ export default function AdminDashboard() {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin')
     } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
+      console.log('Admin access denied for:', session.user.email)
+      console.log('User object:', session.user)
+      // Only redirect after a brief delay to ensure session is fully loaded
+      setTimeout(() => {
+        router.push('/')
+      }, 100)
     }
   }, [session, isPending, router])
 
@@ -154,6 +160,13 @@ export default function AdminDashboard() {
       icon: Building2,
       href: '/admin/b2b',
       color: 'indigo'
+    },
+    {
+      title: 'Translations',
+      description: 'Manage multi-language translations',
+      icon: Globe,
+      href: '/admin/translations',
+      color: 'teal'
     },
     {
       title: 'Customers',

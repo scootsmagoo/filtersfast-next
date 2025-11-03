@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import ReferralTracker from "@/components/tracking/ReferralTracker";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { CurrencyProvider } from "@/lib/currency-context";
+import { LanguageProvider } from "@/lib/language-context";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -89,8 +90,9 @@ export default function RootLayout({
       <body className={`${lato.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
         <ThemeProvider>
           <StatusAnnouncementProvider>
-            <CurrencyProvider>
-              <CartProvider>
+            <LanguageProvider>
+              <CurrencyProvider>
+                <CartProvider>
               {/* Skip Links */}
               <a 
                 href="#main-content" 
@@ -116,8 +118,9 @@ export default function RootLayout({
               <Footer />
               <ScreenReaderAnnouncements />
               <ChatbotWidget />
-              </CartProvider>
-            </CurrencyProvider>
+                </CartProvider>
+              </CurrencyProvider>
+            </LanguageProvider>
           </StatusAnnouncementProvider>
         </ThemeProvider>
       </body>
