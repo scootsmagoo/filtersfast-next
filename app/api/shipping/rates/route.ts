@@ -29,15 +29,17 @@ const limiter = rateLimit({
  */
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const identifier = request.ip ?? 'anonymous';
-    try {
-      await limiter.check(identifier, 20);
-    } catch {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded' },
-        { status: 429 }
-      );
+    // Rate limiting (disabled in development)
+    if (process.env.NODE_ENV !== 'development') {
+      const identifier = request.ip ?? 'anonymous';
+      try {
+        await limiter.check(identifier, 20);
+      } catch {
+        return NextResponse.json(
+          { error: 'Rate limit exceeded' },
+          { status: 429 }
+        );
+      }
     }
 
     // Parse request body with size limit
@@ -112,8 +114,15 @@ export async function POST(request: NextRequest) {
     
     if (activeCarriers.length === 0) {
       return NextResponse.json(
-        { error: 'No shipping carriers are configured' },
-        { status: 503 }
+        { 
+          error: 'No shipping carriers are configured. Please run: npm run init:shipping',
+          rates: [],
+          errors: [{
+            carrier: 'system' as ShippingCarrier,
+            error: 'Shipping not initialized. Run "npm run init:shipping" to set up carriers.'
+          }]
+        },
+        { status: 200 } // Return 200 with empty rates instead of 503
       );
     }
 

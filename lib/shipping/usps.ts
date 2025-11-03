@@ -42,10 +42,92 @@ export class USPSShippingClient {
   }
 
   /**
+   * Get mock shipping rates for development (when API credentials not configured)
+   */
+  private getMockDomesticRates(request: ShippingRateRequest): ShippingRate[] {
+    // Calculate base rate based on weight
+    const totalWeight = request.packages.reduce((sum, pkg) => sum + pkg.weight, 0);
+    const baseRate = Math.max(5.99, totalWeight * 2.5);
+    
+    return [
+      {
+        carrier: 'usps',
+        service_name: 'USPS Ground Advantage',
+        service_code: 'USPS_GROUND_ADVANTAGE',
+        rate: parseFloat(baseRate.toFixed(2)),
+        currency: 'USD',
+        delivery_days: 5,
+        delivery_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        carrier: 'usps',
+        service_name: 'USPS Priority Mail',
+        service_code: 'USPS_PRIORITY',
+        rate: parseFloat((baseRate * 1.5).toFixed(2)),
+        currency: 'USD',
+        delivery_days: 3,
+        delivery_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        carrier: 'usps',
+        service_name: 'USPS Priority Mail Express',
+        service_code: 'USPS_PRIORITY_EXPRESS',
+        rate: parseFloat((baseRate * 3).toFixed(2)),
+        currency: 'USD',
+        delivery_days: 2,
+        delivery_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+  }
+
+  /**
+   * Get mock international shipping rates for development
+   */
+  private getMockInternationalRates(request: ShippingRateRequest): ShippingRate[] {
+    const totalWeight = request.packages.reduce((sum, pkg) => sum + pkg.weight, 0);
+    const baseRate = Math.max(15.99, totalWeight * 5);
+    
+    return [
+      {
+        carrier: 'usps',
+        service_name: 'USPS First-Class Package International Service',
+        service_code: 'USPS_FIRST_CLASS_INTERNATIONAL',
+        rate: parseFloat(baseRate.toFixed(2)),
+        currency: 'USD',
+        delivery_days: 14,
+        delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        carrier: 'usps',
+        service_name: 'USPS Priority Mail International',
+        service_code: 'USPS_PRIORITY_INTERNATIONAL',
+        rate: parseFloat((baseRate * 1.8).toFixed(2)),
+        currency: 'USD',
+        delivery_days: 10,
+        delivery_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        carrier: 'usps',
+        service_name: 'USPS Priority Mail Express International',
+        service_code: 'USPS_EXPRESS_INTERNATIONAL',
+        rate: parseFloat((baseRate * 3.5).toFixed(2)),
+        currency: 'USD',
+        delivery_days: 5,
+        delivery_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+  }
+
+  /**
    * Get shipping rates for domestic shipments
    */
   async getDomesticRates(request: ShippingRateRequest): Promise<ShippingRate[]> {
     const rates: ShippingRate[] = [];
+    
+    // Return mock rates in development if using mock credentials
+    if (this.credentials.user_id === 'MOCK_USER_ID' && process.env.NODE_ENV === 'development') {
+      return this.getMockDomesticRates(request);
+    }
     
     try {
       // Build XML request
@@ -124,6 +206,11 @@ export class USPSShippingClient {
    * Get shipping rates for international shipments
    */
   async getInternationalRates(request: ShippingRateRequest): Promise<ShippingRate[]> {
+    // Return mock rates in development if using mock credentials
+    if (this.credentials.user_id === 'MOCK_USER_ID' && process.env.NODE_ENV === 'development') {
+      return this.getMockInternationalRates(request);
+    }
+    
     const rates: ShippingRate[] = [];
     
     try {
@@ -469,12 +556,20 @@ export class USPSShippingClient {
 
 /**
  * Get USPS credentials from environment
- * @throws {Error} If credentials are not configured
+ * @throws {Error} If credentials are not configured in production
  */
 export function getUSPSCredentials(): USPSCredentials {
   const userId = process.env.USPS_USER_ID;
   
   if (!userId) {
+    // In development, use mock credentials for testing
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  USPS_USER_ID not configured. Using mock credentials for development.');
+      return {
+        user_id: 'MOCK_USER_ID',
+        password: undefined,
+      };
+    }
     throw new Error('USPS API credentials not configured');
   }
   

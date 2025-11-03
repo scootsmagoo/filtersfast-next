@@ -13,6 +13,7 @@ import CharityDonation from '@/components/checkout/CharityDonation';
 import ShippingInsurance from '@/components/checkout/ShippingInsurance';
 import SavedPaymentSelector from '@/components/checkout/SavedPaymentSelector';
 import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
+import PayPalButton from '@/components/payments/PayPalButton';
 import ShippingRateSelector from '@/components/checkout/ShippingRateSelector';
 import { DonationSelection } from '@/lib/types/charity';
 import { InsuranceSelection } from '@/lib/types/insurance';
@@ -174,23 +175,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleShippingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validate shipping form
-    if (!shippingAddress.firstName || !shippingAddress.lastName || 
-        !shippingAddress.email || !shippingAddress.address1 ||
-        !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipCode) {
-      setError('Please fill in all required fields');
-      return;
-    }
-    
-    // Calculate tax before proceeding to payment
-    await calculateTax();
-    
-    setCurrentStep('payment');
-  };
 
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
@@ -392,10 +376,10 @@ export default function CheckoutPage() {
                 <div className="space-y-6">
                   <Card className="p-8">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors">
-                      Shipping Address
+                      Shipping Information
                     </h2>
                     
-                    <form onSubmit={handleShippingSubmit} className="space-y-4">
+                    <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
@@ -515,32 +499,17 @@ export default function CheckoutPage() {
                         />
                       </div>
                     </div>
-                    
-                    <div className="flex gap-4 pt-4">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => router.push('/cart')}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Cart
-                      </Button>
-                      
-                      <Button
-                        type="submit"
-                        className="flex-1 flex items-center justify-center gap-2"
-                      >
-                        Continue to Shipping Method
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </form>
+                  </div>
                 </Card>
 
                 {/* Shipping Rate Selector - Only show after address is filled */}
                 {shippingAddress.address1 && shippingAddress.city && shippingAddress.state && shippingAddress.zipCode && (
                   <>
+                    {/* Visual connector to show this is part of the same step */}
+                    <div className="flex justify-center -mt-3 mb-3">
+                      <div className="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+                    </div>
+                    
                     <ShippingRateSelector
                       address={{
                         address_line1: shippingAddress.address1,
@@ -553,50 +522,67 @@ export default function CheckoutPage() {
                       onRateSelect={setSelectedShippingRate}
                       selectedRate={selectedShippingRate || undefined}
                     />
-                    
-                    <div className="flex gap-4">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => {
-                          setShippingAddress({
-                            firstName: '',
-                            lastName: '',
-                            email: session?.user?.email || '',
-                            phone: '',
-                            address1: '',
-                            address2: '',
-                            city: '',
-                            state: '',
-                            zipCode: '',
-                            country: 'US',
-                          });
-                          setSelectedShippingRate(null);
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        Edit Address
-                      </Button>
-                      
-                      <Button
-                        onClick={async () => {
-                          if (!selectedShippingRate) {
-                            setError('Please select a shipping method');
-                            return;
-                          }
-                          await calculateTax();
-                          setCurrentStep('payment');
-                        }}
-                        disabled={!selectedShippingRate}
-                        className="flex-1 flex items-center justify-center gap-2"
-                      >
-                        Continue to Payment
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
                   </>
                 )}
+
+                {/* Single set of navigation buttons */}
+                <div className="flex gap-4 mt-6">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      if (shippingAddress.address1) {
+                        // If address is filled, clear it to go back
+                        setShippingAddress({
+                          firstName: '',
+                          lastName: '',
+                          email: session?.user?.email || '',
+                          phone: '',
+                          address1: '',
+                          address2: '',
+                          city: '',
+                          state: '',
+                          zipCode: '',
+                          country: 'US',
+                        });
+                        setSelectedShippingRate(null);
+                      } else {
+                        // Otherwise go back to cart
+                        router.push('/cart');
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    {shippingAddress.address1 ? 'Edit Address' : 'Back to Cart'}
+                  </Button>
+                  
+                  <Button
+                    onClick={async () => {
+                      // If address isn't filled yet, validate and don't proceed
+                      if (!shippingAddress.address1 || !shippingAddress.city || 
+                          !shippingAddress.state || !shippingAddress.zipCode) {
+                        setError('Please fill in all required shipping address fields');
+                        return;
+                      }
+                      
+                      // If shipping rate not selected, show error
+                      if (!selectedShippingRate) {
+                        setError('Please select a shipping method');
+                        return;
+                      }
+                      
+                      // All good, calculate tax and continue
+                      await calculateTax();
+                      setCurrentStep('payment');
+                    }}
+                    disabled={!shippingAddress.address1 || !selectedShippingRate}
+                    className="flex-1 flex items-center justify-center gap-2"
+                  >
+                    Continue to Payment
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               )}
 
@@ -674,6 +660,70 @@ export default function CheckoutPage() {
                           </p>
                         </div>
                       </div>
+                    )}
+                    
+                    {/* PayPal / Venmo Payment Option (Available for all users) */}
+                    {!showAddPaymentForm && (
+                      <>
+                        <div className="my-6 flex items-center" role="separator" aria-label="Alternative payment methods">
+                          <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+                          <span className="px-4 text-sm font-medium text-gray-500 dark:text-gray-400">OR</span>
+                          <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+                        </div>
+                        
+                        <div className="mb-6" role="group" aria-labelledby="paypal-heading">
+                          <h3 id="paypal-heading" className="sr-only">PayPal and Venmo payment options</h3>
+                          <PayPalButton
+                            items={items.map(item => ({
+                              id: item.id,
+                              name: item.name,
+                              price: item.price,
+                              quantity: item.quantity,
+                              sku: item.sku,
+                              image: item.image,
+                            }))}
+                            subtotal={total}
+                            shipping={shippingCost}
+                            tax={calculatedTax}
+                            discount={0}
+                            handling={0}
+                            donation={donationAmount}
+                            insurance={insuranceCost}
+                            total={orderTotal}
+                            shippingAddress={{
+                              name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+                              address_line1: shippingAddress.address1,
+                              address_line2: shippingAddress.address2,
+                              city: shippingAddress.city,
+                              state: shippingAddress.state,
+                              postal_code: shippingAddress.zipCode,
+                              country: shippingAddress.country,
+                            }}
+                            customerEmail={shippingAddress.email}
+                            customerName={`${shippingAddress.firstName} ${shippingAddress.lastName}`}
+                            userId={session?.user?.id}
+                            isGuest={!session}
+                            donationCharityId={donation?.charityId}
+                            shippingMethod={selectedShippingRate?.service_name}
+                            onSuccess={(data) => {
+                              // Clear cart
+                              clearCart();
+                              // Redirect to success page
+                              router.push(`/checkout/success?orderId=${data.orderId}&orderNumber=${data.orderNumber}&payment=paypal&source=${data.paymentSource}`);
+                            }}
+                            onError={(error) => {
+                              setError(error);
+                            }}
+                            disabled={isProcessing}
+                          />
+                          <p 
+                            className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2 transition-colors"
+                            id="paypal-description"
+                          >
+                            Pay with PayPal or Venmo
+                          </p>
+                        </div>
+                      </>
                     )}
                     
                     {!showAddPaymentForm && (

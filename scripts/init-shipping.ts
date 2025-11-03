@@ -35,9 +35,12 @@ async function initShipping() {
     for (const carrier of carriers) {
       console.log(`  - Setting up ${carrier.toUpperCase()}...`);
       
+      // Enable USPS by default for development/testing
+      const isActive = carrier === 'usps';
+      
       upsertShippingConfig({
         carrier,
-        is_active: false, // Disabled by default until API credentials are added
+        is_active: isActive,
         api_credentials: {},
         origin_address: defaultOrigin,
         default_package_dimensions: {
@@ -50,7 +53,7 @@ async function initShipping() {
         free_shipping_threshold: 50, // Free shipping over $50
       });
 
-      console.log(`  ✓ ${carrier.toUpperCase()} configuration created`);
+      console.log(`  ✓ ${carrier.toUpperCase()} configuration created${isActive ? ' (ENABLED)' : ''}`);
     }
 
     console.log('\n✅ Shipping initialization complete!');

@@ -108,13 +108,28 @@ export default function ShippingRateSelector({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch shipping rates');
+        // Get detailed error message from API
+        let errorMsg = 'Failed to fetch shipping rates';
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+          console.error('Shipping API error:', response.status, errorData);
+        } catch (e) {
+          console.error('Shipping API error:', response.status, response.statusText);
+        }
+        throw new Error(errorMsg);
       }
 
       const data: ShippingRateResponse = await response.json();
 
       if (data.rates.length === 0 && data.errors.length > 0) {
-        setError('Unable to fetch shipping rates. Please check your address.');
+        // Check if it's a configuration error
+        const configError = data.errors.find(e => e.carrier === 'system');
+        if (configError) {
+          setError('Shipping carriers not configured. Please contact support or run: npm run init:shipping');
+        } else {
+          setError('Unable to fetch shipping rates. Please check your address.');
+        }
         return;
       }
 

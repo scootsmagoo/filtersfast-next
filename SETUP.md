@@ -173,14 +173,53 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 Get your keys from [PayPal Developer Dashboard](https://developer.paypal.com/developer/applications/):
 
 ```env
-# PayPal Keys
+# PayPal Keys (Required for PayPal/Venmo payments)
 PAYPAL_CLIENT_ID=your_paypal_client_id_here
 PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
 NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id_here
 
-# Use sandbox for testing
-PAYPAL_MODE=sandbox
+# Environment: sandbox for testing, production for live
+NODE_ENV=development
 ```
+
+**Getting Your PayPal API Keys:**
+
+1. Go to [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/applications)
+2. Log in with your PayPal account
+3. Create a new app or select existing app
+4. Copy the **Client ID** and **Secret** from the app details
+5. For testing: Use **Sandbox** credentials
+6. For production: Switch to **Live** credentials
+
+**Sandbox Testing:**
+- Create test accounts at [Sandbox Accounts](https://developer.paypal.com/dashboard/accounts)
+- Test payments without real money
+- Use sandbox client ID and secret
+
+**Features Enabled:**
+- PayPal Checkout with full order breakdown
+- Venmo payments (automatic)
+- Transaction logging in database
+- Order creation after successful payment
+- Error tracking and monitoring
+
+**Testing PayPal Integration:**
+
+1. Start dev server: `npm run dev`
+2. Add items to cart
+3. Proceed to checkout
+4. Fill in shipping address
+5. On payment step, click "Pay with PayPal" button
+6. Log in with sandbox test account
+7. Complete payment
+8. Order is created and customer redirected to success page
+
+**Production Setup:**
+
+1. Switch from sandbox to live credentials
+2. Update `NODE_ENV=production` in environment
+3. Test with real PayPal account
+4. Monitor transactions in `paypal_transactions` database table
 
 ---
 
