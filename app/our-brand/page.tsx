@@ -3,20 +3,14 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Pause, Play } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
-export default function OurBrandPage() {
-  // Set page metadata
-  useEffect(() => {
-    document.title = 'Our Brand | FiltersFast.com';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Discover FiltersFast brand air and water filters - proudly made in the USA with NSF certification. Quality filtration at affordable prices.');
-    }
-  }, []);
+// Server-side metadata is exported in layout.tsx or can be added via Metadata API
 
+export default function OurBrandPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const heroSlides = [
     {
@@ -51,6 +45,26 @@ export default function OurBrandPage() {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying((prev) => !prev);
+  };
+
+  // Auto-advance carousel (WCAG 2.2.2 compliant with pause control)
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, heroSlides.length]);
+
+  // Pause auto-play on user interaction
+  const handleUserInteraction = () => {
+    setIsAutoPlaying(false);
   };
 
   return (
@@ -117,19 +131,39 @@ export default function OurBrandPage() {
         {/* Navigation Buttons */}
         <button
           type="button"
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 z-10"
+          onClick={() => {
+            handleUserInteraction();
+            prevSlide();
+          }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 z-10"
           aria-label="Previous slide"
         >
           <ChevronLeft className="w-6 h-6" aria-hidden="true" />
         </button>
         <button
           type="button"
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 z-10"
+          onClick={() => {
+            handleUserInteraction();
+            nextSlide();
+          }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 z-10"
           aria-label="Next slide"
         >
           <ChevronRight className="w-6 h-6" aria-hidden="true" />
+        </button>
+        
+        {/* Play/Pause Button - WCAG 2.2.2 Compliance */}
+        <button
+          type="button"
+          onClick={toggleAutoPlay}
+          className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 z-10"
+          aria-label={isAutoPlaying ? 'Pause carousel auto-play' : 'Resume carousel auto-play'}
+        >
+          {isAutoPlaying ? (
+            <Pause className="w-5 h-5" aria-hidden="true" />
+          ) : (
+            <Play className="w-5 h-5" aria-hidden="true" />
+          )}
         </button>
 
         {/* Slide Indicators */}
@@ -138,14 +172,17 @@ export default function OurBrandPage() {
             <button
               key={index}
               type="button"
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all focus:ring-2 focus:ring-white focus:ring-offset-2 ${
+              onClick={() => {
+                handleUserInteraction();
+                goToSlide(index);
+              }}
+              className={`w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 ${
                 index === currentSlide
                   ? 'bg-white w-8'
                   : 'bg-white/50 hover:bg-white/75'
               }`}
               aria-label={`Go to slide ${index + 1}`}
-              aria-current={index === currentSlide ? 'true' : 'false'}
+              aria-current={index === currentSlide}
             />
           ))}
         </div>
@@ -182,38 +219,37 @@ export default function OurBrandPage() {
 
       {/* Air Filter Features */}
       <section 
-        className="relative min-h-[500px] bg-cover bg-center flex items-center"
-        style={{ backgroundImage: "url('/images/household-brand-filter-change-v1.jpg')" }}
+        className="relative min-h-[500px] flex items-center bg-household-filter-bg"
         aria-labelledby="air-filter-features-heading"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/95 md:to-white/90"></div>
+        <div className="absolute inset-0 bg-black/50"></div>
         <div className="container-custom relative z-10">
-          <div className="ml-auto max-w-xl bg-white/95 md:bg-transparent p-8 rounded-lg">
+          <div className="ml-auto max-w-xl bg-white p-8 rounded-lg shadow-xl">
             <h2 id="air-filter-features-heading" className="text-3xl font-bold mb-6 text-gray-900">
               Filters Fast® Brand Air Filters
             </h2>
             <div className="space-y-4">
               <div className="flex gap-4 items-start">
                 <Check className="w-12 h-12 text-green-600 flex-shrink-0" aria-hidden="true" />
-                <p className="text-gray-700">
+                <p className="text-gray-800">
                   Are tested using sensitive laboratory equipment to ensure they meet the requirements of their MERV rating.
                 </p>
               </div>
               <div className="flex gap-4 items-start">
                 <Check className="w-12 h-12 text-green-600 flex-shrink-0" aria-hidden="true" />
-                <p className="text-gray-700">
+                <p className="text-gray-800">
                   Constructed with high quality pleated media and DO NOT contain fiberglass.
                 </p>
               </div>
               <div className="flex gap-4 items-start">
                 <Check className="w-12 h-12 text-green-600 flex-shrink-0" aria-hidden="true" />
-                <p className="text-gray-700">
+                <p className="text-gray-800">
                   Are available in MERV 13 ratings 1-in., 2-in., 4-in., or 5-in. depth in the most common filter sizes.
                 </p>
               </div>
               <div className="flex gap-4 items-start">
                 <Check className="w-12 h-12 text-green-600 flex-shrink-0" aria-hidden="true" />
-                <p className="text-gray-700">
+                <p className="text-gray-800">
                   Can be made in any custom air filter size.
                 </p>
               </div>
@@ -253,14 +289,13 @@ export default function OurBrandPage() {
 
       {/* NSF Certification Intro */}
       <section 
-        className="relative min-h-[500px] bg-cover bg-center flex items-center"
-        style={{ backgroundImage: "url('/images/household-brand-water-glass-v1.jpg')" }}
+        className="relative min-h-[500px] flex items-center bg-household-water-bg"
         aria-labelledby="nsf-intro-heading"
       >
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/60"></div>
         <div className="container-custom relative z-10">
           <div className="max-w-2xl">
-            <p className="text-2xl md:text-3xl text-white leading-relaxed p-8 bg-black/30 rounded-lg">
+            <p className="text-2xl md:text-3xl text-white leading-relaxed p-8 bg-black/70 rounded-lg shadow-xl">
               All Filters Fast® fridge filters are submitted for NSF certification. This process involves a meticulous process and adheres to NSF certification policies.
             </p>
           </div>
@@ -273,9 +308,8 @@ export default function OurBrandPage() {
         aria-labelledby="nsf-ratings-heading"
       >
         <div className="container-custom">
-          <h2 id="nsf-ratings-heading" className="text-3xl font-bold text-center mb-4 text-gray-900">
-            Each NSF certification has a number to tell you what the<br className="hidden md:block" />
-            filter is certified to reduce. Here is what each one means:
+          <h2 id="nsf-ratings-heading" className="text-3xl font-bold text-center mb-4 text-gray-900 max-w-4xl mx-auto">
+            Each NSF certification has a number to tell you what the filter is certified to reduce. Here is what each one means:
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mt-12">

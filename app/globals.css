@@ -133,6 +133,19 @@ textarea:focus-visible {
   .card {
     @apply bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300;
   }
+  
+  /* Secure background images for Our Brand page - OWASP compliant */
+  .bg-household-filter-bg {
+    background-image: url('/images/household-brand-filter-change-v1.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .bg-household-water-bg {
+    background-image: url('/images/household-brand-water-glass-v1.jpg');
+    background-size: cover;
+    background-position: center;
+  }
 }
 
 /* ========================================

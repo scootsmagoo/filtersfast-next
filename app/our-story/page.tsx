@@ -2,19 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import Card from '@/components/ui/Card';
 
+// Server-side metadata is exported in layout.tsx or can be added via Metadata API
+
 export default function OurStoryPage() {
-  // Set page metadata
-  useEffect(() => {
-    document.title = 'Our Story | FiltersFast - America\'s Top Online Filtration Retailer';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Learn about FiltersFast\'s journey from 2003 to becoming America\'s top online filtration retailer. Family-owned business based in Charlotte, NC.');
-    }
-  }, []);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const teamImages = [
     { src: '/images/our-story1.jpg', alt: 'FiltersFast team members collaborating in the office' },
@@ -34,6 +29,26 @@ export default function OurStoryPage() {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying((prev) => !prev);
+  };
+
+  // Auto-advance carousel (WCAG 2.2.2 compliant with pause control)
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % teamImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, teamImages.length]);
+
+  // Pause auto-play on user interaction
+  const handleUserInteraction = () => {
+    setIsAutoPlaying(false);
   };
 
   return (
@@ -82,6 +97,7 @@ export default function OurStoryPage() {
                 allowFullScreen
                 loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="no-referrer"
               />
             </div>
           </div>
@@ -143,19 +159,39 @@ export default function OurStoryPage() {
               {/* Navigation Buttons */}
               <button
                 type="button"
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                onClick={() => {
+                  handleUserInteraction();
+                  prevSlide();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
               <button
                 type="button"
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                onClick={() => {
+                  handleUserInteraction();
+                  nextSlide();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2"
                 aria-label="Next image"
               >
                 <ChevronRight className="w-6 h-6" aria-hidden="true" />
+              </button>
+
+              {/* Play/Pause Button - WCAG 2.2.2 Compliance */}
+              <button
+                type="button"
+                onClick={toggleAutoPlay}
+                className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 z-10"
+                aria-label={isAutoPlaying ? 'Pause carousel auto-play' : 'Resume carousel auto-play'}
+              >
+                {isAutoPlaying ? (
+                  <Pause className="w-5 h-5" aria-hidden="true" />
+                ) : (
+                  <Play className="w-5 h-5" aria-hidden="true" />
+                )}
               </button>
 
               {/* Slide Indicators */}
@@ -164,14 +200,17 @@ export default function OurStoryPage() {
                   <button
                     key={index}
                     type="button"
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 ${
+                    onClick={() => {
+                      handleUserInteraction();
+                      goToSlide(index);
+                    }}
+                    className={`w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 ${
                       index === currentSlide
                         ? 'bg-brand-orange w-8'
                         : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                     }`}
                     aria-label={`Go to image ${index + 1}`}
-                    aria-current={index === currentSlide ? 'true' : 'false'}
+                    aria-current={index === currentSlide}
                   />
                 ))}
               </div>
