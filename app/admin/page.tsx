@@ -78,6 +78,13 @@ export default function AdminDashboard() {
 
   const adminSections = [
     {
+      title: 'Orders',
+      description: 'View and manage customer orders',
+      icon: ShoppingBag,
+      href: '/admin/orders',
+      color: 'blue'
+    },
+    {
       title: 'Promo Codes',
       description: 'Manage discount codes and promotions',
       icon: Tag,
@@ -182,14 +189,6 @@ export default function AdminDashboard() {
       icon: Package,
       href: '/admin/products',
       color: 'cyan',
-      comingSoon: true
-    },
-    {
-      title: 'Orders',
-      description: 'View and process orders',
-      icon: ShoppingBag,
-      href: '/admin/orders',
-      color: 'yellow',
       comingSoon: true
     },
     {

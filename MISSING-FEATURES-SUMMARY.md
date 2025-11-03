@@ -1,0 +1,529 @@
+# 📋 Missing Features - Quick Reference
+
+**Quick summary of features from legacy FiltersFast that need to be implemented in FiltersFast-Next**
+
+---
+
+## 🚨 CRITICAL - Required for Production Launch
+
+### 1. Admin Order Management System
+**Status:** Coming Soon (marked in admin dashboard)  
+**Priority:** 🔴 CRITICAL  
+**Why:** Can't operate business without ability to manage orders
+
+**Features Needed:**
+- Order dashboard (list, search, filter)
+- Order detail view
+- Edit order before shipment
+- Process payments/refunds
+- Update order status
+- Generate shipping labels
+- Add internal notes
+- Bulk operations
+
+**Legacy Files:** `Manager/SA_order*.asp` (10+ files)
+
+---
+
+### 2. Admin Product Management System
+**Status:** Coming Soon (marked in admin dashboard)  
+**Priority:** 🔴 CRITICAL  
+**Why:** Can't manage catalog without this
+
+**Features Needed:**
+- Product CRUD (Create, Read, Update, Delete)
+- Product categories management
+- Product options/variants (size, color, etc.)
+- Pricing management (regular, sale, bulk)
+- Image management
+- Inventory tracking
+- Product discounts
+- Bulk operations
+- Import/Export (CSV)
+- SKU compatibility matrix
+
+**Legacy Files:** `Manager/SA_prod*.asp`, `Manager/SA_opt*.asp`, `Manager/SA_cat*.asp`
+
+---
+
+### 3. PayPal Integration
+**Status:** ❌ Not implemented  
+**Priority:** 🔴 CRITICAL  
+**Why:** Many customers prefer PayPal, impacts conversion
+
+**Features Needed:**
+- PayPal Express Checkout
+- PayPal Credit (financing option)
+- PayPal button on product pages
+- PayPal in checkout flow
+- Refund support
+
+**Legacy Files:** `PayPal/` directory, `60_PayXPayPal.asp`
+
+---
+
+### 4. Shipping API Integrations
+**Status:** ❌ Not implemented  
+**Priority:** 🔴 CRITICAL  
+**Why:** Can't ship orders without this
+
+**Providers Needed:**
+- FedEx (rates, tracking, labels)
+- USPS (rates, tracking, labels)
+- UPS (rates, tracking, labels)
+- Canada Post (if shipping to Canada)
+
+**Features:**
+- Real-time rate calculation
+- Label generation
+- Tracking number automation
+- Transit time estimates
+- Package weight/dimension handling
+
+**Legacy Files:** `_INCship*.asp`, `FedEx/`, `automation/ship*.asp`
+
+---
+
+### 5. TaxJar Integration
+**Status:** ❌ Not implemented  
+**Priority:** 🔴 CRITICAL  
+**Why:** Legal requirement for sales tax compliance
+
+**Features Needed:**
+- Real-time tax calculation at checkout
+- Tax reporting for compliance
+- Nexus management
+- Order tax tracking
+
+**Legacy Files:** `taxjar/`, `taxjarbackreporting.asp`
+
+---
+
+### 6. Admin Customer Management
+**Status:** Coming Soon (marked in admin dashboard)  
+**Priority:** 🔴 CRITICAL  
+**Why:** Customer service requires this
+
+**Features Needed:**
+- Customer search/lookup
+- Customer profile view/edit
+- Order history view
+- Payment history
+- Account actions (reset password, lock, etc.)
+- Customer notes
+- Customer merge (duplicates)
+- Export customer lists
+
+**Legacy Files:** `Manager/SA_cust*.asp` (10+ files)
+
+---
+
+## 🟠 HIGH PRIORITY - Important for Full Feature Parity
+
+### 7. Analytics & Reporting Dashboard
+**Status:** Coming Soon  
+**Priority:** 🟠 HIGH  
+
+**Features:**
+- Daily/weekly/monthly sales reports
+- Product performance analytics
+- Customer analytics (LTV, frequency)
+- Marketing reports (promo codes, referrals)
+- Real-time dashboard
+- Export reports (CSV/PDF)
+
+**Legacy Files:** `Manager/SA_stats.asp`, `Manager/sa_daily_sales*.asp`, `Manager/SA_totalsales.asp`
+
+---
+
+### 8. Admin Role-Based Permissions
+**Status:** Basic admin auth only  
+**Priority:** 🟠 HIGH  
+
+**Features:**
+- Admin user management
+- Role system (Admin, Manager, Support, Sales)
+- Granular permissions
+- Audit logging
+- Password policy
+- 2FA required for admins
+- Sales rep assignment
+
+**Legacy Files:** `Manager/sa_admin*.asp`
+
+---
+
+### 9. Inventory Management
+**Status:** ❌ Not implemented  
+**Priority:** 🟠 HIGH  
+
+**Features:**
+- Stock level tracking
+- Low stock alerts
+- Inbound shipment management
+- Receiving process
+- Inventory reports
+
+**Legacy Files:** `Manager/SA_inboundmgmt.asp`
+
+---
+
+### 10. Authorize.Net Integration (Backup Gateway)
+**Status:** ❌ Not implemented  
+**Priority:** 🟠 HIGH  
+
+**Why:** Redundancy if Stripe has issues
+
+**Legacy Files:** `60_PayXauthNetAIM*.asp`, `_INCauthNet_.asp`
+
+---
+
+## 🟡 MEDIUM PRIORITY - Good to Have
+
+### 11. Charity Partner Landing Pages
+**Status:** Infrastructure exists, specific pages not created  
+**Priority:** 🟡 MEDIUM  
+
+**Pages Needed:**
+- American Home Shield
+- Habitat for Humanity
+- Wine to Water
+- Xtreme Hike (Cystic Fibrosis)
+- AAA
+- 2-10 Home Warranty
+
+**Legacy Files:** Individual charity directories
+
+---
+
+### 12. Home Filter Club / Educational Section
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Filter selection wizard
+- Air quality education
+- MERV rating guide
+- Interactive animations
+- Brand guides
+
+**Legacy Files:** `HomeFilterClub/` directory
+
+---
+
+### 13. Pool Filter Finder Tool
+**Status:** Basic page exists, no interactive tool  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Interactive selector
+- Size calculator
+- Compatibility checker
+- Pool filter guide
+
+**Legacy Files:** `pool/` directory
+
+---
+
+### 14. URL Redirect Manager
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM (HIGH for migration)  
+
+**Features:**
+- Add/edit/delete redirects
+- Bulk import
+- 301/302 support
+- Pattern matching
+- Analytics
+
+**Legacy Files:** `Manager/SA_redirects.asp`, `redirectHub.asp`
+
+---
+
+### 15. Marketplace Integrations
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM  
+
+**Channels:**
+- Amazon
+- eBay
+- Shopify
+- Order sync
+- Inventory sync
+
+**Legacy Files:** `Manager/sa_marketplaces.asp`, `shpfyOrdersCreation*.asp`
+
+---
+
+### 16. Advanced Search Analytics
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Search query logging
+- Analytics dashboard
+- Top searches
+- Failed searches
+- Click tracking
+
+**Legacy Files:** `Manager/SA_searchlog.asp`
+
+---
+
+### 17. Email Campaign Manager
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Email template editor
+- Bulk email sending
+- Segmentation
+- Scheduling
+- Analytics
+
+**Legacy Files:** `Manager/email.asp`, `Manager/email_exec.asp`
+
+---
+
+### 18. Blog Admin Interface
+**Status:** Blog exists, no admin UI  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Rich text editor
+- Category management
+- SEO tools
+- Post scheduling
+- Analytics
+
+**Legacy Files:** `Manager/SA_news*.asp`
+
+---
+
+### 19. Deals & Special Offers System
+**Status:** Promo codes exist, no deals section  
+**Priority:** 🟡 MEDIUM  
+
+**Features:**
+- Featured deals page
+- Deal scheduling
+- Deal categories
+- Deal badges
+- Analytics
+
+**Legacy Files:** `Manager/SA_deal*.asp`
+
+---
+
+### 20. Store Locator (if needed)
+**Status:** ❌ Not implemented  
+**Priority:** 🟡 MEDIUM (depends on business model)  
+
+**Features:**
+- Location search
+- Map integration
+- Store details
+- Hours/directions
+
+**Legacy Files:** `Manager/SA_loc*.asp`
+
+---
+
+## 🟢 LOWER PRIORITY - Nice to Have
+
+### 21. Image Management System
+Media library for product images
+
+**Legacy Files:** `Manager/sa_image_management.asp`
+
+---
+
+### 22. Backorder Management
+Track and notify customers
+
+**Legacy Files:** `Manager/SA_backorder_notifications.asp`
+
+---
+
+### 23. SKU Compatibility Manager
+Cross-reference compatible products
+
+**Legacy Files:** `Manager/SA_CompSKUManager.asp`
+
+---
+
+### 24. Credits/Gift Card System
+Store credit and gift cards
+
+**Legacy Files:** `Manager/SA_order_credits.asp`
+
+---
+
+### 25. GeoIP & Auto-Currency Detection
+Detect user location and set currency
+
+**Legacy Files:** `geoip.asp`, `currencyUpdate.asp`
+
+---
+
+## ✅ Already Implemented (Great Job!)
+
+These features from the legacy system are already in FiltersFast-Next:
+
+✅ Authentication & OAuth  
+✅ Multi-Factor Authentication  
+✅ Shopping Cart & Checkout  
+✅ Order Tracking  
+✅ Abandoned Cart Recovery  
+✅ Promo Codes  
+✅ Referral Program  
+✅ Affiliate Program  
+✅ Returns Portal  
+✅ Filter Reminders  
+✅ Charitable Donations  
+✅ Saved Payment Methods  
+✅ Subscriptions  
+✅ SMS Marketing  
+✅ ID.me Discounts  
+✅ Model Lookup  
+✅ Browse by Size  
+✅ Support Portal  
+✅ Reviews (Trustpilot)  
+✅ Custom Filter Builder  
+✅ B2B Portal  
+✅ Partner Pages System  
+✅ Multi-Language (i18n)  
+✅ Dark Mode  
+
+---
+
+## 📊 Implementation Timeline Estimate
+
+### Phase 1: Launch Blockers (3-4 months)
+- Admin Order Management
+- Admin Product Management
+- PayPal Integration
+- Shipping APIs
+- TaxJar Integration
+- Admin Customer Management
+
+### Phase 2: High Priority (2-3 months)
+- Analytics Dashboard
+- Admin Permissions
+- Inventory Management
+- Authorize.Net
+- URL Redirect Manager
+
+### Phase 3: Feature Parity (2-3 months)
+- Charity Partner Pages
+- Home Filter Club
+- Pool Filter Finder
+- Marketplace Integration
+- Search Analytics
+
+### Phase 4: Enhancements (1-2 months)
+- Email Campaigns
+- Deals System
+- Blog Admin
+- Store Locator
+- Credits/Gift Cards
+
+**Total: 6-9 months to full production-ready**
+
+---
+
+## 🎯 Top 3 Recommendations
+
+### 1. Start Admin Tools NOW
+You can't run the business without:
+- Order management
+- Product management  
+- Customer management
+
+**Action:** Make this the #1 priority for development.
+
+---
+
+### 2. Payment Integration Sprint
+Get PayPal working ASAP:
+- Higher conversion rates
+- Customer expectation
+- Quick win (libraries exist)
+
+**Action:** 1-2 week sprint to add PayPal.
+
+---
+
+### 3. Shipping Integration Planning
+Research and plan shipping APIs:
+- FedEx, USPS, UPS
+- Rate calculation
+- Label generation
+- Critical for fulfillment
+
+**Action:** Dedicate time for research and API setup.
+
+---
+
+## 📞 Questions to Answer
+
+1. **OrderGroove**: Keep or replace with internal subscriptions?
+2. **Marketplaces**: Which channels are priority? (Amazon, eBay, Shopify)
+3. **Store Locator**: Do you have physical locations?
+4. **Gift Cards**: Is this feature actively used?
+5. **Payment Gateways**: Still need Authorize.Net and CyberSource?
+6. **Admin Roles**: How many admin users? What access levels?
+7. **Migration Date**: Target date for production cutover?
+
+---
+
+## 📈 Success Metrics
+
+### Before Launch
+- ✅ All Phase 1 features complete
+- ✅ Data migration tested
+- ✅ Admin team trained
+- ✅ Payment processing tested
+- ✅ Shipping integration tested
+- ✅ Security audit passed
+
+### After Launch
+- 📊 Conversion rate ≥ legacy site
+- 📊 Page load time < 2 seconds
+- 📊 99.9% uptime
+- 📊 Zero payment errors
+- 📊 Customer satisfaction maintained
+
+---
+
+## 💡 Key Insights
+
+### What's Going Well
+- ✅ Modern tech stack (Next.js, TypeScript)
+- ✅ Responsive design (no separate mobile site needed)
+- ✅ Great customer-facing features
+- ✅ Security & accessibility focus
+- ✅ Clean, maintainable codebase
+
+### What Needs Focus
+- ❌ Admin/back-office tools are the main gap
+- ❌ Payment/shipping integrations are critical
+- ❌ Operational features for day-to-day business
+- ❌ Data migration planning
+
+### Competitive Advantages
+- 🚀 Faster, modern UX
+- 🚀 Better mobile experience
+- 🚀 Enhanced security (MFA, etc.)
+- 🚀 Advanced features (abandoned cart, i18n)
+- 🚀 Dark mode support
+- 🚀 Better accessibility
+
+---
+
+**For full details, see:** [AUDIT-LEGACY-FEATURES.md](./AUDIT-LEGACY-FEATURES.md)
+
+---
+
+*Last Updated: November 3, 2025*
+
