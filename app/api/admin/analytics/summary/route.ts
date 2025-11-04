@@ -5,7 +5,7 @@ import { hasAdminAccess } from '@/lib/auth-admin';
 import { getAnalyticsSummary } from '@/lib/db/analytics';
 import { getDateRange, validateDateRange } from '@/lib/analytics-utils';
 import { checkAnalyticsRateLimit } from '@/lib/rate-limit-analytics';
-import { logAuditEvent } from '@/lib/audit-log';
+import { auditLog } from '@/lib/audit-log';
 
 export async function GET(request: NextRequest) {
   // Verify admin authentication
@@ -50,11 +50,17 @@ export async function GET(request: NextRequest) {
     const summary = getAnalyticsSummary(startDate, endDate);
 
     // Audit log
-    logAuditEvent('analytics_access', session.user.id || 'unknown', {
-      report: 'summary',
-      period,
-      startDate,
-      endDate,
+    await auditLog({
+      action: 'analytics_access',
+      userId: session.user.id,
+      resource: 'analytics',
+      resourceId: 'summary',
+      status: 'success',
+      details: {
+        period,
+        startDate,
+        endDate,
+      },
     });
 
     return NextResponse.json({
