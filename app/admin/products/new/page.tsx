@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import Link from 'next/link';
 import type { ProductFormData, ProductType, ProductStatus, MervRating } from '@/lib/types/product';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function NewProductPage() {
   const router = useRouter();

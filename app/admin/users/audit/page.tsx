@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface AuditLog {
   id: number;
@@ -79,7 +80,8 @@ export default function AuditLogPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
+      <AdminBreadcrumb />
+        <div className="mb-8">
         <Link
           href="/admin/users"
           className="text-brand-orange hover:text-brand-orange/80 mb-4 inline-block"

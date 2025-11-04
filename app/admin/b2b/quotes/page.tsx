@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle, ChevronLeft } from 'lucide-react';
 import { QuoteRequest } from '@/lib/types/b2b';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminB2BQuotesPage() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);

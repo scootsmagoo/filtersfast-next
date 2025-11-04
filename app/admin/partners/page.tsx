@@ -23,6 +23,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminPartnersPage() {
   const router = useRouter();
@@ -165,6 +166,7 @@ export default function AdminPartnersPage() {
       </a>
       
       <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <AdminBreadcrumb />
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>

@@ -5,6 +5,7 @@ import { useSession } from '@/lib/auth-client';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { CheckCircle, XCircle, AlertCircle, TrendingUp, RefreshCw, FileText } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface TaxJarStats {
   total_calculations: number;
@@ -92,6 +93,7 @@ export default function TaxJarAdminPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
+      <AdminBreadcrumb />
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">TaxJar Integration Dashboard</h1>
         <p className="text-gray-600">Monitor tax calculations and order reporting to TaxJar</p>

@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { Globe, Plus, Trash2, Save, Wand2, Download, Upload, Search } from 'lucide-react';
 import type { Translation, LanguageCode, TranslationCategory } from '@/lib/types/i18n';
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '@/lib/types/i18n';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface TranslationData extends Translation {
   isEditing?: boolean;
@@ -247,6 +248,7 @@ export default function AdminTranslationsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 transition-colors">

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 
 import Card from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
 import { Package, Search, Filter, Download, TrendingUp, DollarSign, ShoppingCart, Clock } from 'lucide-react'
 import Link from 'next/link'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 interface OrderStats {
   total_orders: number
@@ -56,17 +58,16 @@ export default function AdminOrdersPage() {
   const ordersPerPage = 20
 
   // Redirect if not admin
+  // Auth check is handled by admin layout
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin/orders')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
     }
   }, [session, isPending, router])
 
   // Fetch orders and stats
   useEffect(() => {
-    if (!session?.user || !hasAdminAccess(session.user)) return
+    if (!session?.user) return
 
     fetchOrders()
     fetchStats()
@@ -162,7 +163,8 @@ export default function AdminOrdersPage() {
     )
   }
 
-  if (!session?.user || !hasAdminAccess(session.user)) {
+  // Auth check is handled by admin layout
+  if (!session?.user) {
     return null
   }
 
@@ -170,20 +172,17 @@ export default function AdminOrdersPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container-custom py-8">
         {/* Header */}
+        <AdminBreadcrumb />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-              <Package className="w-8 h-8 text-brand-orange" aria-hidden="true" />
+              <ShoppingCart className="w-8 h-8 text-brand-orange" aria-hidden="true" />
               Order Management
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">
               View and manage customer orders
             </p>
           </div>
-          
-          <Link href="/admin" className="btn-secondary">
-            Back to Admin
-          </Link>
         </div>
 
         {/* Statistics Cards */}

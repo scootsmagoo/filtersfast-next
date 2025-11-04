@@ -5,9 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getAllTierPricing, createTierPricing } from '@/lib/db/b2b';
 import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
@@ -17,13 +15,13 @@ import { sanitizeInput } from '@/lib/sanitize';
 export async function GET(request: NextRequest) {
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -57,14 +55,13 @@ export async function POST(request: NextRequest) {
 
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
-      console.warn('Unauthorized tier pricing creation:', session?.user?.email);
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -132,7 +129,7 @@ export async function POST(request: NextRequest) {
     // Log audit trail
     await auditLog({
       action: 'tier_pricing_created',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'tier_pricing',
       resourceId: tierPricing.id,
       status: 'success',

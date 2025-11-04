@@ -18,10 +18,13 @@ import {
   AlertTriangle,
   DollarSign,
   Box,
-  Archive
+  Archive,
+  PackageOpen,
+  Edit3
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product, ProductStats, ProductFilters as ProductFiltersType } from '@/lib/types/product';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface ProductListResponse {
   success: boolean;
@@ -46,6 +49,7 @@ export default function AdminProductsPage() {
     status: undefined,
     type: undefined,
     brand: undefined,
+    stockStatus: undefined,
     sortBy: 'updated',
     sortOrder: 'desc'
   });
@@ -64,6 +68,7 @@ export default function AdminProductsPage() {
       if (filters.status) params.set('status', filters.status);
       if (filters.type) params.set('type', filters.type);
       if (filters.brand) params.set('brand', filters.brand);
+      if (filters.stockStatus) params.set('stockStatus', filters.stockStatus);
       if (filters.sortBy) params.set('sortBy', filters.sortBy);
       if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
       if (page === 1) params.set('includeStats', 'true');
@@ -149,6 +154,7 @@ export default function AdminProductsPage() {
       <div className="container-custom py-8">
         {/* Header */}
         <div className="mb-8">
+          <AdminBreadcrumb />
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">
@@ -158,12 +164,20 @@ export default function AdminProductsPage() {
                 Manage your product catalog
               </p>
             </div>
-            <Link href="/admin/products/new">
-              <Button className="flex items-center gap-2">
-                <Plus className="w-5 h-5" />
-                Add Product
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/admin/products/shipments">
+                <Button variant="secondary" className="flex items-center gap-2">
+                  <PackageOpen className="w-5 h-5" />
+                  Inbound Shipments
+                </Button>
+              </Link>
+              <Link href="/admin/products/new">
+                <Button className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Add Product
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -198,6 +212,22 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center transition-colors">
                   <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 transition-colors">
+                    Low Stock
+                  </p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 transition-colors">
+                    {stats.lowStockProducts || 0}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center transition-colors">
+                  <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400" aria-hidden="true" />
                 </div>
               </div>
             </Card>
@@ -353,6 +383,28 @@ export default function AdminProductsPage() {
                 </select>
               </div>
 
+              {/* Stock Status Filter */}
+              <div>
+                <label htmlFor="filter-stock" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                  Stock Status
+                </label>
+                <select
+                  id="filter-stock"
+                  value={filters.stockStatus || ''}
+                  onChange={(e) => {
+                    setFilters({ ...filters, stockStatus: e.target.value || undefined });
+                    setPage(1);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                  aria-label="Filter products by stock status"
+                >
+                  <option value="">All Stock Levels</option>
+                  <option value="in-stock">In Stock</option>
+                  <option value="low">Low Stock</option>
+                  <option value="out">Out of Stock</option>
+                </select>
+              </div>
+
               {/* Sort */}
               <div>
                 <label htmlFor="filter-sort" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
@@ -464,13 +516,32 @@ export default function AdminProductsPage() {
                         ${product.price.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`text-sm ${
-                          product.inventoryQuantity <= product.lowStockThreshold
-                            ? 'text-red-600 dark:text-red-400 font-semibold'
-                            : 'text-gray-900 dark:text-gray-100'
-                        }`}>
-                          {product.inventoryQuantity}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${
+                            product.inventoryQuantity === 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : product.inventoryQuantity <= (product.lowStockThreshold || 10) * 0.5
+                              ? 'text-orange-600 dark:text-orange-400'
+                              : product.inventoryQuantity <= (product.lowStockThreshold || 10)
+                              ? 'text-yellow-600 dark:text-yellow-400'
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {product.inventoryQuantity}
+                          </span>
+                          {product.inventoryQuantity === 0 ? (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                              Out
+                            </span>
+                          ) : product.inventoryQuantity <= (product.lowStockThreshold || 10) * 0.5 ? (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                              Critical
+                            </span>
+                          ) : product.inventoryQuantity <= (product.lowStockThreshold || 10) ? (
+                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                              Low
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">

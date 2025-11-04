@@ -4,9 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getQuoteRequestById, updateQuoteRequest } from '@/lib/db/b2b';
 import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
@@ -31,14 +29,13 @@ export async function POST(
 
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
-      console.warn('Unauthorized quote response attempt:', session?.user?.email);
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -104,8 +101,8 @@ export async function POST(
       deliveryTerms: sanitizedDeliveryTerms,
       adminResponse: sanitizedAdminResponse,
       quotedAt: Date.now(),
-      assignedTo: session.user.id,
-      assignedToName: session.user.name || session.user.email,
+      assignedTo: permissionCheck.user.id,
+      assignedToName: session.user.name || permissionCheck.user.email,
     });
 
     if (!success) {
@@ -115,7 +112,7 @@ export async function POST(
     // Log audit trail
     await auditLog({
       action: 'quote_responded',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'quote_request',
       resourceId: params.id,
       status: 'success',

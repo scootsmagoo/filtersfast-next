@@ -7,16 +7,16 @@ import { useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import PromoCodeForm from '@/components/admin/PromoCodeForm'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function NewPromoCodePage() {
   const router = useRouter()
   const { data: session, isPending } = useSession()
 
+  // Auth check is handled by admin layout
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin/promo-codes/new')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
     }
   }, [session, isPending, router])
 
@@ -28,7 +28,7 @@ export default function NewPromoCodePage() {
     )
   }
 
-  if (!session?.user || !hasAdminAccess(session.user)) {
+  if (!session?.user) {
     return null
   }
 

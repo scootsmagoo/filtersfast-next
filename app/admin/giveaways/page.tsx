@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Gift, Plus, Calendar, Users, Award, Edit, Trash2, Eye } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface Giveaway {
   id: number;
@@ -144,6 +145,7 @@ export default function AdminGiveawaysPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>

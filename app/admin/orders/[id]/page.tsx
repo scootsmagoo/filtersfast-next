@@ -10,6 +10,7 @@ import {
   Edit2, RotateCcw, XCircle, CheckCircle, AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface OrderDetailResponse {
   id: string
@@ -71,17 +72,16 @@ export default function AdminOrderDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
 
   // Redirect if not admin
+  // Auth check is handled by admin layout
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin/orders')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
     }
   }, [session, isPending, router])
 
   // Fetch order details
   useEffect(() => {
-    if (!session?.user || !hasAdminAccess(session.user) || !params.id) return
+    if (!session?.user || !params.id) return
     fetchOrder()
   }, [session, params.id])
 
@@ -246,7 +246,7 @@ export default function AdminOrderDetailPage() {
     )
   }
 
-  if (!session?.user || !hasAdminAccess(session.user)) {
+  if (!session?.user) {
     return null
   }
 

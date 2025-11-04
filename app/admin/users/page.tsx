@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
+import { Package } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface Admin {
   id: number;
@@ -61,6 +64,7 @@ export default function AdminUsersPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
+        <AdminBreadcrumb />
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Admin Users
         </h1>

@@ -7,6 +7,7 @@ import { Charity, CharityStats } from '@/lib/types/charity';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Heart, TrendingUp, DollarSign, Users, Calendar, ExternalLink } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminCharitiesPage() {
   const router = useRouter();
@@ -74,6 +75,7 @@ export default function AdminCharitiesPage() {
       </a>
       
       <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <AdminBreadcrumb />
         <div className="mb-8">
           <h1 id="main-content" className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3 transition-colors">
             <Heart className="w-8 h-8 text-red-500 dark:text-red-400 transition-colors" aria-hidden="true" />

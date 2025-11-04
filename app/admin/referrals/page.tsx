@@ -18,6 +18,7 @@ import {
   RefreshCw,
   AlertCircle
 } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface ReferralStats {
   total_clicks: number;
@@ -146,6 +147,7 @@ export default function AdminReferralsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdminBreadcrumb />
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>

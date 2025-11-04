@@ -13,6 +13,7 @@ import { AffiliateApplication } from '@/lib/types/affiliate';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import {
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
   Clock,
   CheckCircle,
   XCircle,

@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import { ArrowLeft, Save, Trash2, Eye, History } from 'lucide-react';
 import Link from 'next/link';
 import type { Product, ProductFormData, ProductHistoryEntry, ProductType, ProductStatus } from '@/lib/types/product';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface ProductResponse {
   success: boolean;

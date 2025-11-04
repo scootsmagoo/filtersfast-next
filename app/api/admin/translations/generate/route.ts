@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getTranslationsByLanguage, upsertTranslation } from '@/lib/db/i18n';
 import type { LanguageCode } from '@/lib/types/i18n';
 import { isLanguageSupported, DEFAULT_LANGUAGE } from '@/lib/types/i18n';
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
       headers: request.headers
     });
 
-    if (!session?.user?.email || !isAdmin(session.user.email)) {
+    if (!session?.user?.email || !isAdmin(permissionCheck.user.email)) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -168,7 +167,7 @@ ${JSON.stringify(translationMap, null, 2)}`;
     // Audit log
     await auditLog({
       action: 'generate_translations',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       resource: 'translation',

@@ -4,9 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { approveB2BAccount, getB2BAccountById } from '@/lib/db/b2b';
 import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
@@ -30,15 +28,13 @@ export async function POST(
 
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
-      // OWASP A09: Log unauthorized access attempts
-      console.warn('Unauthorized B2B approval attempt:', session?.user?.email);
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -103,9 +99,9 @@ export async function POST(
       discountPercentage: approvalData.discountPercentage || 0,
       paymentTerms: approvalData.paymentTerms,
       creditLimit: approvalData.creditLimit,
-      salesRepId: session.user.id,
-      salesRepName: session.user.name || session.user.email,
-      salesRepEmail: session.user.email,
+      salesRepId: permissionCheck.user.id,
+      salesRepName: session.user.name || permissionCheck.user.email,
+      salesRepEmail: permissionCheck.user.email,
     });
 
     if (!success) {
@@ -115,7 +111,7 @@ export async function POST(
     // Log audit trail
     await auditLog({
       action: 'b2b_account_approved',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'b2b_account',
       resourceId: params.id,
       status: 'success',

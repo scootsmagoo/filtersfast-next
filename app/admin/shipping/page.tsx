@@ -10,6 +10,7 @@ import { Package, Truck, Settings, Plus, Edit2, Trash2, Save, X } from 'lucide-r
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import type { ShippingConfig, ShippingCarrier } from '@/lib/types/shipping';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminShippingPage() {
   const [configs, setConfigs] = useState<ShippingConfig[]>([]);
@@ -97,6 +98,7 @@ export default function AdminShippingPage() {
   return (
     <div className="p-8">
       <div className="max-w-7xl mx-auto">
+        <AdminBreadcrumb />
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">

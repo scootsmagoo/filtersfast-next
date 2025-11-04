@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getReturnStatistics } from '@/lib/db/returns-mock';
 
 /**
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!isAdmin(session.user.email)) {
+    if (!isAdmin(permissionCheck.user.email)) {
       return NextResponse.json(
         { error: 'Forbidden: Admin access required' },
         { status: 403 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { TrendingUp, ChevronLeft, Plus, Package, Trash2 } from 'lucide-react';
 import { TierPricing } from '@/lib/types/b2b';
 import TierPricingModal, { TierPricingData } from '@/components/admin/TierPricingModal';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminTierPricingPage() {
   const [pricingRules, setPricingRules] = useState<TierPricing[]>([]);

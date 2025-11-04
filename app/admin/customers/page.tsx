@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 
 import Card from '@/components/ui/Card'
-import { Users, Search, Filter, UserCheck, UserX, TrendingUp, Mail } from 'lucide-react'
+import Button from '@/components/ui/Button'
+import { Users, Search, Filter, UserCheck, UserX, TrendingUp, Mail, Package } from 'lucide-react'
 import Link from 'next/link'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 interface CustomerStats {
   totalCustomers: number
@@ -53,18 +55,12 @@ export default function AdminCustomersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const customersPerPage = 50
 
-  // Redirect if not admin
-  useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push('/sign-in?redirect=/admin/customers')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
-    }
-  }, [session, isPending, router])
+  // Auth check is handled by admin layout
+  // No need for redundant check here
 
   // Fetch customers and stats
   useEffect(() => {
-    if (!session?.user || !hasAdminAccess(session.user)) return
+    if (!session?.user) return
 
     fetchCustomers()
     fetchStats()
@@ -182,6 +178,7 @@ export default function AdminCustomersPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
+          <AdminBreadcrumb />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Customer Management
           </h1>

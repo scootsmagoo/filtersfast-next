@@ -11,6 +11,7 @@ import {
 } from '@/components/admin/AnalyticsCharts';
 import { formatCurrency, formatNumber, calculatePercentageChange } from '@/lib/analytics-utils';
 import { TrendingUp, DollarSign, ShoppingCart, Users, Package, Calendar } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 type DatePeriod = 'today' | '7days' | '30days' | '90days' | 'year' | 'custom';
 
@@ -126,6 +127,9 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="container-custom">
+        <AdminBreadcrumb />
+      </div>
       {/* Screen reader status announcements */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {statusMessage}

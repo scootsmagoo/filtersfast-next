@@ -4,22 +4,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getAllB2BAccounts } from '@/lib/db/b2b';
 import { B2BAccountStatus } from '@/lib/types/b2b';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
+    // Check permissions
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
         { status: 403 }
       );
     }

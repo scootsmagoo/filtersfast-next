@@ -9,6 +9,9 @@ import { auth } from './auth'
 import { hasAdminAccess, hasPermission, getAdminDetails, PERMISSION_LEVEL } from './auth-admin'
 import { addAuditLog } from './db/admin-roles'
 
+// Re-export PERMISSION_LEVEL for convenience
+export { PERMISSION_LEVEL }
+
 // ============================================================================
 // Types
 // ============================================================================

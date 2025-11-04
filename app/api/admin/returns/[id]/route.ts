@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getReturnById, updateReturnStatus } from '@/lib/db/returns-mock';
 import { UpdateReturnStatus } from '@/lib/types/returns';
 // import { logAuditEvent } from '@/lib/audit-log';
@@ -29,7 +28,7 @@ export async function GET(
       );
     }
 
-    if (!isAdmin(session.user.email)) {
+    if (!isAdmin(permissionCheck.user.email)) {
       return NextResponse.json(
         { error: 'Forbidden: Admin access required' },
         { status: 403 }
@@ -75,7 +74,7 @@ export async function PATCH(
       );
     }
 
-    if (!isAdmin(session.user.email)) {
+    if (!isAdmin(permissionCheck.user.email)) {
       return NextResponse.json(
         { error: 'Forbidden: Admin access required' },
         { status: 403 }
@@ -115,7 +114,7 @@ export async function PATCH(
     // Log audit event
     // TODO: Re-enable when logAuditEvent is implemented
     // await logAuditEvent({
-    //   userId: session.user.id || session.user.email,
+    //   userId: permissionCheck.user.id || permissionCheck.user.email,
     //   action: 'return_updated',
     //   resourceType: 'return',
     //   resourceId: returnRequest.id,

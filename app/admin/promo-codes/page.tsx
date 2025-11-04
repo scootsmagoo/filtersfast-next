@@ -19,6 +19,7 @@ import {
   Lock
 } from 'lucide-react'
 import Link from 'next/link'
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
 // Use mock data for now
 import { MOCK_PROMO_CODES } from '@/lib/db/promo-codes-mock'
@@ -31,11 +32,10 @@ export default function PromoCodesAdminPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'expired'>('all')
 
   // Redirect if not logged in or not admin
+  // Auth check is handled by admin layout
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin/promo-codes')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      router.push('/')
     }
   }, [session, isPending, router])
 
@@ -47,7 +47,7 @@ export default function PromoCodesAdminPage() {
     )
   }
 
-  if (!session?.user || !hasAdminAccess(session.user)) {
+  if (!session?.user) {
     return null
   }
 
@@ -82,13 +82,7 @@ export default function PromoCodesAdminPage() {
       <div className="container-custom py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            href="/admin" 
-            className="inline-flex items-center gap-2 text-brand-blue dark:text-blue-400 hover:underline mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
+          <AdminBreadcrumb />
           
           <div className="flex items-center justify-between">
             <div>

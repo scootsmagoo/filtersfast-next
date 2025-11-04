@@ -195,6 +195,7 @@ try {
   insertPermission.run('Products', 'Manage products and inventory', 'Products & Catalog', 30)
   insertPermission.run('Categories', 'Manage product categories', 'Products & Catalog', 31)
   insertPermission.run('PromoCodes', 'Manage promo codes', 'Products & Catalog', 32)
+  insertPermission.run('Inventory', 'Manage inventory and stock levels', 'Products & Catalog', 33)
 
   // Marketing
   insertPermission.run('Affiliates', 'Manage affiliate program', 'Marketing', 40)
@@ -256,7 +257,7 @@ try {
     if (['Customers', 'Support', 'Orders', 'Returns', 'Reviews'].includes(perm.name)) {
       level = 2 // Restricted control
     }
-    if (['Admins', 'Refunds', 'Products', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency'].includes(perm.name)) {
+    if (['Admins', 'Refunds', 'Products', 'Inventory', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency'].includes(perm.name)) {
       level = -1 // No access
     }
     insertRolePermission.run(roleMap.Support.id, perm.id, level)
@@ -268,7 +269,7 @@ try {
     if (['Orders', 'Customers', 'B2B', 'PromoCodes'].includes(perm.name)) {
       level = 2 // Restricted control
     }
-    if (['Admins', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency', 'Translations'].includes(perm.name)) {
+    if (['Admins', 'Inventory', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency', 'Translations'].includes(perm.name)) {
       level = -1 // No access
     }
     insertRolePermission.run(roleMap.Sales.id, perm.id, level)

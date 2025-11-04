@@ -10,6 +10,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { Shield, Users, TrendingUp, CheckCircle2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export const metadata = {
   title: 'ID.me Verifications | Admin',
@@ -43,6 +44,7 @@ export default async function AdminIdMePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdminBreadcrumb />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">ID.me Verifications</h1>
           <p className="text-gray-600 mt-2">

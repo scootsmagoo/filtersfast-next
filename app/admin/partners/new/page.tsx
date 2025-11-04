@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { ArrowLeft } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function NewPartnerPage() {
   const router = useRouter();
@@ -69,7 +70,8 @@ export default function NewPartnerPage() {
 
   return (
     <div className="container-custom py-12">
-      <div className="mb-8">
+      <AdminBreadcrumb />
+        <div className="mb-8">
         <Button
           variant="outline"
           onClick={() => router.back()}

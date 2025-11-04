@@ -27,6 +27,7 @@ import {
   Ban,
   PlayCircle
 } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminAffiliatesPage() {
   const router = useRouter();
@@ -119,6 +120,7 @@ export default function AdminAffiliatesPage() {
       <div className="container-custom py-12 min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
         <div className="mb-8">
+          <AdminBreadcrumb />
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 id="main-content" className="text-3xl font-bold mb-2 flex items-center gap-3" tabIndex={-1}>

@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { AbandonedCart, AbandonedCartStats } from '@/lib/db/abandoned-carts';
 import Card from '@/components/ui/Card';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 interface AbandonedCartWithItems extends Omit<AbandonedCart, 'cart_data'> {
   cart_items: Array<{
@@ -94,7 +95,8 @@ export default function AdminAbandonedCartsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="mb-8">
+      <AdminBreadcrumb />
+        <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Abandoned Cart Recovery</h1>
         <p className="text-gray-600 dark:text-gray-300 transition-colors">Monitor and analyze cart abandonment metrics</p>
       </div>

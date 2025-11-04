@@ -5,9 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { getB2BAccountById, updateB2BAccount } from '@/lib/db/b2b';
 import { auditLog } from '@/lib/audit-log';
 
@@ -17,13 +15,13 @@ export async function GET(
 ) {
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -53,13 +51,13 @@ export async function PATCH(
 ) {
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -86,7 +84,7 @@ export async function PATCH(
     // Log audit trail
     await auditLog({
       action: 'b2b_account_updated',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'b2b_account',
       resourceId: params.id,
       status: 'success',

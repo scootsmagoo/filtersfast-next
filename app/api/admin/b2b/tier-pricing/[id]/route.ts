@@ -5,9 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import { deleteTierPricing, updateTierPricing } from '@/lib/db/b2b';
 import { auditLog } from '@/lib/audit-log';
 import { rateLimit } from '@/lib/rate-limit';
@@ -32,14 +30,13 @@ export async function DELETE(
 
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
-      console.warn('Unauthorized tier pricing deletion:', session?.user?.email);
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -57,7 +54,7 @@ export async function DELETE(
     // Log audit trail
     await auditLog({
       action: 'tier_pricing_deleted',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'tier_pricing',
       resourceId: params.id,
       status: 'success',
@@ -92,14 +89,13 @@ export async function PATCH(
 
   try {
     // Get session and verify admin
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || !isAdmin(session.user.email)) {
-      console.warn('Unauthorized tier pricing update:', session?.user?.email);
+    const permissionCheck = await checkPermission(request, 'B2B', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
+    },
         { status: 403 }
       );
     }
@@ -129,7 +125,7 @@ export async function PATCH(
     // Log audit trail
     await auditLog({
       action: 'tier_pricing_updated',
-      userId: session.user.id,
+      userId: permissionCheck.user.id,
       resource: 'tier_pricing',
       resourceId: params.id,
       status: 'success',

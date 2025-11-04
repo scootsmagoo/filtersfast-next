@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { ReturnRequest, ReturnStatus, ReturnStatistics } from '@/lib/types/returns';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminReturnsPage() {
   const [returns, setReturns] = useState<ReturnRequest[]>([]);
@@ -87,6 +88,7 @@ export default function AdminReturnsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="mb-8">
+        <AdminBreadcrumb />
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Returns Management</h1>
         <p className="text-gray-600 dark:text-gray-300 transition-colors">Manage customer return requests and refunds</p>
       </div>

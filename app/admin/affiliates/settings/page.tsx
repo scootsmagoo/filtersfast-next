@@ -13,6 +13,7 @@ import { AffiliateSettings } from '@/lib/types/affiliate';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Settings, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AffiliateSettingsPage() {
   const router = useRouter();
