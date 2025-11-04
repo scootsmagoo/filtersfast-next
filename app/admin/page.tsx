@@ -210,8 +210,7 @@ export default function AdminDashboard() {
       description: 'Sales reports and insights',
       icon: TrendingUp,
       href: '/admin/analytics',
-      color: 'emerald',
-      comingSoon: true
+      color: 'emerald'
     },
     {
       title: 'Settings',

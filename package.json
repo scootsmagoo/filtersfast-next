@@ -25,6 +25,7 @@
     "init:customers": "tsx scripts/init-customers.ts",
     "init:taxjar": "tsx scripts/init-taxjar.ts",
     "init:shipping": "tsx scripts/init-shipping.ts",
+    "init:analytics": "tsx scripts/init-analytics.ts",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts"

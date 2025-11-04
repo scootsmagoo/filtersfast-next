@@ -2455,6 +2455,324 @@ For issues or questions about the product management system:
 
 ---
 
+## 📊 Analytics & Reporting Dashboard
+
+**NEW!** Complete business intelligence system for comprehensive sales, revenue, and customer insights.
+
+### Overview
+Enterprise-grade analytics platform with real-time dashboards, customizable reports, and data export capabilities. Built for data-driven decision-making with performance optimization and interactive visualizations.
+
+### Dashboard Features
+
+**Analytics Dashboard** (`/admin/analytics`):
+- ✅ **Real-Time Statistics:**
+  - Total revenue (current period)
+  - Total orders count
+  - Average order value (AOV)
+  - Total customers
+  - New customers acquired
+  - Returning customers
+  - Repeat purchase rate
+- ✅ **Interactive Charts:**
+  - Revenue trend line chart
+  - Order status pie chart
+  - Top products bar chart
+  - Top customers bar chart
+  - Daily sales breakdown table
+  - Revenue by period chart
+- ✅ **Date Range Selection:**
+  - Predefined periods (Today, Last 7/30/90 Days, This Year)
+  - Custom date range picker
+  - Period comparison
+- ✅ **Data Export:**
+  - CSV export of all reports
+  - Custom date range exports
+  - Ready for Excel/Google Sheets
+- ✅ **Performance Optimized:**
+  - Database views for fast queries
+  - Indexed columns for speed
+  - Cached aggregations
+  - Efficient data structures
+
+### Analytics Reports
+
+**Daily Sales Report:**
+- Date-by-date breakdown
+- Order count per day
+- Revenue per day
+- Average order value per day
+- New customers per day
+- 30-day history displayed
+
+**Top Products Analysis:**
+- Sort by quantity sold
+- Sort by revenue generated
+- Product names and SKUs
+- Total quantity metrics
+- Revenue breakdown
+- Top 10 products displayed
+
+**Top Customers Report:**
+- Sort by order count
+- Sort by lifetime value
+- Customer names and emails
+- Total orders placed
+- Total amount spent
+- Top 10 customers displayed
+
+**Revenue by Period:**
+- Group by day, week, month, quarter, or year
+- Order count per period
+- Revenue per period
+- Trend analysis
+- Historical comparisons
+
+**Order Status Breakdown:**
+- Distribution by status
+- Count per status
+- Revenue per status
+- Visual pie chart
+- Status filtering
+
+**Customer Acquisition Metrics:**
+- New vs returning customers
+- First-time buyers
+- Repeat customers
+- Repeat purchase rate percentage
+- Customer retention insights
+
+### API Endpoints
+
+**Analytics Data:**
+- `GET /api/admin/analytics/summary` - Overall summary statistics
+- `GET /api/admin/analytics/daily-sales` - Daily sales breakdown
+- `GET /api/admin/analytics/top-products` - Top products by revenue/quantity
+- `GET /api/admin/analytics/top-customers` - Top customers by orders/revenue
+- `GET /api/admin/analytics/revenue-by-period` - Revenue trends over time
+- `GET /api/admin/analytics/order-status` - Order distribution by status
+- `GET /api/admin/analytics/customer-acquisition` - New vs returning customers
+
+**Query Parameters:**
+- `period` - today, 7days, 30days, 90days, year, custom
+- `startDate` - Custom start date (YYYY-MM-DD)
+- `endDate` - Custom end date (YYYY-MM-DD)
+- `groupBy` - day, week, month, quarter, year
+- `sortBy` - revenue, quantity, orders
+- `limit` - Number of results (default: 10)
+
+### Database Optimization
+
+**Views Created:**
+```sql
+-- Daily sales summary
+CREATE VIEW daily_sales_summary AS
+SELECT 
+  DATE(created_at) as sale_date,
+  COUNT(*) as total_orders,
+  SUM(total) as total_revenue,
+  AVG(total) as avg_order_value,
+  COUNT(DISTINCT user_id) as unique_customers
+FROM orders
+WHERE status IN ('paid', 'shipped', 'completed')
+GROUP BY DATE(created_at);
+
+-- Monthly sales summary
+CREATE VIEW monthly_sales_summary AS
+SELECT 
+  strftime('%Y-%m', created_at) as month,
+  COUNT(*) as total_orders,
+  SUM(total) as total_revenue,
+  AVG(total) as avg_order_value,
+  COUNT(DISTINCT user_id) as unique_customers
+FROM orders
+WHERE status IN ('paid', 'shipped', 'completed')
+GROUP BY strftime('%Y-%m', created_at);
+
+-- Product performance
+CREATE VIEW product_performance AS
+SELECT 
+  oi.product_id,
+  p.name as product_name,
+  p.sku,
+  SUM(oi.quantity) as total_quantity_sold,
+  SUM(oi.price * oi.quantity) as total_revenue,
+  COUNT(DISTINCT oi.order_id) as order_count,
+  AVG(oi.price) as avg_price
+FROM order_items oi
+LEFT JOIN products p ON p.id = oi.product_id
+JOIN orders o ON o.id = oi.order_id
+WHERE o.status IN ('paid', 'shipped', 'completed')
+GROUP BY oi.product_id, p.name, p.sku;
+
+-- Customer lifetime value
+CREATE VIEW customer_lifetime_value AS
+SELECT 
+  o.user_id,
+  u.name as customer_name,
+  u.email,
+  COUNT(*) as total_orders,
+  SUM(o.total) as lifetime_value,
+  AVG(o.total) as avg_order_value,
+  MIN(o.created_at) as first_order_date,
+  MAX(o.created_at) as last_order_date
+FROM orders o
+LEFT JOIN user u ON u.id = o.user_id
+WHERE o.status IN ('paid', 'shipped', 'completed')
+GROUP BY o.user_id, u.name, u.email;
+```
+
+**Indexes Created:**
+```sql
+-- Performance indexes
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+CREATE INDEX idx_orders_status_created_at ON orders(status, created_at);
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+```
+
+### Chart Components
+
+**Stat Cards:**
+- Large metric display
+- Icon visualization
+- Percentage change indicator
+- Period comparison
+- Color-coded positive/negative
+- Dark mode support
+
+**Line Charts:**
+- Revenue trends over time
+- SVG-based rendering
+- Area fill under line
+- Interactive data points
+- Min/Avg/Max statistics
+- Responsive design
+
+**Bar Charts:**
+- Top products visualization
+- Top customers visualization
+- Gradient color bars
+- Value labels
+- Percentage of max indicator
+- Truncated long names
+
+**Pie Charts:**
+- Order status distribution
+- Percentage breakdowns
+- Color-coded segments
+- Stacked horizontal bar
+- Legend with values
+- Interactive tooltips
+
+**Data Tables:**
+- Sortable columns
+- Formatted values (currency, numbers)
+- Hover states
+- Dark mode support
+- Export functionality
+- Pagination ready
+
+### Utility Functions
+
+**Analytics Utilities** (`lib/analytics-utils.ts`):
+- `formatCurrency()` - Format numbers as USD
+- `formatNumber()` - Format with commas
+- `calculatePercentageChange()` - Compare periods
+- `formatPercentage()` - Display with +/- signs
+- `getDateRange()` - Calculate date ranges
+- `calculateGrowthRate()` - Growth calculations
+- `prepareChartData()` - Format for visualization
+- `getChartColor()` - Consistent color scheme
+- `formatDateForDisplay()` - Human-readable dates
+- `validateDateRange()` - Input validation
+- `exportToCSV()` - Data export formatting
+
+### Security & Performance
+
+**Security Features:**
+- ✅ Admin-only access (session verification)
+- ✅ Rate limiting on all endpoints
+- ✅ Input validation and sanitization
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ No PII exposure in exports
+- ✅ Audit logging for data access
+
+**Performance Features:**
+- ✅ Database views for complex queries
+- ✅ Indexed columns for fast lookups
+- ✅ Parallel API calls for dashboard load
+- ✅ Efficient data aggregation
+- ✅ Lazy loading for large datasets
+- ✅ Optimized React rendering
+
+### Setup & Initialization
+
+**Initialize Analytics:**
+```bash
+npm run init:analytics
+```
+
+This creates:
+- 4 database views (daily/monthly sales, product performance, customer LTV)
+- 6 performance indexes
+- Optimized query paths
+
+**Access Dashboard:**
+- Navigate to `/admin/analytics`
+- Requires admin authentication
+- Select date range
+- View real-time insights
+- Export reports as CSV
+
+### Use Cases
+
+**Business Reporting:**
+- Daily sales monitoring
+- Monthly revenue tracking
+- Year-over-year comparisons
+- Quarter-over-quarter growth
+- Product performance analysis
+- Customer segmentation
+
+**Operational Insights:**
+- Identify best-selling products
+- Track slow-moving inventory
+- Monitor order fulfillment status
+- Analyze customer acquisition costs
+- Calculate customer lifetime value
+- Measure repeat purchase rates
+
+**Strategic Planning:**
+- Revenue forecasting
+- Inventory planning
+- Marketing campaign effectiveness
+- Customer retention strategies
+- Product portfolio optimization
+- Seasonal trend analysis
+
+### Based on Legacy Features
+
+This analytics system is based on and modernizes these legacy ASP pages:
+- ✅ **sa_daily_sales.asp** - Daily sales tracking with real-time updates
+- ✅ **SA_stats.asp** - Statistics dashboard with charts and reports
+- ✅ **SA_totalsales.asp** - Total sales by month and year
+- ✅ **sa_donation_dashboard.asp** - Charitable giving analytics (adapted)
+
+**Enhancements over legacy:**
+- Modern React-based interactive charts
+- Real-time data without page refresh
+- Flexible date range selection
+- Mobile-responsive design
+- Dark mode support
+- CSV export functionality
+- Database optimization with views
+- Better performance with indexes
+- Clean TypeScript implementation
+- RESTful API architecture
+
+---
+
 ## 👤 Account Features
 
 ### Dashboard
