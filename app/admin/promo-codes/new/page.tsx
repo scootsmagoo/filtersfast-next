@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
-import { hasAdminAccess } from '@/lib/auth-admin'
+
 import { useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'

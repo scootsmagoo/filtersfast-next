@@ -488,3 +488,4 @@ export function searchPosts(query: string): BlogPost[] {
   );
 }
 
+

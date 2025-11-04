@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
-import { hasAdminAccess } from '@/lib/auth-admin'
+
 import Card from '@/components/ui/Card'
 import { Package, Search, Filter, Download, TrendingUp, DollarSign, ShoppingCart, Clock } from 'lucide-react'
 import Link from 'next/link'

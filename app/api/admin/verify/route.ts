@@ -27,7 +27,9 @@ export async function GET() {
     }
 
     // Check if user has admin access
-    if (!hasAdminAccess(session.user)) {
+    const adminAccess = hasAdminAccess(session.user);
+    
+    if (!adminAccess) {
       return NextResponse.json(
         { error: 'Not authorized', isAdmin: false },
         { status: 403 }

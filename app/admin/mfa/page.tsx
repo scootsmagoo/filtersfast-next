@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { hasAdminAccess } from '@/lib/auth-admin';
+;
 import MFADashboard from '@/components/admin/MFADashboard';
 
 export const metadata = {
@@ -18,10 +18,7 @@ export default async function AdminMFAPage() {
     redirect('/sign-in?redirect=/admin/mfa');
   }
 
-  // Check admin access using email whitelist
-  if (!hasAdminAccess(session.user)) {
-    redirect('/');
-  }
+  // Admin authorization is handled by the layout
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">

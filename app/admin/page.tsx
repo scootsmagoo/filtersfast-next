@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import { useEffect } from 'react'
-import { hasAdminAccess } from '@/lib/auth-admin'
 import Card from '@/components/ui/Card'
 import { 
   Tag, 
@@ -36,14 +35,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isPending && !session?.user) {
       router.push('/sign-in?redirect=/admin')
-    } else if (!isPending && session?.user && !hasAdminAccess(session.user)) {
-      console.log('Admin access denied for:', session.user.email)
-      console.log('User object:', session.user)
-      // Only redirect after a brief delay to ensure session is fully loaded
-      setTimeout(() => {
-        router.push('/')
-      }, 100)
     }
+    // Admin authorization is handled by the layout
   }, [session, isPending, router])
 
   if (isPending) {
@@ -61,22 +54,7 @@ export default function AdminDashboard() {
     return null // Will redirect to sign-in
   }
 
-  if (!hasAdminAccess(session.user)) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
-        <Card className="p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4 transition-colors" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Access Denied</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 transition-colors">
-            You don't have permission to access the admin area.
-          </p>
-          <Link href="/" className="btn-primary inline-block">
-            Go to Homepage
-          </Link>
-        </Card>
-      </div>
-    )
-  }
+  // Admin authorization is handled by the layout
 
   const adminSections = [
     {
@@ -169,6 +147,13 @@ export default function AdminDashboard() {
       icon: Shield,
       href: '/admin/mfa',
       color: 'purple'
+    },
+    {
+      title: 'Admin Users & Roles',
+      description: 'Manage admin users, roles, and permissions',
+      icon: Shield,
+      href: '/admin/users',
+      color: 'red'
     },
     {
       title: 'Support Articles',

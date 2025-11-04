@@ -1,28 +1,133 @@
 /**
  * Admin Authorization Utilities
+ * Database-backed role and permission system
+ * NOTE: These functions should only be called server-side (API routes, server components)
  */
 
-// List of admin emails (move to environment variable in production)
-const ADMIN_EMAILS = [
-  'falonya@gmail.com',
-  'adam@filtersfast.com',
-  // Add your test email here for testing
-]
+import { 
+  getAdminByUserId, 
+  getEffectivePermissions, 
+  hasPermission as dbHasPermission,
+  PERMISSION_LEVEL,
+  updateAdminLastLogin,
+  type AdminWithDetails
+} from './db/admin-roles'
 
 /**
  * Check if a user is an admin
  */
-export function isAdmin(email: string | null | undefined): boolean {
-  if (!email) return false
-  return ADMIN_EMAILS.includes(email.toLowerCase())
+export function isAdmin(userId: string | null | undefined): boolean {
+  if (!userId) {
+    return false;
+  }
+  
+  try {
+    const admin = getAdminByUserId(userId)
+    return admin !== null && admin.is_enabled === 1
+  } catch (error) {
+    console.error('[isAdmin] Error checking admin status')
+    return false
+  }
 }
 
 /**
  * Check if a user has admin access
  * Returns true if user is logged in AND is an admin
  */
-export function hasAdminAccess(user: { email?: string } | null | undefined): boolean {
-  if (!user?.email) return false
-  return isAdmin(user.email)
+export function hasAdminAccess(user: { id?: string } | null | undefined): boolean {
+  if (!user?.id) return false
+  return isAdmin(user.id)
 }
+
+/**
+ * Get admin details for a user
+ */
+export function getAdminDetails(userId: string): AdminWithDetails | null {
+  try {
+    return getAdminByUserId(userId)
+  } catch (error) {
+    console.error('Error getting admin details:', error)
+    return null
+  }
+}
+
+/**
+ * Check if admin has specific permission
+ */
+export function hasPermission(
+  userId: string,
+  permissionName: string,
+  requiredLevel: number = PERMISSION_LEVEL.READ_ONLY
+): boolean {
+  try {
+    const admin = getAdminByUserId(userId)
+    if (!admin || admin.is_enabled !== 1) return false
+    
+    return dbHasPermission(admin.id, permissionName, requiredLevel)
+  } catch (error) {
+    console.error('Error checking permission:', error)
+    return false
+  }
+}
+
+/**
+ * Get all permissions for an admin user
+ */
+export function getAdminPermissions(userId: string): Map<string, number> {
+  try {
+    const admin = getAdminByUserId(userId)
+    if (!admin || admin.is_enabled !== 1) return new Map()
+    
+    return getEffectivePermissions(admin.id)
+  } catch (error) {
+    console.error('Error getting admin permissions:', error)
+    return new Map()
+  }
+}
+
+/**
+ * Check if admin requires 2FA
+ */
+export function requires2FA(userId: string): boolean {
+  try {
+    const admin = getAdminByUserId(userId)
+    return admin?.require_2fa === 1
+  } catch (error) {
+    console.error('Error checking 2FA requirement:', error)
+    return true // Fail secure - require 2FA if error
+  }
+}
+
+/**
+ * Check if admin password is expired
+ */
+export function isPasswordExpired(userId: string): boolean {
+  try {
+    const admin = getAdminByUserId(userId)
+    if (!admin?.password_expires_at) return false
+    
+    const now = Math.floor(Date.now() / 1000)
+    return admin.password_expires_at < now
+  } catch (error) {
+    console.error('Error checking password expiry:', error)
+    return false
+  }
+}
+
+/**
+ * Update admin last login timestamp
+ */
+export function recordAdminLogin(userId: string): void {
+  try {
+    const admin = getAdminByUserId(userId)
+    if (admin) {
+      updateAdminLastLogin(admin.id)
+    }
+  } catch (error) {
+    console.error('Error recording admin login:', error)
+  }
+}
+
+// Re-export permission levels for convenience
+export { PERMISSION_LEVEL } from './db/admin-roles'
 

@@ -65,6 +65,459 @@ Complete guide to all implemented features.
 
 ---
 
+## 🛡️ Admin Role-Based Permissions System
+
+**NEW!** Comprehensive role-based access control (RBAC) system for admin users with granular permissions, audit logging, password policies, and 2FA requirements.
+
+### Overview
+Enterprise-grade admin user management with role-based permissions, granular access control, password policies, audit logging, and security features. Built for compliance, security, and operational flexibility.
+
+### Core Features
+
+**Admin User Management:**
+- ✅ **User CRUD Operations** - Create, read, update, disable admin users
+- ✅ **Role Assignment** - Assign users to predefined or custom roles
+- ✅ **Sales Rep Assignment** - Link admins to sales codes for commission tracking
+- ✅ **Account Status** - Enable/disable admin accounts
+- ✅ **2FA Requirement** - Enforce two-factor authentication per user
+- ✅ **Last Login Tracking** - Monitor admin activity
+- ✅ **User Details View** - Full admin profile with permissions
+
+**Role Management:**
+- ✅ **Predefined Roles:**
+  - **Admin** - Full system access (all permissions at Full Control level)
+  - **Manager** - Operational access (most permissions, read-only on sensitive areas)
+  - **Support** - Customer service access (customers, orders, returns, support tickets)
+  - **Sales** - Sales operations (orders, customers, B2B, promo codes)
+- ✅ **Custom Roles** - Create new roles with custom permission sets
+- ✅ **Role Permissions** - Assign permissions to roles with different levels
+- ✅ **Permission Inheritance** - Users inherit all role permissions
+- ✅ **Role Description** - Document role purpose and scope
+
+**Granular Permissions:**
+- ✅ **Permission Groups:**
+  - Dashboard & Analytics
+  - User Management
+  - Orders & Sales
+  - Products & Catalog
+  - Marketing
+  - Content & Support
+  - Business (B2B, Partners)
+  - Configuration (Shipping, Tax, Payments, Currency)
+  - Security & Compliance
+
+- ✅ **Permission Levels:**
+  - **No Access (-1)** - Cannot view or interact
+  - **Read-Only (0)** - View only, no modifications
+  - **Full Control (1)** - Complete access and modifications
+  - **Restricted (2)** - Limited modifications (e.g., own records only)
+
+- ✅ **User-Level Overrides** - Override role permissions for specific users
+- ✅ **24 Granular Permissions:**
+  - Dashboard, Analytics
+  - Customers, Admins
+  - Orders, Refunds, Returns
+  - Products, Categories, PromoCodes
+  - Affiliates, Referrals, Giveaways, Newsletter
+  - Support, Reviews, Translations
+  - B2B, Partners
+  - Shipping, TaxJar, Payments, Currency, Settings
+  - AuditLog, MFA
+
+**Password Policy:**
+- ✅ **Complexity Requirements:**
+  - Minimum 12 characters (configurable)
+  - Maximum 128 characters
+  - At least 1 uppercase letter
+  - At least 1 lowercase letter
+  - At least 1 number
+  - At least 1 special character
+  - No common passwords or patterns
+  - No sequential or repeated characters
+- ✅ **Password History** - Prevent reuse of last 5 passwords
+- ✅ **Password Expiry** - 90-day automatic expiration
+- ✅ **Forced Password Change** - On first login and after expiry
+- ✅ **Password Reset** - 24-hour secure reset links
+- ✅ **Temporary Passwords** - Secure random generation for new users
+
+**Security Features:**
+- ✅ **2FA Enforcement** - Require 2FA for admin accounts
+- ✅ **Failed Login Tracking** - Log all failed authentication attempts
+- ✅ **Account Lockout** - Rate limiting on failed attempts
+- ✅ **IP Address Logging** - Track admin access by IP
+- ✅ **User Agent Tracking** - Monitor devices and browsers
+- ✅ **Session Management** - Secure session handling
+- ✅ **Password Hashing** - bcrypt with 12 rounds
+- ✅ **SQL Injection Prevention** - Parameterized queries
+- ✅ **XSS Protection** - Input sanitization
+
+**Audit Logging:**
+- ✅ **Comprehensive Activity Log:**
+  - Admin action (e.g., "admin.users.create")
+  - Resource type (e.g., "admin_users")
+  - Resource ID (specific record)
+  - Success/failure status
+  - IP address and user agent
+  - Timestamp
+  - Error details (if failed)
+  - Additional context (JSON)
+- ✅ **Logged Actions:**
+  - User creation, updates, deletion
+  - Role changes
+  - Permission modifications
+  - Password changes
+  - Login attempts
+  - All administrative actions
+- ✅ **Audit Log Viewing** - Admin dashboard for log review
+- ✅ **Filtering** - By action, resource, status, date range
+- ✅ **Retention** - 90-day default retention (configurable)
+- ✅ **Log Cleanup** - Automated purging of old logs
+
+**Sales Code Management:**
+- ✅ **Sales Codes** - Track sales rep assignments
+- ✅ **Code Assignment** - Link admins to sales codes
+- ✅ **Active/Inactive Status** - Enable/disable codes
+- ✅ **Commission Tracking** - Associate orders with sales reps
+
+### Database Schema
+
+**Tables Created:**
+- `admin_roles` - Role definitions
+- `admin_permissions` - Master permission list
+- `admins` - Admin user records (links to better-auth users)
+- `admin_role_permissions` - Permission assignments to roles
+- `admin_user_permissions` - User-level permission overrides
+- `password_history` - Last 5 passwords per admin
+- `failed_logins` - Failed authentication attempts
+- `admin_audit_log` - Complete audit trail
+- `sales_codes` - Sales representative codes
+
+**Relationships:**
+- Admins → Roles (many-to-one)
+- Admins → Sales Codes (many-to-one, optional)
+- Roles → Permissions (many-to-many, with level)
+- Admins → Permission Overrides (many-to-many, with level)
+- Admins → Password History (one-to-many)
+- Admins → Audit Logs (one-to-many)
+
+### API Endpoints
+
+**Admin User Management:**
+- `GET /api/admin/users` - List all admin users
+  - Query params: `includeDisabled` (boolean)
+  - Returns: array of admins with role and sales code details
+  - Permission: `Admins` (Read-Only)
+
+- `POST /api/admin/users` - Create new admin user
+  - Body: `{ email, name, roleId, salesCodeId?, require2fa? }`
+  - Creates user in better-auth if doesn't exist
+  - Generates temporary password
+  - Sends welcome email with reset link
+  - Permission: `Admins` (Full Control)
+
+- `GET /api/admin/users/[id]` - Get admin user details
+  - Returns: admin details, permission overrides
+  - Permission: `Admins` (Read-Only)
+
+- `PATCH /api/admin/users/[id]` - Update admin user
+  - Body: `{ roleId?, salesCodeId?, isEnabled?, require2fa?, permissions? }`
+  - Updates role and settings
+  - Applies permission overrides
+  - Permission: `Admins` (Full Control)
+
+- `DELETE /api/admin/users/[id]` - Disable admin user
+  - Soft delete (sets is_enabled = 0)
+  - Preserves audit trail
+  - Permission: `Admins` (Full Control)
+
+**Role Management:**
+- `GET /api/admin/roles` - List all roles with permissions
+  - Returns: roles array with permission assignments
+  - Permission: `Admins` (Read-Only)
+
+- `POST /api/admin/roles` - Create new role
+  - Body: `{ name, description? }`
+  - Permission: `Admins` (Full Control)
+
+- `GET /api/admin/roles/[id]` - Get role details with permissions
+  - Returns: role, permissions array
+  - Permission: `Admins` (Read-Only)
+
+- `PATCH /api/admin/roles/[id]` - Update role and permissions
+  - Body: `{ name?, description?, permissions? }`
+  - Clears and resets permissions
+  - Permission: `Admins` (Full Control)
+
+- `DELETE /api/admin/roles/[id]` - Delete role
+  - Only if no admins assigned
+  - Permission: `Admins` (Full Control)
+
+**Permissions:**
+- `GET /api/admin/permissions` - Get all permissions
+  - Query params: `grouped` (boolean) - group by permission_group
+  - Returns: permissions array or grouped object
+  - Permission: `Admins` (Read-Only)
+
+**Audit Log:**
+- `GET /api/admin/audit` - Get audit logs
+  - Query params: `adminId`, `action`, `resource`, `status`, `limit`, `offset`
+  - Returns: logs array, count
+  - Permission: `AuditLog` (Read-Only)
+
+- `DELETE /api/admin/audit` - Clear old audit logs
+  - Query params: `daysAgo` (default: 90)
+  - Returns: deletedCount
+  - Permission: `AuditLog` (Full Control)
+
+**Failed Logins:**
+- `GET /api/admin/failed-logins` - Get failed login attempts
+  - Query params: `email`, `limit`
+  - Returns: failedLogins array, count
+  - Permission: `Admins` (Read-Only)
+
+- `DELETE /api/admin/failed-logins` - Clear old failed login records
+  - Query params: `daysAgo` (default: 30)
+  - Returns: deletedCount
+  - Permission: `Admins` (Full Control)
+
+**Sales Codes:**
+- `GET /api/admin/sales-codes` - Get all sales codes
+  - Query params: `activeOnly` (default: true)
+  - Returns: salesCodes array
+  - Permission: `Admins` (Read-Only)
+
+- `POST /api/admin/sales-codes` - Create sales code
+  - Body: `{ code, name }`
+  - Permission: `Admins` (Full Control)
+
+- `PATCH /api/admin/sales-codes` - Update sales code
+  - Query params: `id`
+  - Body: `{ code, name, active }`
+  - Permission: `Admins` (Full Control)
+
+**Password Management:**
+- `POST /api/admin/password/change` - Change admin password
+  - Body: `{ currentPassword, newPassword }`
+  - Validates complexity and reuse
+  - Records in password history
+  - Updates expiry timestamp
+  - Permission: Self (any admin)
+
+- `POST /api/admin/password/validate` - Validate password complexity
+  - Body: `{ password }`
+  - Returns: `{ valid, errors }`
+  - Public endpoint (for client-side validation)
+
+### UI Pages
+
+**Admin User Management:**
+- `/admin/users` - List all admin users
+  - Table view with sorting
+  - Show/hide disabled users toggle
+  - Quick links to roles, audit log, failed logins
+  - Create new user button
+  - User details: name, email, role, sales code, last login, 2FA status, account status
+  - Edit action per user
+
+- `/admin/users/new` - Create new admin user
+  - Email, name, role, sales code selection
+  - 2FA requirement checkbox (default: required)
+  - Auto-creates user in better-auth if needed
+  - Sends welcome email with temporary password
+
+- `/admin/users/[id]` - Edit admin user
+  - View user information (name, email - read-only)
+  - Change role
+  - Change sales code
+  - Toggle account enabled/disabled
+  - Toggle 2FA requirement
+  - Permission overrides (future enhancement)
+  - Disable user button
+  - Save changes button
+
+- `/admin/users/roles` - Manage roles
+  - List all roles with descriptions
+  - Expandable permissions view per role
+  - Permission counts
+  - Edit role button (future enhancement)
+  - Create new role button (future enhancement)
+  - Color-coded permission levels
+
+- `/admin/users/audit` - Audit log viewer
+  - Paginated table (50/100/250/500 per page)
+  - Filter by: action, resource, status
+  - Columns: timestamp, action, resource, status, IP address
+  - Real-time updates
+  - Export capability (future enhancement)
+
+- `/admin/users/failed-logins` - Failed login attempts
+  - Paginated table
+  - Filter by email
+  - Columns: timestamp, email, IP address, reason
+  - Security monitoring
+
+### Permission Checking
+
+**Middleware Functions:**
+```typescript
+// Verify admin access
+requireAdmin(handler)
+
+// Verify specific permission
+requirePermission(permissionName, level)(handler)
+
+// Permission-based on HTTP method
+requirePermissionByMethod(permissionName)(handler)
+
+// With automatic audit logging
+requirePermissionWithAudit(permissionName, level, action, resource)(handler)
+```
+
+**Server-Side Checks:**
+```typescript
+// Check if user is admin
+isAdmin(userId: string): boolean
+
+// Check permission
+hasPermission(userId: string, permissionName: string, requiredLevel: number): boolean
+
+// Get all permissions
+getAdminPermissions(userId: string): Map<string, number>
+
+// Check 2FA requirement
+requires2FA(userId: string): boolean
+
+// Check password expiry
+isPasswordExpired(userId: string): boolean
+```
+
+**Server Actions:**
+```typescript
+// Require admin for server action
+await requireAdminAction()
+
+// Require permission for server action
+await requirePermissionAction(permissionName, level)
+```
+
+### Security Best Practices
+
+**Implemented:**
+- ✅ Password complexity enforcement (12+ chars, mixed case, numbers, special)
+- ✅ Password history prevention (last 5 passwords)
+- ✅ Password expiry (90 days)
+- ✅ 2FA requirement for admins
+- ✅ Failed login tracking
+- ✅ Account lockout on repeated failures
+- ✅ Secure password hashing (bcrypt, 12 rounds)
+- ✅ Audit logging of all admin actions
+- ✅ IP address and user agent tracking
+- ✅ Session-based authentication (Better Auth)
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ XSS prevention (input sanitization)
+- ✅ CSRF protection (Better Auth built-in)
+- ✅ Role-based access control (RBAC)
+- ✅ Granular permissions (24 distinct permissions)
+- ✅ Permission level enforcement
+- ✅ Soft delete for audit trail preservation
+
+**Recommended Additional Measures:**
+- Consider implementing session timeouts for inactive admins
+- Add rate limiting on admin endpoints
+- Implement IP whitelisting for admin access (optional)
+- Add email notifications for admin account changes
+- Consider MFA token backup codes
+- Implement password breach checking (Have I Been Pwned API)
+
+### Setup Instructions
+
+1. **Initialize Database Schema:**
+```bash
+npm run setup:admin-roles
+# or
+node scripts/init-admin-roles.ts
+```
+
+This creates:
+- All required tables
+- Default roles (Admin, Manager, Support, Sales)
+- 24 granular permissions
+- Default role-permission mappings
+- Sample sales codes
+
+2. **Create First Admin:**
+```bash
+# Option 1: Via existing script
+node scripts/create-admin.ts
+
+# Option 2: Via admin user management UI (if you already have admin access)
+```
+
+3. **Assign Role:**
+After creating the admin record, the user will have their assigned role's permissions. Admins can then create other admin users through the UI.
+
+### Compliance & Audit
+
+**Audit Trail:**
+- All admin actions logged with timestamp, user, IP, action, resource
+- Failed login attempts tracked separately for security monitoring
+- Password changes logged (not the passwords themselves)
+- Role and permission changes logged
+- User creation, updates, disabling logged
+- 90-day retention (configurable)
+
+**GDPR Considerations:**
+- Audit logs contain admin user IDs (linkable to personal data)
+- IP addresses stored (considered personal data)
+- User agent strings stored
+- Retention period should align with legal requirements
+- Data subject access requests should include admin audit logs if relevant
+
+**SOC 2 / Compliance:**
+- Role-based access control (AC-2)
+- Audit logging and review (AU-2, AU-12)
+- Password complexity requirements (IA-5)
+- Session management (SC-23)
+- Account management (AC-2)
+- Least privilege (AC-6)
+
+### Default Role Permissions
+
+**Admin Role:**
+- All permissions: Full Control (level 1)
+
+**Manager Role:**
+- Most permissions: Full Control (level 1)
+- Admins, Settings, Payments: Read-Only (level 0)
+
+**Support Role:**
+- Customers, Support, Orders, Returns, Reviews: Restricted (level 2)
+- Dashboard, Analytics, Products, PromoCodes: Read-Only (level 0)
+- Admins, Refunds, Settings, Payments, Shipping, TaxJar, Currency: No Access (level -1)
+
+**Sales Role:**
+- Orders, Customers, B2B, PromoCodes: Restricted (level 2)
+- Dashboard, Analytics, Products, Referrals, Giveaways: Read-Only (level 0)
+- Admins, Settings, Payments, Shipping, TaxJar, Currency, Translations: No Access (level -1)
+
+### Future Enhancements
+
+**Planned Features:**
+- Role editing UI (currently supports via API only)
+- Permission override UI for users
+- Email notifications for admin actions
+- Password breach checking
+- IP whitelisting
+- Session timeout configuration
+- Advanced audit log filtering and export
+- Real-time admin activity monitoring
+- Admin activity dashboard with charts
+- Bulk user operations
+- Permission templates
+- Custom permission creation (beyond 24 defaults)
+
+---
+
 ## 🛒 Shopping Cart System
 
 ### Cart Features

@@ -292,3 +292,4 @@ export function getTextDirection(language: LanguageCode): 'ltr' | 'rtl' {
   return 'ltr';
 }
 
+

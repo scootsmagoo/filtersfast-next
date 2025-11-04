@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
-import { hasAdminAccess } from '@/lib/auth-admin'
+
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { 

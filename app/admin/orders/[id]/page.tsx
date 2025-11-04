@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
-import { hasAdminAccess } from '@/lib/auth-admin'
 import Card from '@/components/ui/Card'
 import { 
   ArrowLeft, Package, User, MapPin, CreditCard, Truck, 
