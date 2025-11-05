@@ -25,7 +25,8 @@ import {
   Receipt,
   Truck,
   CreditCard,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Star
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -207,6 +208,13 @@ export default function AdminDashboard() {
       icon: Handshake,
       href: '/admin/partners',
       color: 'blue'
+    },
+    {
+      title: 'Reviews & Ratings',
+      description: 'Manage customer reviews and feedback',
+      icon: Star,
+      href: '/admin/reviews',
+      color: 'yellow'
     }
   ],
   customerService: [
