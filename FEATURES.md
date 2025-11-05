@@ -13074,25 +13074,45 @@ The URL Redirect Manager is a powerful admin tool for managing SEO redirects dur
 11. ✅ **A09 Error Handling**: Secure error messages without system details
 12. ✅ **A09 Audit Logging**: Hit count tracking for analytics
 
-**WCAG 2.1 Level AA - 18 Accessibility Fixes:**
+**WCAG 2.1 Level AA - 28 Accessibility Fixes:**
+
+**Main Page:**
 1. ✅ **1.3.1 Info & Relationships**: Semantic table structure with `<th scope="col">`
-2. ✅ **1.3.1 Form Labels**: All inputs have associated `<label>` or `aria-label`
-3. ✅ **1.3.1 ARIA Roles**: `role="table"`, `role="dialog"`, `role="alert"`, `role="status"`
+2. ✅ **1.3.1 Form Labels**: All inputs have associated `<label>` elements
+3. ✅ **1.3.1 ARIA Roles**: `role="table"`, `role="dialog"`, `role="alert"`, `role="status"`, `role="region"`
 4. ✅ **2.4.6 Headings**: Proper heading hierarchy (h1 → h2 → h3)
 5. ✅ **2.4.7 Focus Visible**: Enhanced focus indicators on all interactive elements
 6. ✅ **3.2.4 Consistent Identification**: Consistent button labels and aria-labels
 7. ✅ **3.3.1 Error Identification**: Error messages with `role="alert"` and `aria-live="assertive"`
-8. ✅ **3.3.2 Labels**: Descriptive labels on all form controls
-9. ✅ **4.1.2 Name, Role, Value**: Proper `aria-label` on all buttons and inputs
-10. ✅ **4.1.2 Button States**: `aria-pressed` on toggle buttons
-11. ✅ **4.1.2 Loading States**: `role="status"` with `aria-live="polite"` for loading
-12. ✅ **4.1.3 Status Messages**: Error alerts with proper ARIA attributes
-13. ✅ **1.4.1 Color Independence**: Text labels alongside color-coded badges
-14. ✅ **2.1.1 Keyboard**: Full keyboard navigation with focus indicators
-15. ✅ **2.4.3 Focus Order**: Logical tab order through interface
-16. ✅ **3.2.2 Modal Dialogs**: Accessible delete confirmation modal
-17. ✅ **4.1.2 Icon Accessibility**: All icons marked `aria-hidden="true"`
-18. ✅ **1.1.1 Search Input**: Descriptive placeholder + sr-only label + aria-label
+8. ✅ **4.1.2 Button States**: `aria-pressed` on toggle buttons, `aria-busy` on loading
+9. ✅ **4.1.2 Loading States**: `role="status"` with `aria-live="polite"`
+10. ✅ **1.4.1 Color Independence**: Text labels alongside color-coded badges
+11. ✅ **2.1.1 Keyboard**: Full keyboard navigation with focus indicators
+12. ✅ **1.1.1 Search Input**: Label + aria-label + aria-describedby
+
+**Modal Dialogs (Create/Edit/Delete/Bulk):**
+13. ✅ **2.1.1 Focus Trap**: Tab/Shift+Tab loops within modal
+14. ✅ **2.1.1 Escape Key**: All modals close with Escape key
+15. ✅ **2.4.3 Focus Management**: Auto-focus on close button when modal opens
+16. ✅ **2.4.3 Body Scroll Lock**: Background content locked when modal open
+17. ✅ **3.2.2 Modal Labeling**: `aria-labelledby` points to modal headings
+18. ✅ **3.2.2 Backdrop Click**: Close modal by clicking outside (when not saving)
+19. ✅ **4.1.2 Close Button**: Enhanced focus ring on close (X) button
+20. ✅ **4.1.2 Disabled States**: Proper disabled styling and cursor
+
+**Form Fields (Create/Edit Modal):**
+21. ✅ **3.3.2 Input Labels**: All form inputs have visible `<label>` elements
+22. ✅ **1.3.1 aria-describedby**: All inputs linked to hint text with IDs
+23. ✅ **3.3.2 Required Fields**: `aria-required="true"` on required inputs
+24. ✅ **4.1.2 Checkbox Labels**: Proper `htmlFor` association with IDs
+25. ✅ **2.4.7 Enhanced Focus**: Focus rings on checkboxes with offset
+26. ✅ **3.3.1 Regex Warning**: Conditional warning with `role="note"` and `aria-describedby`
+27. ✅ **4.1.2 Submit Button**: `aria-busy` during save, descriptive `aria-label`
+
+**Bulk Import Modal:**
+28. ✅ **1.1.1 File Input**: `aria-label` and `aria-describedby` on file upload
+29. ✅ **4.1.2 Textarea**: Descriptive `aria-label` for CSV paste area
+30. ✅ **3.3.3 Format Instructions**: CSV format info as `role="region"` with ID reference
 
 **Edge Runtime Compatibility:**
 - ✅ In-memory redirect cache (no database access in middleware)
