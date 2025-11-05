@@ -1436,8 +1436,36 @@ Just completed a comprehensive URL redirect management system for maintaining SE
 - ✅ **Active/Inactive Toggle**: Easy enable/disable without deletion
 - ✅ **Edge Runtime Compatible**: In-memory cache for zero-latency redirects
 - ✅ **Auto Cache Refresh**: Cache updates automatically on CRUD operations
-- ✅ **Admin UI**: Full-featured management interface
+- ✅ **Admin UI**: Full-featured management interface with modals
 - ✅ **Middleware Integration**: Transparent redirect handling before route processing
+
+**Admin UI Features:**
+- ✅ **Create/Edit Redirect Modal**: Full-featured form with validation
+  - Source path input (required, 500 char max, monospace font)
+  - Destination path input (required, 500 char max, monospace font)
+  - Redirect type dropdown (301 Permanent / 302 Temporary)
+  - Description textarea (optional, 500 char max)
+  - Regex pattern matching checkbox with warning
+  - Active/inactive toggle checkbox
+  - Real-time validation and error handling
+  - Edit mode pre-fills form with existing data
+  
+- ✅ **Bulk Import Modal**: CSV upload and paste functionality
+  - Drag-and-drop or click-to-browse CSV file upload
+  - CSV paste textarea (10 rows, monospace font)
+  - Header validation (source_path, destination_path required)
+  - Row-by-row parsing with detailed error reporting
+  - Max 1000 redirects per import (enforced)
+  - Success/failure counts with error list (first 5 errors displayed)
+  - Auto-close after successful import (2 second delay)
+  - CSV format instructions with example
+  
+- ✅ **Delete Confirmation Modal**: Accessible confirmation dialog
+  - Replaces native `confirm()` with custom modal
+  - Clear warning message about permanent deletion
+  - Keyboard accessible (Escape to cancel)
+  
+- ✅ **Navigation**: Back to Admin Dashboard button with icon
 
 **Security & Accessibility (OWASP 10/10 | WCAG 100%):**
 - **OWASP Top 10 2021:** ✅ 10/10 PASS
@@ -1477,11 +1505,19 @@ npm run init:redirects
 http://localhost:3000/admin/redirects
 
 # Features:
-# - Create/edit/delete redirects
-# - Bulk import from CSV
-# - Export to CSV
-# - Analytics dashboard
-# - Search and filtering
+# - Create/edit/delete redirects (via modal forms)
+# - Bulk import from CSV (upload or paste)
+# - Export to CSV (download button)
+# - Analytics dashboard (stats cards + top redirects)
+# - Search and filtering (real-time)
+# - Active/inactive toggle (one-click)
+
+# Modal Workflows:
+# 1. Click "Add Redirect" → Opens create modal
+# 2. Click "Edit" (pencil icon) → Opens edit modal (pre-filled)
+# 3. Click "Bulk Import" → Opens CSV import modal
+# 4. Click "Delete" (trash icon) → Opens confirmation modal
+# 5. Click "Export CSV" → Downloads redirects.csv
 ```
 
 **Based on Legacy Features:**
