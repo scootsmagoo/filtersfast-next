@@ -264,6 +264,14 @@ export default function Header() {
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter
             </Link>
             <Link 
+              href="/auto-delivery" 
+              className={`${pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors font-medium px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue`}
+              aria-label="Home Filter Club - Subscribe and save"
+              aria-current={pathname === '/auto-delivery' ? 'page' : undefined}
+            >
+              <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
+            </Link>
+            <Link 
               href="/refrigerator-filters" 
               className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
               aria-current={pathname === '/refrigerator-filters' ? 'page' : undefined}
@@ -324,6 +332,13 @@ export default function Header() {
               aria-label="Find filter by searching your appliance model number or brand"
             >
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter by Model
+            </Link>
+            <Link 
+              href="/auto-delivery" 
+              className="block py-3 px-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-brand-blue dark:text-blue-400 font-bold hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              aria-label="Home Filter Club - Subscribe and save with interactive wizard"
+            >
+              <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
             </Link>
             <hr />
             <Link href="/refrigerator-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">

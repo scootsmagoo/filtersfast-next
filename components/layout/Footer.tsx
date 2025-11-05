@@ -195,6 +195,7 @@ export default function Footer() {
               </li>
               <li><Link href="/links" className="hover:text-brand-orange transition-colors">Educational Resources</Link></li>
               <li><Link href="/model-lookup" className="hover:text-brand-orange transition-colors">Model Lookup Tool</Link></li>
+              <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Filter Club</Link></li>
               <li><Link href="/custom-air-filters" className="hover:text-brand-orange transition-colors">Custom Filter Builder</Link></li>
             </ul>
           </div>
