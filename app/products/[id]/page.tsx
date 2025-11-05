@@ -13,6 +13,7 @@ import { HeroPrice, Savings } from '@/components/products/Price';
 import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 import UpsellModal from '@/components/subscriptions/UpsellModal';
 import { useSession } from '@/lib/auth-client';
+import ProductReviewSectionClient from '@/components/reviews/ProductReviewSectionClient';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -378,9 +379,12 @@ export default function ProductDetailPage() {
                   />
                 ))}
               </div>
-              <span className="text-gray-600">
+              <a 
+                href="#reviews" 
+                className="text-gray-600 hover:text-brand-orange transition-colors cursor-pointer"
+              >
                 {product.rating} ({product.reviewCount} reviews)
-              </span>
+              </a>
             </div>
 
             {/* Price */}
@@ -543,6 +547,14 @@ export default function ProductDetailPage() {
               </Card>
             )}
           </div>
+        </div>
+
+        {/* Customer Reviews Section */}
+        <div className="mt-16">
+          <ProductReviewSectionClient
+            productSku={product.sku}
+            productName={product.name}
+          />
         </div>
 
         {/* Upsell Modal */}
