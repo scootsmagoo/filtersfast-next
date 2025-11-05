@@ -8,6 +8,7 @@ import { useStatusAnnouncement } from '@/components/ui/StatusAnnouncementProvide
 import ReviewStars from './ReviewStars';
 import { useState } from 'react';
 import { Price, Savings } from './Price';
+import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 
 interface Product {
   id: number;
@@ -33,6 +34,8 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const { announceSuccess } = useStatusAnnouncement();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
+  const [subscriptionFrequency, setSubscriptionFrequency] = useState(6);
   
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -51,10 +54,19 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       sku: product.sku,
       price: product.price,
       image: product.image,
+      ...(subscriptionEnabled && {
+        subscription: {
+          enabled: true,
+          frequency: subscriptionFrequency
+        }
+      })
     });
     
     // Announce to screen readers
-    announceSuccess(`${product.name} added to cart`);
+    const message = subscriptionEnabled 
+      ? `${product.name} added to cart with ${subscriptionFrequency}-month subscription`
+      : `${product.name} added to cart`;
+    announceSuccess(message);
     
     setIsAdding(false);
     setJustAdded(true);
@@ -62,6 +74,15 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
     // Reset "just added" state after 2 seconds
     setTimeout(() => setJustAdded(false), 2000);
   };
+
+  const handleSubscriptionChange = (enabled: boolean, frequency: number) => {
+    setSubscriptionEnabled(enabled);
+    setSubscriptionFrequency(frequency);
+  };
+
+  // Check if product is FiltersFast branded
+  const isPrivateLabel = product.brand?.toLowerCase().includes('filtersfast') ||
+                        product.brand?.toLowerCase().includes('filters fast');
 
   if (viewMode === 'list') {
     return (
@@ -140,6 +161,20 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                 <span className="sr-only">Availability: </span>In Stock
               </div>
             </div>
+            
+            {/* Subscription Widget - Compact */}
+            <div className="w-full mb-3">
+              <SubscriptionWidget
+                productId={product.id.toString()}
+                productName={product.name}
+                productPrice={product.price}
+                isPrivateLabel={isPrivateLabel}
+                defaultFrequency={6}
+                onSubscriptionChange={handleSubscriptionChange}
+                style="compact"
+              />
+            </div>
+            
             <Button 
               onClick={handleAddToCart}
               disabled={isAdding || !product.inStock}
@@ -148,12 +183,12 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
               {justAdded ? (
                 <>
                   <Check className="w-5 h-5" />
-                  Added to Cart!
+                  Added!
                 </>
               ) : (
                 <>
                   <ShoppingCart className="w-5 h-5" />
-                  {isAdding ? 'Adding...' : 'Add to Cart'}
+                  {isAdding ? 'Adding...' : subscriptionEnabled ? 'Add & Subscribe' : 'Add to Cart'}
                 </>
               )}
             </Button>
@@ -227,8 +262,21 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Spacer to push button to bottom */}
+        {/* Spacer to push content to bottom */}
         <div className="flex-grow"></div>
+
+        {/* Subscription Widget - Compact */}
+        <div className="mb-3">
+          <SubscriptionWidget
+            productId={product.id.toString()}
+            productName={product.name}
+            productPrice={product.price}
+            isPrivateLabel={isPrivateLabel}
+            defaultFrequency={6}
+            onSubscriptionChange={handleSubscriptionChange}
+            style="compact"
+          />
+        </div>
 
         {/* Add to Cart Button */}
         <Button 
@@ -244,7 +292,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           ) : (
             <>
               <ShoppingCart className="w-5 h-5" />
-              {isAdding ? 'Adding...' : 'Add to Cart'}
+              {isAdding ? 'Adding...' : subscriptionEnabled ? 'Add & Subscribe' : 'Add to Cart'}
             </>
           )}
         </Button>

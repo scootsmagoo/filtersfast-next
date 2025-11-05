@@ -8,11 +8,12 @@ import { useCart } from '@/lib/cart-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import IdMeVerificationButton from '@/components/idme/IdMeVerificationButton';
+import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package } from 'lucide-react';
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, total, itemCount, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart } = useCart();
   const [removingId, setRemovingId] = useState<number | null>(null);
 
   const handleRemoveItem = (id: number) => {
@@ -32,6 +33,29 @@ export default function CartPage() {
   const handleCheckout = () => {
     router.push('/checkout');
   };
+
+  // Calculate subscription discounts
+  const calculateTotals = () => {
+    let subtotal = 0;
+    let subscriptionDiscount = 0;
+
+    items.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      
+      // Apply 5% subscription discount if enabled
+      if (item.subscription?.enabled) {
+        subscriptionDiscount += itemTotal * 0.05;
+      }
+    });
+
+    const total = subtotal - subscriptionDiscount;
+
+    return { subtotal, subscriptionDiscount, total };
+  };
+
+  const { subtotal, subscriptionDiscount, total: calculatedTotal } = calculateTotals();
+  const hasSubscriptions = items.some(item => item.subscription?.enabled);
 
   // Empty cart state
   if (items.length === 0) {
@@ -188,6 +212,64 @@ export default function CartPage() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Subscribe & Save Section */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 transition-colors">
+                        Subscribe & Save
+                      </h4>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id={`subscribe-${item.id}`}
+                          checked={item.subscription?.enabled || false}
+                          onChange={(e) => {
+                            updateSubscription(item.id, e.target.checked ? {
+                              enabled: true,
+                              frequency: item.subscription?.frequency || 6
+                            } : undefined);
+                          }}
+                          className="mt-1 w-4 h-4 text-brand-orange focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 border-gray-300 rounded"
+                          aria-describedby={`subscribe-${item.id}-description`}
+                        />
+                        <label 
+                          htmlFor={`subscribe-${item.id}`}
+                          className="flex-1 text-sm text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+                        >
+                          Subscribe to this product and get 5% off, plus FREE Shipping on all orders! (US Only)
+                        </label>
+                        <span id={`subscribe-${item.id}-description`} className="sr-only">
+                          Enable subscription to save 5% and get free shipping on this item
+                        </span>
+                      </div>
+                      
+                      {/* Frequency Selector (shown if subscription enabled) */}
+                      {item.subscription?.enabled && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <label htmlFor={`frequency-${item.id}`} className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                            Ship Every
+                          </label>
+                          <select
+                            id={`frequency-${item.id}`}
+                            value={item.subscription.frequency}
+                            onChange={(e) => {
+                              updateSubscription(item.id, {
+                                enabled: true,
+                                frequency: parseInt(e.target.value)
+                              });
+                            }}
+                            className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-orange focus:border-brand-orange transition-colors"
+                            aria-label="Select subscription delivery frequency"
+                          >
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(months => (
+                              <option key={months} value={months}>
+                                {months} month{months > 1 ? 's' : ''} {months === 6 ? '(recommended)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -197,17 +279,43 @@ export default function CartPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
+              {/* Free Shipping Banner for Subscriptions */}
+              {hasSubscriptions && (
+                <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg transition-colors">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-300 flex items-center gap-2 transition-colors">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    You've earned FREE shipping!
+                  </p>
+                </div>
+              )}
+              
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 transition-colors">Order Summary</h2>
               
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
                   <span>Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})</span>
-                  <span className="font-medium">${total.toFixed(2)}</span>
+                  <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
+                
+                {/* Subscription Discount */}
+                {hasSubscriptions && subscriptionDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400 transition-colors">
+                    <span>Subscribe & Save Discount</span>
+                    <span className="font-medium">-${subscriptionDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 
                 <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
                   <span>Shipping</span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors">Calculated at checkout</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors">
+                    {hasSubscriptions ? (
+                      <span className="text-green-600 dark:text-green-400 font-medium">FREE</span>
+                    ) : (
+                      'Calculated at checkout'
+                    )}
+                  </span>
                 </div>
                 
                 <div className="flex justify-between text-gray-600 dark:text-gray-300 transition-colors">
@@ -219,7 +327,7 @@ export default function CartPage() {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6 transition-colors">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-900 dark:text-gray-100 transition-colors">Estimated Total</span>
-                  <span className="text-2xl font-bold text-brand-orange">${total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-brand-orange">${calculatedTotal.toFixed(2)}</span>
                 </div>
               </div>
               

@@ -1,15 +1,15 @@
 /**
- * Remove Subscription Item API
- * DELETE /api/subscriptions/[id]/items/[itemId]
+ * Individual Subscription Item API
+ * DELETE /api/subscriptions/[id]/items/[itemId] - Remove item from subscription
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import {
-  getSubscriptionMock,
-  removeSubscriptionItemMock
-} from '@/lib/db/subscriptions-mock'
+  getSubscription,
+  removeSubscriptionItem
+} from '@/lib/db/subscriptions'
 
 export async function DELETE(
   req: NextRequest,
@@ -28,7 +28,7 @@ export async function DELETE(
     }
     
     const { id, itemId } = await params
-    const subscription = getSubscriptionMock(id)
+    const subscription = await getSubscription(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -45,12 +45,20 @@ export async function DELETE(
       )
     }
     
-    const removed = removeSubscriptionItemMock(itemId)
+    if (subscription.status === 'cancelled') {
+      return NextResponse.json(
+        { error: 'Cannot remove items from cancelled subscription' },
+        { status: 400 }
+      )
+    }
+    
+    // Remove item
+    const removed = await removeSubscriptionItem(itemId)
     
     if (!removed) {
       return NextResponse.json(
-        { error: 'Item not found' },
-        { status: 404 }
+        { error: 'Failed to remove item' },
+        { status: 500 }
       )
     }
     
@@ -66,7 +74,3 @@ export async function DELETE(
     )
   }
 }
-
-
-
-

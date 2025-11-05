@@ -11,6 +11,10 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  subscription?: {
+    enabled: boolean;
+    frequency: number; // In months (1-12)
+  };
 }
 
 interface CartState {
@@ -24,6 +28,7 @@ type CartAction =
   | { type: 'ADD_ITEMS_BATCH'; payload: CartItem[] }
   | { type: 'REMOVE_ITEM'; payload: number }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
+  | { type: 'UPDATE_SUBSCRIPTION'; payload: { id: number; subscription?: { enabled: boolean; frequency: number } } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] };
 
@@ -92,6 +97,20 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     
     case 'REMOVE_ITEM': {
       const updatedItems = state.items.filter(item => item.id !== action.payload);
+      return {
+        ...state,
+        items: updatedItems,
+        total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+      };
+    }
+    
+    case 'UPDATE_SUBSCRIPTION': {
+      const updatedItems = state.items.map(item =>
+        item.id === action.payload.id
+          ? { ...item, subscription: action.payload.subscription }
+          : item
+      );
       return {
         ...state,
         items: updatedItems,
@@ -210,6 +229,10 @@ export function useCart() {
     context.dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
   
+  const updateSubscription = (id: number, subscription?: { enabled: boolean; frequency: number }) => {
+    context.dispatch({ type: 'UPDATE_SUBSCRIPTION', payload: { id, subscription } });
+  };
+  
   const clearCart = () => {
     context.dispatch({ type: 'CLEAR_CART' });
   };
@@ -230,6 +253,7 @@ export function useCart() {
     addItemsBatch,
     removeItem,
     updateQuantity,
+    updateSubscription,
     clearCart,
     getItemQuantity,
     isInCart,

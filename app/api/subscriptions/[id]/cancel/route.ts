@@ -7,15 +7,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import {
-  getSubscriptionMock,
-  cancelSubscriptionMock
-} from '@/lib/db/subscriptions-mock'
+  getSubscription,
+  cancelSubscription
+} from '@/lib/db/subscriptions'
+import { sanitizeText } from '@/lib/sanitize'
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit'
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const identifier = getClientIdentifier(req)
+    const rateLimit = await checkRateLimit(identifier, rateLimitPresets.strict)
+    
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const session = await auth.api.getSession({
       headers: await headers()
     })
@@ -28,7 +41,7 @@ export async function POST(
     }
     
     const { id } = await params
-    const subscription = getSubscriptionMock(id)
+    const subscription = await getSubscription(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -53,9 +66,10 @@ export async function POST(
     }
     
     const body = await req.json().catch(() => ({}))
-    const reason = body.reason || 'Customer requested cancellation'
+    // Sanitize cancellation reason
+    const reason = body.reason ? sanitizeText(body.reason).slice(0, 500) : 'Customer requested cancellation'
     
-    const cancelled = cancelSubscriptionMock(id, reason)
+    const cancelled = await cancelSubscription(id, reason)
     
     if (!cancelled) {
       return NextResponse.json(
@@ -71,7 +85,7 @@ export async function POST(
   } catch (error) {
     console.error('Error cancelling subscription:', error)
     return NextResponse.json(
-      { error: 'Failed to cancel subscription' },
+      { error: 'An error occurred while cancelling subscription' },
       { status: 500 }
     )
   }

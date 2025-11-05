@@ -10,6 +10,9 @@ import { SearchableProduct } from '@/lib/types';
 import Link from 'next/link';
 import SocialShare from '@/components/social/SocialShare';
 import { HeroPrice, Savings } from '@/components/products/Price';
+import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
+import UpsellModal from '@/components/subscriptions/UpsellModal';
+import { useSession } from '@/lib/auth-client';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -175,15 +178,41 @@ const mockProducts: SearchableProduct[] = [
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = parseInt(params.id as string);
+  const { data: session } = useSession();
   const [product, setProduct] = useState<SearchableProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
+  const [subscriptionFrequency, setSubscriptionFrequency] = useState(6);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [upcomingOrder, setUpcomingOrder] = useState<any>(null);
   const { addItem } = useCart();
 
   useEffect(() => {
     const foundProduct = mockProducts.find(p => p.id === productId);
     setProduct(foundProduct || null);
   }, [productId]);
+
+  // Check for upcoming subscription orders
+  useEffect(() => {
+    if (session?.user) {
+      checkUpcomingOrders();
+    }
+  }, [session]);
+
+  const checkUpcomingOrders = async () => {
+    try {
+      const response = await fetch('/api/subscriptions/upcoming');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hasUpcoming) {
+          setUpcomingOrder(data.nextOrder);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking upcoming orders:', error);
+    }
+  };
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -197,15 +226,66 @@ export default function ProductDetailPage() {
         sku: product.sku,
         price: product.price,
         image: product.image,
-        ...(quantity > 1 && { quantity })
+        ...(quantity > 1 && { quantity }),
+        // Include subscription info if enabled
+        ...(subscriptionEnabled && {
+          subscription: {
+            enabled: true,
+            frequency: subscriptionFrequency
+          }
+        })
       });
       
       // Show success message (you could add a toast notification here)
-      console.log('Added to cart successfully');
+      if (subscriptionEnabled) {
+        console.log(`Added to cart with ${subscriptionFrequency}-month subscription`);
+      } else {
+        console.log('Added to cart successfully');
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {
       setIsAdding(false);
+    }
+  };
+
+  const handleSubscriptionChange = (enabled: boolean, frequency: number) => {
+    setSubscriptionEnabled(enabled);
+    setSubscriptionFrequency(frequency);
+  };
+
+  // Check if product is FiltersFast branded (private label)
+  const isPrivateLabel = product?.brand?.toLowerCase().includes('filtersfast') ||
+                        product?.brand?.toLowerCase().includes('filters fast');
+
+  const handleAddToUpcomingOrder = async (asSubscription: boolean, frequency: number) => {
+    if (!product || !upcomingOrder) return;
+
+    try {
+      // Add item to upcoming subscription order
+      const response = await fetch(`/api/subscriptions/${upcomingOrder.subscriptionId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id.toString(),
+          productName: product.name,
+          productImage: product.image,
+          quantity: quantity,
+          price: product.price,
+          createSubscription: asSubscription,
+          frequency: asSubscription ? frequency : undefined
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add item to subscription');
+      }
+
+      // Refresh upcoming orders
+      await checkUpcomingOrders();
+    } catch (error) {
+      console.error('Error adding item to upcoming order:', error);
+      throw error;
     }
   };
 
@@ -324,17 +404,57 @@ export default function ProductDetailPage() {
               </span>
             </div>
 
+            {/* Subscription Widget or Upsell Button */}
+            {upcomingOrder ? (
+              /* Show upsell button for existing subscription customers */
+              <div className="my-6">
+                <Card className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-300 dark:border-green-700 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 transition-colors">
+                        Add to Your Auto Delivery Order
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                        Next delivery: {upcomingOrder.nextDeliveryDateFormatted}
+                      </p>
+                    </div>
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowUpsellModal(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Package className="w-4 h-4" />
+                      Add to Order
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              /* Show regular subscription widget for non-subscribers */
+              <div className="my-6">
+                <SubscriptionWidget
+                  productId={product.id.toString()}
+                  productName={product.name}
+                  productPrice={product.price}
+                  isPrivateLabel={isPrivateLabel}
+                  defaultFrequency={6}
+                  onSubscriptionChange={handleSubscriptionChange}
+                  style="pdp"
+                />
+              </div>
+            )}
+
             {/* Add to Cart */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                <label htmlFor="quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Quantity:
                 </label>
                 <select
                   id="quantity"
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value))}
-                  className="border border-gray-300 rounded-md px-3 py-2 w-20"
+                  className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-20 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                     <option key={num} value={num}>
@@ -350,7 +470,11 @@ export default function ProductDetailPage() {
                 className="w-full flex items-center justify-center gap-2 py-4 text-lg"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {isAdding ? 'Adding...' : 'Add to Cart'}
+                {isAdding 
+                  ? 'Adding...' 
+                  : subscriptionEnabled 
+                    ? 'Add & Subscribe' 
+                    : 'Add to Cart'}
               </Button>
             </div>
 
@@ -420,6 +544,18 @@ export default function ProductDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Upsell Modal */}
+        {upcomingOrder && (
+          <UpsellModal
+            isOpen={showUpsellModal}
+            onClose={() => setShowUpsellModal(false)}
+            productId={product.id.toString()}
+            productName={product.name}
+            nextOrderDate={upcomingOrder.nextDeliveryDateFormatted}
+            onAddToOrder={handleAddToUpcomingOrder}
+          />
+        )}
       </div>
     </div>
   );

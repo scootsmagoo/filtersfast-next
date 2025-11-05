@@ -11615,3 +11615,298 @@ npm run init:i18n
 **For setup instructions, see `SETUP.md`**  
 **For development guide, see `DEVELOPMENT.md`**
 
+
+
+---
+
+## 📦 Subscribe & Save / Auto-Delivery System (Home Filter Club)
+
+**Complete subscription management system with OrderGroove integration support for recurring filter deliveries.**
+
+### Overview
+
+The Subscribe & Save system (also known as Home Filter Club) allows customers to set up automatic recurring deliveries of filters at customizable intervals. Customers save 5-20% on every subscription order plus get free shipping.
+
+### Core Features
+
+**Customer Subscription Management:**
+- ✅ **Create Subscriptions** - Subscribe to products from product pages or cart
+- ✅ **Frequency Selection** - Choose delivery intervals from 1-12 months
+- ✅ **Pause/Resume** - Temporarily pause subscriptions and resume later
+- ✅ **Cancel Anytime** - No penalties or fees for cancellation
+- ✅ **Modify Frequency** - Change delivery schedule anytime
+- ✅ **Add/Remove Items** - Manage products in subscription
+- ✅ **View History** - See past subscription orders and changes
+- ✅ **Next Delivery Date** - Always know when next order ships
+
+**Subscription Dashboard:**
+- ✅ **Active Subscriptions View** - See all active subscriptions
+- ✅ **Paused Subscriptions** - Manage temporarily paused subscriptions
+- ✅ **Subscription Details** - View items, frequency, and next delivery
+- ✅ **Quick Actions** - Pause, resume, edit, or cancel from dashboard
+- ✅ **Statistics** - Track savings and subscription status
+
+**Discount System:**
+- ✅ **Tiered Discounts:**
+  - 5% off for regular products
+  - 10% off for FiltersFast branded products  
+  - 20% promotional discount (through Dec 5, 2025)
+- ✅ **Free Shipping** - All subscription orders ship free (US only)
+- ✅ **Automatic Application** - Discounts applied at checkout
+
+**Email Notifications:**
+- ✅ **Subscription Created** - Welcome email with details
+- ✅ **Upcoming Order** - 3-day reminder before processing
+- ✅ **Order Processed** - Confirmation with tracking
+- ✅ **Subscription Paused** - Confirmation of pause
+- ✅ **Subscription Resumed** - Confirmation of resume
+- ✅ **Subscription Cancelled** - Cancellation confirmation
+- ✅ **Beautiful HTML Templates** - Professional, branded emails
+
+### Product Page Integration
+
+**Subscription Widget:**
+- ✅ **Subscribe & Save Toggle** - One-time vs subscription option
+- ✅ **Frequency Selector** - Choose delivery interval
+- ✅ **Discount Display** - Show savings amount
+- ✅ **Benefits List** - Highlight subscription advantages
+- ✅ **Info Modal** - Detailed explanation of how it works
+- ✅ **Mobile Responsive** - Works on all devices
+- ✅ **Dark Mode Support** - Matches site theme
+
+**Widget Styles:**
+- **PDP (Product Detail Page)** - Full featured with toggle
+- **Cart Style** - Checkbox with frequency selector
+- **Compact Style** - Minimal version for lists
+
+### OrderGroove Integration (Optional)
+
+**API Integration:**
+- ✅ **Authentication** - RC4/HMAC-SHA256 signing
+- ✅ **Subscription Creation** - Sync with OrderGroove
+- ✅ **Item Management** - Add/remove subscription items
+- ✅ **Order Management** - Get upcoming orders
+- ✅ **Customer Portal** - Link to OrderGroove dashboard
+- ✅ **Webhook Support** - Receive OrderGroove events
+- ✅ **Environment Support** - Staging and production
+
+**Dual Mode Operation:**
+- ✅ **In-House System** - Fully functional without OrderGroove
+- ✅ **OrderGroove Sync** - Optional integration when enabled
+- ✅ **Seamless Fallback** - Works if OrderGroove unavailable
+
+### Admin Features
+
+**Subscription Management Interface:**
+- ✅ **All Subscriptions View** - List all customer subscriptions
+- ✅ **Search & Filter** - Find subscriptions by customer or status
+- ✅ **Status Filtering** - View active, paused, or cancelled
+- ✅ **Sort Options** - By next delivery, value, or customer
+- ✅ **Export to CSV** - Download subscription data
+
+**Subscription Statistics:**
+- ✅ **Total Subscriptions** - Overall subscription count
+- ✅ **Active Count** - Currently active subscriptions
+- ✅ **Paused Count** - Temporarily paused subscriptions
+- ✅ **Monthly Revenue** - Recurring revenue tracking
+- ✅ **Average Order Value** - Subscription AOV
+- ✅ **Churn Rate** - Cancellation rate tracking
+- ✅ **New This Month** - Growth tracking
+
+### Database Schema
+
+**Tables:**
+- ✅ **subscriptions** - Main subscription records
+- ✅ **subscription_items** - Products in subscriptions
+- ✅ **subscription_history** - Activity log
+- ✅ **subscription_logs** - Event and API logs
+
+**Fields:**
+- Subscription ID, customer ID, status, frequency
+- Next delivery date, last order date/ID
+- Discount percentage, pause until date
+- Cancellation reason and date
+- OrderGroove sync fields (optional)
+- Created/updated timestamps
+
+### API Endpoints
+
+**Customer APIs:**
+- `GET /api/subscriptions` - List customer subscriptions
+- `POST /api/subscriptions` - Create new subscription
+- `GET /api/subscriptions/[id]` - Get subscription details
+- `PATCH /api/subscriptions/[id]` - Update subscription
+- `POST /api/subscriptions/[id]/pause` - Pause subscription
+- `POST /api/subscriptions/[id]/resume` - Resume subscription
+- `POST /api/subscriptions/[id]/cancel` - Cancel subscription
+- `POST /api/subscriptions/[id]/items` - Add item
+- `DELETE /api/subscriptions/[id]/items/[itemId]` - Remove item
+
+**Admin APIs:**
+- `GET /api/admin/subscriptions` - List all subscriptions
+- `GET /api/admin/subscriptions/stats` - Subscription statistics
+
+### Security Features
+
+- ✅ **Authentication Required** - All endpoints protected
+- ✅ **Ownership Validation** - Users can only access their subscriptions
+- ✅ **Admin-Only Stats** - Statistics restricted to admins
+- ✅ **Input Validation** - All inputs sanitized and validated
+- ✅ **Rate Limiting** - Prevents abuse
+
+### Technical Implementation
+
+**Frontend:**
+- React components with TypeScript
+- Real-time status updates
+- Optimistic UI updates
+- Error handling and recovery
+
+**Backend:**
+- Next.js API routes
+- SQLite database with indexes
+- Transaction support
+- Audit logging
+
+**Email System:**
+- HTML templates with inline CSS
+- Responsive design
+- Brand consistent styling
+- Dark mode compatible
+
+### Benefits
+
+**For Customers:**
+- 💰 **Save Money** - 5-20% off every order
+- 🚚 **Free Shipping** - No shipping costs on subscriptions
+- ⏰ **Never Forget** - Automatic deliveries on schedule
+- 🎯 **Flexible** - Modify, pause, or cancel anytime
+- 📦 **Convenient** - Filters arrive when needed
+
+**For Business:**
+- 💰 **Recurring Revenue** - Predictable income stream
+- 📈 **Customer Retention** - Higher lifetime value
+- 🎯 **Reduced CAC** - Lower customer acquisition cost
+- 📊 **Better Forecasting** - Know future demand
+- ⚡ **Increased AOV** - Subscription orders often larger
+
+### Setup Instructions
+
+1. **Initialize Database:**
+```bash
+npm run init-subscriptions
+```
+
+2. **Configure Environment (Optional OrderGroove):**
+```env
+ORDERGROOVE_ENABLED=false
+ORDERGROOVE_MERCHANT_ID=your_merchant_id
+ORDERGROOVE_API_KEY=your_api_key
+ORDERGROOVE_HASH_KEY=your_hash_key
+```
+
+3. **Use Subscription Widget:**
+```tsx
+import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget'
+
+<SubscriptionWidget
+  productId="prod_123"
+  productName="Air Filter 20x20x1"
+  productPrice={12.99}
+  isPrivateLabel={true}
+  defaultFrequency={6}
+  onSubscriptionChange={(enabled, frequency) => {
+    // Handle subscription selection
+  }}
+/>
+```
+
+### Files Created
+
+**Database:**
+- `lib/db/subscriptions.ts` - Database operations
+- `scripts/init-subscriptions.ts` - DB initialization
+
+**API Routes:**
+- `app/api/subscriptions/route.ts` - List/create subscriptions
+- `app/api/subscriptions/[id]/route.ts` - Get/update subscription
+- `app/api/subscriptions/[id]/pause/route.ts` - Pause subscription
+- `app/api/subscriptions/[id]/resume/route.ts` - Resume subscription
+- `app/api/subscriptions/[id]/cancel/route.ts` - Cancel subscription
+- `app/api/subscriptions/[id]/items/route.ts` - Add items
+- `app/api/subscriptions/[id]/items/[itemId]/route.ts` - Remove items
+- `app/api/admin/subscriptions/route.ts` - Admin list
+- `app/api/admin/subscriptions/stats/route.ts` - Admin stats
+
+**Frontend:**
+- `components/subscriptions/SubscriptionWidget.tsx` - Product page widget
+- `app/account/subscriptions/page.tsx` - Customer dashboard (existing)
+- `app/admin/subscriptions/page.tsx` - Admin management
+- `app/auto-delivery/page.tsx` - Marketing page (existing)
+
+**Utilities:**
+- `lib/ordergroove.ts` - OrderGroove API integration
+- `lib/email-templates/subscription-emails.ts` - Email templates
+
+**Types:**
+- `lib/types/subscription.ts` - TypeScript interfaces (existing)
+
+### Next Steps
+
+To complete the subscription system:
+
+1. ✅ Database schema created
+2. ✅ API routes implemented
+3. ✅ Admin interface built
+4. ✅ Email templates created
+5. ✅ Subscription widget built
+6. ⏳ Integration with checkout flow (pending)
+7. ⏳ Automated order processing (pending)
+8. ⏳ Product page integration (pending)
+9. ⏳ Cart subscription options (pending)
+
+---
+
+
+## Subscription System Cron Setup
+
+Add these to FEATURES.md under Subscribe & Save section:
+
+### Automated Processing
+
+**Cron Jobs Required:**
+
+1. **Process Orders** (Daily at 6 AM):
+   - Command: `npm run cron:process-subscriptions`
+   - Schedule: `0 6 * * *`
+   - Creates orders for due subscriptions
+   - Processes payments automatically
+   - Sends order confirmation emails
+
+2. **Send Reminders** (Daily at 8 AM):
+   - Command: `npm run cron:subscription-reminders`
+   - Schedule: `0 8 * * *`
+   - Sends 3-day advance notice emails
+   - Reminds customers of upcoming deliveries
+   - Allows time for modifications
+
+**Setup on Production:**
+
+Vercel Cron (vercel.json):
+```json
+{
+  \"crons\": [
+    {
+      \"path\": \"/api/subscriptions/process\",
+      \"schedule\": \"0 6 * * *\"
+    }
+  ]
+}
+```
+
+Environment Variables Needed:
+```env
+CRON_SECRET=your_secure_random_string
+ORDERGROOVE_ENABLED=false
+```
+

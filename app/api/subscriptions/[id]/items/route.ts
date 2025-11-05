@@ -7,15 +7,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import {
-  getSubscriptionMock,
-  addSubscriptionItemMock
-} from '@/lib/db/subscriptions-mock'
+  getSubscription,
+  addSubscriptionItem
+} from '@/lib/db/subscriptions'
+import { sanitizeText } from '@/lib/sanitize'
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit'
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const identifier = getClientIdentifier(req)
+    const rateLimit = await checkRateLimit(identifier, rateLimitPresets.strict)
+    
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const session = await auth.api.getSession({
       headers: await headers()
     })
@@ -28,7 +41,7 @@ export async function POST(
     }
     
     const { id } = await params
-    const subscription = getSubscriptionMock(id)
+    const subscription = await getSubscription(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -54,21 +67,38 @@ export async function POST(
     
     const body = await req.json()
     
-    // Validate
+    // Validate and sanitize
     if (!body.productId || !body.productName || !body.quantity || !body.price) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
+
+    const quantity = parseInt(body.quantity)
+    const price = parseFloat(body.price)
+
+    if (isNaN(quantity) || quantity < 1 || quantity > 99) {
+      return NextResponse.json(
+        { error: 'Invalid quantity' },
+        { status: 400 }
+      )
+    }
+
+    if (isNaN(price) || price <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid price' },
+        { status: 400 }
+      )
+    }
     
-    // Add item
-    const item = addSubscriptionItemMock(id, {
-      productId: body.productId,
-      productName: body.productName,
-      productImage: body.productImage,
-      quantity: body.quantity,
-      price: body.price
+    // Add item with sanitized data
+    const item = await addSubscriptionItem(id, {
+      productId: sanitizeText(body.productId),
+      productName: sanitizeText(body.productName),
+      productImage: body.productImage ? sanitizeText(body.productImage) : undefined,
+      quantity,
+      price
     })
     
     return NextResponse.json({
@@ -79,7 +109,7 @@ export async function POST(
   } catch (error) {
     console.error('Error adding subscription item:', error)
     return NextResponse.json(
-      { error: 'Failed to add item' },
+      { error: 'An error occurred while adding item' },
       { status: 500 }
     )
   }
