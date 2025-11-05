@@ -23,9 +23,70 @@ import {
   Building2,
   Globe,
   Receipt,
-  Truck
+  Truck,
+  CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
+
+interface AdminSection {
+  title: string
+  description: string
+  icon: any
+  href: string
+  color: string
+  comingSoon?: boolean
+  badge?: string
+}
+
+function AdminCard({ section }: { section: AdminSection }) {
+  const Icon = section.icon
+  const isAvailable = !section.comingSoon
+
+  return (
+    <Link
+      href={isAvailable ? section.href : '#'}
+      className={`block ${!isAvailable && 'pointer-events-none'}`}
+    >
+      <Card className={`p-6 hover:shadow-lg transition-all ${!isAvailable && 'opacity-60'}`}>
+        <div className="flex items-start gap-4">
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
+            section.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/30 text-brand-orange' :
+            section.color === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+            section.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+            section.color === 'green' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
+            section.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
+            section.color === 'pink' ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' :
+            section.color === 'teal' ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400' :
+            section.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' :
+            section.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' :
+            section.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' :
+            section.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+            'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+          }`}>
+            <Icon className="w-6 h-6" />
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{section.title}</h3>
+              {section.comingSoon && (
+                <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded transition-colors">
+                  Coming Soon
+                </span>
+              )}
+              {section.badge === 'NEW' && (
+                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded font-semibold">
+                  NEW
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">{section.description}</p>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  )
+}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -56,7 +117,8 @@ export default function AdminDashboard() {
 
   // Admin authorization is handled by the layout
 
-  const adminSections = [
+  const adminSections = {
+    core: [
     {
       title: 'Orders',
       description: 'View and manage customer orders',
@@ -77,6 +139,22 @@ export default function AdminDashboard() {
       icon: Users,
       href: '/admin/customers',
       color: 'indigo'
+    }
+  ],
+  financial: [
+    {
+      title: 'Subscriptions',
+      description: 'Manage Subscribe & Save recurring orders',
+      icon: RotateCcw,
+      href: '/admin/subscriptions',
+      color: 'orange'
+    },
+    {
+      title: 'Payment Gateways',
+      description: 'Configure Stripe, PayPal, and Authorize.Net',
+      icon: CreditCard,
+      href: '/admin/payment-gateways',
+      color: 'emerald'
     },
     {
       title: 'TaxJar Integration',
@@ -91,7 +169,9 @@ export default function AdminDashboard() {
       icon: Truck,
       href: '/admin/shipping',
       color: 'blue'
-    },
+    }
+  ],
+  marketing: [
     {
       title: 'Promo Codes',
       description: 'Manage discount codes and promotions',
@@ -121,6 +201,15 @@ export default function AdminDashboard() {
       color: 'emerald'
     },
     {
+      title: 'Partner Landing Pages',
+      description: 'Manage charity and corporate partner pages',
+      icon: Handshake,
+      href: '/admin/partners',
+      color: 'blue'
+    }
+  ],
+  customerService: [
+    {
       title: 'Abandoned Carts',
       description: 'View cart recovery metrics and analytics',
       icon: ShoppingCart,
@@ -142,6 +231,22 @@ export default function AdminDashboard() {
       color: 'green'
     },
     {
+      title: 'Support Articles',
+      description: 'Knowledge base analytics',
+      icon: HelpCircle,
+      href: '/admin/support',
+      color: 'teal'
+    },
+    {
+      title: 'Charitable Donations',
+      description: 'Track donations and impact',
+      icon: Heart,
+      href: '/admin/charities',
+      color: 'pink'
+    }
+  ],
+  systemConfig: [
+    {
       title: 'Multi-Factor Auth',
       description: 'MFA adoption and security metrics',
       icon: Shield,
@@ -156,25 +261,11 @@ export default function AdminDashboard() {
       color: 'red'
     },
     {
-      title: 'Support Articles',
-      description: 'Knowledge base analytics',
-      icon: HelpCircle,
-      href: '/admin/support',
-      color: 'teal'
-    },
-    {
-      title: 'Charitable Donations',
-      description: 'Track donations and impact',
-      icon: Heart,
-      href: '/admin/charities',
-      color: 'pink'
-    },
-    {
-      title: 'Partner Landing Pages',
-      description: 'Manage charity and corporate partner pages',
-      icon: Handshake,
-      href: '/admin/partners',
-      color: 'blue'
+      title: 'Analytics',
+      description: 'Sales reports and insights',
+      icon: TrendingUp,
+      href: '/admin/analytics',
+      color: 'emerald'
     },
     {
       title: 'B2B Portal',
@@ -191,13 +282,6 @@ export default function AdminDashboard() {
       color: 'teal'
     },
     {
-      title: 'Analytics',
-      description: 'Sales reports and insights',
-      icon: TrendingUp,
-      href: '/admin/analytics',
-      color: 'emerald'
-    },
-    {
       title: 'Settings',
       description: 'Site configuration and preferences',
       icon: Settings,
@@ -206,6 +290,7 @@ export default function AdminDashboard() {
       comingSoon: true
     }
   ]
+}
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -228,57 +313,57 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {adminSections.map((section) => {
-            const Icon = section.icon
-            const isAvailable = !section.comingSoon
+        {/* Organized Sections */}
+        <div className="space-y-8">
+          {/* Core Operations */}
+          <section aria-labelledby="core-operations-heading">
+            <h2 id="core-operations-heading" className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b-2 border-brand-orange">
+              📊 Core Operations
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {adminSections.core.map((section) => <AdminCard key={section.href} section={section} />)}
+            </div>
+          </section>
 
-            return (
-              <Link
-                key={section.href}
-                href={isAvailable ? section.href : '#'}
-                className={`block ${!isAvailable && 'pointer-events-none'}`}
-              >
-                <Card className={`p-6 hover:shadow-lg transition-all ${!isAvailable && 'opacity-60'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors ${
-                      section.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/30 text-brand-orange' :
-                      section.color === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                      section.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                      section.color === 'green' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
-                      section.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
-                      section.color === 'pink' ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' :
-                      section.color === 'teal' ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400' :
-                      section.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' :
-                      section.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400' :
-                      section.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' :
-                      section.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-                      'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{section.title}</h3>
-                        {section.comingSoon && (
-                          <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded transition-colors">
-                            Coming Soon
-                          </span>
-                        )}
-                        {section.badge === 'NEW' && (
-                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded font-semibold">
-                            NEW
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">{section.description}</p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            )
-          })}
+          {/* Financial & Payments */}
+          <section aria-labelledby="financial-heading">
+            <h2 id="financial-heading" className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b-2 border-emerald-500">
+              💰 Financial & Payments
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {adminSections.financial.map((section) => <AdminCard key={section.href} section={section} />)}
+            </div>
+          </section>
+
+          {/* Marketing & Sales */}
+          <section aria-labelledby="marketing-heading">
+            <h2 id="marketing-heading" className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b-2 border-purple-500">
+              📢 Marketing & Sales
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {adminSections.marketing.map((section) => <AdminCard key={section.href} section={section} />)}
+            </div>
+          </section>
+
+          {/* Customer Service */}
+          <section aria-labelledby="customer-service-heading">
+            <h2 id="customer-service-heading" className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b-2 border-blue-500">
+              🤝 Customer Service
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {adminSections.customerService.map((section) => <AdminCard key={section.href} section={section} />)}
+            </div>
+          </section>
+
+          {/* System & Configuration */}
+          <section aria-labelledby="system-config-heading">
+            <h2 id="system-config-heading" className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 pb-2 border-b-2 border-gray-500">
+              ⚙️ System & Configuration
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {adminSections.systemConfig.map((section) => <AdminCard key={section.href} section={section} />)}
+            </div>
+          </section>
         </div>
 
         {/* Quick Stats */}

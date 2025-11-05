@@ -11,6 +11,7 @@
     "cron:cancel-old-orders": "tsx scripts/cancel-old-pending-orders.ts",
     "init:abandoned-carts": "tsx scripts/init-abandoned-carts.ts",
     "init:payment-methods": "tsx scripts/init-payment-methods.ts",
+    "init:payment-gateways": "tsx scripts/init-payment-gateways.ts",
     "init:paypal": "tsx scripts/init-paypal.ts",
     "init:idme": "tsx scripts/init-idme.ts",
     "init:sms": "tsx scripts/init-sms.ts",

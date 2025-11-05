@@ -65,6 +65,398 @@ Complete guide to all implemented features.
 
 ---
 
+## 💳 Payment Gateway Integration System
+
+**NEW!** Multi-gateway payment processing with Stripe (primary), PayPal, and Authorize.Net (backup) support. Complete payment abstraction layer with automatic failover, comprehensive transaction logging, and fraud detection.
+
+### Overview
+Enterprise-grade payment processing system supporting multiple payment gateways with intelligent routing, automatic failover, tokenization, and comprehensive audit logging. Built for PCI compliance, reliability, and operational flexibility.
+
+### Supported Payment Gateways
+
+**Stripe (Primary Gateway):**
+- ✅ **Payment Intents API** - Modern, SCA-compliant payment flow
+- ✅ **Payment Methods** - Secure tokenization and reusable payment methods
+- ✅ **3D Secure / SCA** - Strong Customer Authentication support
+- ✅ **Subscriptions** - Recurring billing support
+- ✅ **Multi-currency** - USD, CAD, AUD, EUR, GBP
+- ✅ **Refunds** - Full and partial refunds
+- ✅ **Automatic Capture** - Immediate or delayed capture
+
+**PayPal:**
+- ✅ **PayPal Checkout** - Full PayPal account payments
+- ✅ **Venmo** - Mobile-first payment option (automatic)
+- ✅ **Guest Checkout** - Credit card payments without PayPal account
+- ✅ **Express Checkout** - Pre-filled shipping from PayPal account
+- ✅ **Refunds** - Full and partial refunds
+- ✅ **Transaction Logging** - Complete audit trail
+
+**Authorize.Net (Backup Gateway):**
+- ✅ **AIM / Accept.js** - Direct card processing
+- ✅ **Customer Profiles (CIM)** - Secure tokenization
+- ✅ **3D Secure** - Advanced fraud protection
+- ✅ **Auth/Capture** - Separate authorization and capture
+- ✅ **Void Transactions** - Cancel authorizations
+- ✅ **Refunds** - Full and partial refunds
+- ✅ **USD Only** - US dollar transactions
+
+### Core Features
+
+**Payment Gateway Manager:**
+- ✅ **Abstraction Layer** - Unified interface for all gateways
+- ✅ **Automatic Gateway Selection** - Primary gateway with backup failover
+- ✅ **Intelligent Routing** - Route payments based on amount, currency, region
+- ✅ **Failover Support** - Automatic retry with backup gateway on failure
+- ✅ **Gateway Health Monitoring** - Track success rates and performance
+- ✅ **Configuration Management** - Enable/disable gateways, set priority
+
+**Transaction Processing:**
+- ✅ **Authorization** - Reserve funds without capturing
+- ✅ **Capture** - Complete a previous authorization
+- ✅ **Auth & Capture** - Authorize and capture in one step (default)
+- ✅ **Void** - Cancel an authorization before capture
+- ✅ **Refund** - Return funds to customer (full or partial)
+- ✅ **Tokenization** - Save payment methods securely
+- ✅ **Verification** - Validate payment methods
+
+**Security & Compliance:**
+- ✅ **PCI Compliant** - No raw card data stored on servers
+- ✅ **Tokenization** - Secure payment method storage
+- ✅ **3D Secure / SCA** - Strong Customer Authentication
+- ✅ **Fraud Detection** - AVS, CVV, risk scoring
+- ✅ **IP Tracking** - Record customer IP for fraud analysis
+- ✅ **Rate Limiting** - Prevent payment abuse
+- ✅ **Audit Logging** - Complete transaction history
+
+**Multi-Currency Support:**
+- ✅ **Stripe:** USD, CAD, AUD, EUR, GBP
+- ✅ **PayPal:** USD (primary)
+- ✅ **Authorize.Net:** USD only
+- ✅ **Currency Conversion** - Integrated with currency system
+- ✅ **Regional Routing** - Auto-select gateway by currency/country
+
+**Transaction Logging:**
+- ✅ **Complete Audit Trail** - Every transaction logged with details
+- ✅ **Request/Response Logging** - Full API payloads (sanitized)
+- ✅ **Error Tracking** - Detailed error codes and messages
+- ✅ **Fraud Indicators** - AVS, CVV results, risk scores
+- ✅ **Customer Data** - Email, IP, user agent (hashed/sanitized)
+- ✅ **Payment Method Info** - Card brand, last 4 digits
+- ✅ **Gateway Performance** - Success rates, average amounts
+
+### Technical Implementation
+
+**Database Tables:**
+```sql
+-- Payment Gateway Configurations
+payment_gateways (
+  id, gateway_type, gateway_name, status, is_primary, is_backup,
+  priority, credentials_encrypted, test_mode, capture_method,
+  supported_currencies, supported_countries, features, metadata
+)
+
+-- Transaction Logs
+payment_gateway_transactions (
+  id, order_id, gateway_type, transaction_type, transaction_id,
+  gateway_transaction_id, amount, currency, status, authorization_code,
+  customer_email, payment_method_type, card_last4, card_brand,
+  avs_result, cvv_result, risk_score, error_info, raw_data, metadata
+)
+```
+
+**Core Libraries:**
+- `lib/payment-gateway.ts` - Payment gateway manager and abstraction layer
+- `lib/payment-gateways/stripe-gateway.ts` - Stripe implementation
+- `lib/payment-gateways/paypal-gateway.ts` - PayPal implementation
+- `lib/payment-gateways/authorizenet-gateway.ts` - Authorize.Net implementation
+- `lib/db/payment-gateways.ts` - Database operations
+- `lib/types/payment-gateway.ts` - Type definitions
+
+**API Endpoints:**
+```
+POST   /api/payments/process              - Process payment (unified)
+POST   /api/payments/refund               - Refund transaction
+POST   /api/payments/void                 - Void authorization
+POST   /api/payments/capture              - Capture authorization
+GET    /api/admin/payment-gateways        - List all gateways (admin)
+PATCH  /api/admin/payment-gateways        - Update gateway config (admin)
+GET    /api/admin/payment-gateways/transactions - View transaction logs (admin)
+GET    /api/admin/payment-gateways/stats  - Gateway statistics (admin)
+```
+
+**Components:**
+- `components/payments/PaymentMethodSelector.tsx` - Gateway selection UI
+- `components/payments/StripePayment.tsx` - Stripe Elements integration
+- `components/payments/PayPalButton.tsx` - PayPal Smart Buttons
+- `components/payments/AuthorizeNetPayment.tsx` - Accept.js integration
+
+### Usage Examples
+
+**Initialize Payment Gateway System:**
+```bash
+npm run init:payment-gateways
+
+# Add credentials to .env.local:
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+PAYPAL_CLIENT_ID=...
+PAYPAL_CLIENT_SECRET=...
+AUTHORIZENET_API_LOGIN_ID=...
+AUTHORIZENET_TRANSACTION_KEY=...
+```
+
+**Process Payment (Server-side):**
+```typescript
+import { getPaymentGatewayManager } from '@/lib/payment-gateway';
+
+const manager = getPaymentGatewayManager();
+
+// Process with primary gateway (auto-failover to backup)
+const result = await manager.processPayment({
+  amount: 99.99,
+  currency: 'USD',
+  customer_email: 'customer@example.com',
+  customer_name: 'John Doe',
+  payment_method: 'pm_xxx', // Stripe payment method
+  billing_address: {
+    address_line1: '123 Main St',
+    city: 'New York',
+    state: 'NY',
+    postal_code: '10001',
+    country: 'US',
+  },
+  transaction_type: 'auth_capture',
+  capture_now: true,
+});
+
+if (result.success) {
+  console.log('Payment approved:', result.transaction_id);
+  console.log('Gateway used:', result.gateway);
+} else {
+  console.error('Payment declined:', result.error_message);
+}
+```
+
+**Refund Transaction:**
+```typescript
+const refund = await manager.refundPayment({
+  transaction_id: 'pi_xxx',
+  amount: 99.99, // Optional for partial refund
+  reason: 'Customer requested refund',
+}, 'stripe');
+
+if (refund.success) {
+  console.log('Refund processed:', refund.refund_id);
+}
+```
+
+**Configure Gateway (Admin):**
+```typescript
+// Enable Authorize.Net as backup
+PATCH /api/admin/payment-gateways
+{
+  "id": 3,
+  "status": "active",
+  "is_backup": true,
+  "priority": 2
+}
+```
+
+### Payment Flow
+
+**Checkout Flow:**
+1. Customer selects payment method (card, PayPal, etc.)
+2. Frontend collects payment details (Stripe Elements / PayPal SDK)
+3. Frontend calls `/api/payments/process` with payment data
+4. Server validates request and calculates totals
+5. Payment Gateway Manager selects appropriate gateway
+6. Gateway processes payment (with automatic failover)
+7. Transaction logged to database
+8. Order created and confirmation sent
+9. Frontend redirects to success/failure page
+
+**Failover Flow:**
+1. Primary gateway (Stripe) processes payment
+2. If Stripe fails (network/API error), catch exception
+3. Payment Gateway Manager detects failure
+4. Automatically retry with backup gateway (Authorize.Net)
+5. If backup succeeds, log successful failover
+6. If backup fails, return error to customer
+
+**Refund Flow:**
+1. Admin initiates refund from order management
+2. Lookup original transaction gateway
+3. Call gateway-specific refund API
+4. Update order status and log transaction
+5. Send refund confirmation email to customer
+
+### Configuration
+
+**Gateway Priority:**
+```
+Priority 1: Stripe (Primary)
+Priority 2: PayPal (Alternative)
+Priority 3: Authorize.Net (Backup)
+```
+
+**Gateway Features:**
+| Feature | Stripe | PayPal | Authorize.Net |
+|---------|--------|--------|---------------|
+| Primary Gateway | ✅ | ❌ | ❌ |
+| Backup Gateway | ❌ | ❌ | ✅ |
+| Tokenization | ✅ | ❌ | ✅ |
+| 3D Secure | ✅ | ❌ | ✅ |
+| Subscriptions | ✅ | ❌ | ✅ |
+| Multi-currency | ✅ | ❌ | ❌ |
+| Partial Refunds | ✅ | ✅ | ✅ |
+| Venmo | ❌ | ✅ | ❌ |
+
+**Test Mode:**
+- Automatically enabled in development (`NODE_ENV !== 'production'`)
+- Uses sandbox/test API endpoints
+- No real money processed
+- Test card numbers work with all gateways
+
+**Production Mode:**
+- Real API endpoints and live credentials
+- Actual payment processing
+- PCI compliance required
+- SSL/TLS required
+
+### Admin Features
+
+**Gateway Management Dashboard:**
+- View all configured gateways
+- Enable/disable gateways
+- Set primary and backup gateways
+- Configure gateway priority
+- View gateway statistics
+- Test gateway connectivity
+- Update credentials (encrypted storage)
+
+**Transaction Logs:**
+- Search by order ID, transaction ID, email
+- Filter by gateway, status, date range
+- View full transaction details
+- Download transaction reports
+- Analyze fraud indicators
+- Export to CSV
+
+**Statistics Dashboard:**
+- Total transactions by gateway
+- Success/failure rates
+- Average transaction amount
+- Total volume processed
+- Failed transaction analysis
+- Gateway performance metrics
+
+### Security Features
+
+**PCI Compliance:**
+- ✅ No raw card data stored on servers
+- ✅ Tokenization via gateway APIs
+- ✅ SSL/TLS encryption for all requests
+- ✅ Secure credential storage (encrypted)
+- ✅ Access control (admin-only)
+- ✅ Audit logging
+
+**OWASP Top 10 2021:**
+- ✅ **A01: Broken Access Control** - Admin authentication required
+- ✅ **A02: Cryptographic Failures** - Credentials encrypted, SSL required
+- ✅ **A03: Injection** - Input sanitization, parameterized queries
+- ✅ **A04: Insecure Design** - Server-side total verification
+- ✅ **A05: Security Misconfiguration** - Security headers on all responses
+- ✅ **A07: Identification and Authentication Failures** - Rate limiting
+- ✅ **A08: Software and Data Integrity Failures** - Request signing
+- ✅ **A09: Security Logging and Monitoring** - Complete audit trail
+- ✅ **A10: Server-Side Request Forgery** - No external redirects
+
+**Fraud Prevention:**
+- ✅ AVS (Address Verification System)
+- ✅ CVV/CVC verification
+- ✅ Risk scoring (when supported by gateway)
+- ✅ IP address logging
+- ✅ User agent tracking
+- ✅ Rate limiting (5 attempts/minute)
+- ✅ Duplicate transaction detection
+
+### Migration from Legacy
+
+**Legacy System:**
+- CyberSource (primary processor via PHP)
+- Authorize.Net AIM (multiple versions)
+- PayPal Express Checkout
+- Custom encryption (RC4)
+- Manual failover
+
+**Modern System:**
+- Stripe (primary) + PayPal + Authorize.Net
+- Unified abstraction layer
+- Industry-standard tokenization
+- Automatic failover
+- Cloud-native architecture
+
+**Migration Strategy:**
+1. Initialize payment gateway tables
+2. Configure Stripe as primary gateway
+3. Enable PayPal for alternative payments
+4. Configure Authorize.Net as backup
+5. Test all payment flows in sandbox
+6. Migrate existing tokenized cards (if needed)
+7. Switch to production credentials
+8. Monitor transaction success rates
+
+### Quick Start
+
+```bash
+# 1. Initialize database tables
+npm run init:payment-gateways
+
+# 2. Configure environment variables
+# Add to .env.local:
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+# Optional (for backup gateway):
+AUTHORIZENET_API_LOGIN_ID=your_authorizenet_login
+AUTHORIZENET_TRANSACTION_KEY=your_authorizenet_key
+
+# 3. Restart development server
+npm run dev
+
+# 4. Test checkout flow
+# - Navigate to checkout page
+# - Try Stripe payment
+# - Try PayPal payment
+# - View transaction logs in admin
+
+# 5. Configure in admin dashboard
+# - Navigate to /admin/payment-gateways
+# - Enable/disable gateways
+# - Set priorities
+# - View statistics
+```
+
+### Support
+
+**Stripe:**
+- Dashboard: https://dashboard.stripe.com/
+- Docs: https://stripe.com/docs/api
+- Test Cards: https://stripe.com/docs/testing
+
+**PayPal:**
+- Dashboard: https://developer.paypal.com/
+- Docs: https://developer.paypal.com/docs/api/
+- Sandbox: https://developer.paypal.com/dashboard/applications
+
+**Authorize.Net:**
+- Merchant Interface: https://account.authorize.net/
+- Docs: https://developer.authorize.net/api/reference/
+- Sandbox: https://sandbox.authorize.net/
+
+---
+
 ## 🛡️ Admin Role-Based Permissions System
 
 **NEW!** Comprehensive role-based access control (RBAC) system for admin users with granular permissions, audit logging, password policies, and 2FA requirements.
