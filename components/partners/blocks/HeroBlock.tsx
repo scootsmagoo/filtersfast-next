@@ -6,15 +6,18 @@ interface HeroBlockProps {
 
 export default function HeroBlock({ data }: HeroBlockProps) {
   return (
-    <div className="relative w-full">
+    <section className="relative w-full" role="banner" aria-label="Partnership hero">
       {/* Hero Image */}
       <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden">
         <img
           src={data.image}
-          alt={data.title}
+          alt={`${data.title} - Partnership hero image`}
           className="w-full h-full object-cover"
+          loading="eager"
+          width={1920}
+          height={500}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/60" aria-hidden="true" />
         
         {/* Hero Content */}
         <div className="absolute inset-0 flex items-center justify-center text-center px-4">
@@ -30,7 +33,8 @@ export default function HeroBlock({ data }: HeroBlockProps) {
             {data.ctaText && data.ctaUrl && (
               <a
                 href={data.ctaUrl}
-                className="inline-block px-8 py-3 bg-brand-orange text-white font-semibold rounded-lg hover:bg-brand-orange-dark transition-colors shadow-lg"
+                className="inline-block px-8 py-3 bg-brand-orange text-white font-semibold rounded-lg hover:bg-brand-orange-dark transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange"
+                aria-label={`${data.ctaText} - ${data.title}`}
               >
                 {data.ctaText}
               </a>
@@ -38,7 +42,7 @@ export default function HeroBlock({ data }: HeroBlockProps) {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

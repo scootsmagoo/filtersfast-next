@@ -32,6 +32,9 @@ export default function ImageGalleryBlock({ data }: ImageGalleryBlockProps) {
                 src={data.images[currentIndex].url}
                 alt={data.images[currentIndex].alt}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                width={1200}
+                height={600}
               />
               {data.images[currentIndex].caption && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-4">
@@ -87,7 +90,11 @@ export default function ImageGalleryBlock({ data }: ImageGalleryBlockProps) {
 
   // Grid layout
   return (
-    <div className="py-12 px-4">
+    <section 
+      className="py-12 px-4"
+      role="region"
+      aria-label="Image gallery"
+    >
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.images.map((image, idx) => (
@@ -96,6 +103,9 @@ export default function ImageGalleryBlock({ data }: ImageGalleryBlockProps) {
                 src={image.url}
                 alt={image.alt}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+                width={600}
+                height={338}
               />
               {image.caption && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-3">
@@ -106,7 +116,7 @@ export default function ImageGalleryBlock({ data }: ImageGalleryBlockProps) {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -32,7 +32,17 @@ export async function GET(
       );
     }
     
-    const partner = getPartnerBySlug(params.slug);
+    // OWASP A03 Fix: Sanitize slug parameter to prevent injection
+    const sanitizedSlug = params.slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    
+    if (!sanitizedSlug || sanitizedSlug !== params.slug) {
+      return NextResponse.json(
+        { error: 'Invalid partner slug format' },
+        { status: 400 }
+      );
+    }
+    
+    const partner = getPartnerBySlug(sanitizedSlug);
     
     if (!partner) {
       return NextResponse.json(
@@ -53,15 +63,23 @@ export async function GET(
       const session = await auth.api.getSession({ headers: await headers() });
       const userId = session?.user?.id;
       const headersList = await headers();
-      const ipAddress = headersList.get('x-forwarded-for')?.split(',')[0] || 
-                       headersList.get('x-real-ip') ||
-                       'unknown';
+      const rawIp = headersList.get('x-forwarded-for')?.split(',')[0] || 
+                    headersList.get('x-real-ip') ||
+                    'unknown';
+      
+      // OWASP A09 Fix: Anonymize IP address (remove last octet for IPv4, last 80 bits for IPv6)
+      const anonymizedIp = rawIp !== 'unknown' 
+        ? rawIp.includes('.') 
+          ? rawIp.split('.').slice(0, 3).join('.') + '.0' // IPv4
+          : rawIp.split(':').slice(0, 4).join(':') + '::' // IPv6
+        : 'unknown';
+      
       const userAgent = headersList.get('user-agent') || 'unknown';
       
       // Track view without blocking response
       setImmediate(() => {
         try {
-          trackPartnerView(partner.id, userId, ipAddress, userAgent);
+          trackPartnerView(partner.id, userId, anonymizedIp, userAgent);
         } catch (error) {
           console.error('[Partners API] Error tracking view:', error);
         }

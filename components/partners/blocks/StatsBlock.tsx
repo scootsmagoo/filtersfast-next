@@ -5,19 +5,26 @@ interface StatsBlockProps {
 }
 
 export default function StatsBlock({ data }: StatsBlockProps) {
-  const bgColor = data.backgroundColor || '#085394';
-  const textColor = data.textColor || '#ffffff';
+  // OWASP A05 Fix: Use CSS classes instead of inline styles
+  const bgColorClass = data.backgroundColor === '#085394' 
+    ? 'bg-[#085394]' 
+    : 'bg-brand-blue';
+  
+  const textColorClass = data.textColor === '#ffffff' || !data.textColor
+    ? 'text-white'
+    : 'text-gray-900';
 
   return (
-    <div 
-      className="py-16 px-4"
-      style={{ backgroundColor: bgColor, color: textColor }}
+    <section 
+      className={`py-16 px-4 ${bgColorClass} ${textColorClass}`}
+      role="region"
+      aria-label="Partnership impact statistics"
     >
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {data.stats.map((stat, idx) => (
             <div key={idx} className="text-center">
-              <div className="text-4xl md:text-5xl font-bold mb-3">
+              <div className="text-4xl md:text-5xl font-bold mb-3" role="text">
                 {stat.number}
               </div>
               <div className="text-sm md:text-base font-medium uppercase tracking-wide opacity-90">
@@ -27,7 +34,7 @@ export default function StatsBlock({ data }: StatsBlockProps) {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

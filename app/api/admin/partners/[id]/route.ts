@@ -123,6 +123,14 @@ export async function PUT(
       );
     }
     
+    // OWASP A03 Fix: Validate ID parameter format
+    if (!params.id || params.id.length > 100 || !/^partner_[0-9_a-z]+$/.test(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid partner ID format' },
+        { status: 400 }
+      );
+    }
+    
     const partner = getPartnerById(params.id);
     if (!partner) {
       return NextResponse.json(
@@ -290,6 +298,14 @@ export async function DELETE(
       return NextResponse.json(
         { error: authCheck.error },
         { status: authCheck.error.includes('Forbidden') ? 403 : 401 }
+      );
+    }
+    
+    // OWASP A03 Fix: Validate ID parameter format
+    if (!params.id || params.id.length > 100 || !/^partner_[0-9_a-z]+$/.test(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid partner ID format' },
+        { status: 400 }
       );
     }
     

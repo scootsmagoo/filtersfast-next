@@ -5,7 +5,11 @@ interface PerksBlockProps {
 }
 
 export default function PerksBlock({ data }: PerksBlockProps) {
-  const bgColor = data.backgroundColor || '#085394';
+  // OWASP A05 Fix: Use CSS classes instead of inline styles
+  const bgColorClass = data.backgroundColor === '#085394' 
+    ? 'bg-[#085394]' 
+    : 'bg-brand-blue';
+  
   const columns = data.columns || 4;
   
   const gridClass = {
@@ -15,9 +19,10 @@ export default function PerksBlock({ data }: PerksBlockProps) {
   }[columns] || 'md:grid-cols-4';
 
   return (
-    <div 
-      className="py-16 px-4"
-      style={{ backgroundColor: bgColor }}
+    <section 
+      className={`py-16 px-4 ${bgColorClass}`}
+      role="region"
+      aria-label={data.title || 'Partner benefits'}
     >
       <div className="container-custom">
         {data.title && (
@@ -33,8 +38,11 @@ export default function PerksBlock({ data }: PerksBlockProps) {
                 <div className="mb-4 flex justify-center">
                   <img
                     src={perk.icon}
-                    alt=""
+                    alt={`${perk.title} icon`}
                     className="w-16 h-16 object-contain"
+                    loading="lazy"
+                    width={64}
+                    height={64}
                   />
                 </div>
               )}
@@ -48,7 +56,7 @@ export default function PerksBlock({ data }: PerksBlockProps) {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

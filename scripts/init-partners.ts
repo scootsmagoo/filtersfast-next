@@ -489,6 +489,156 @@ try {
   createPartner(frontdoor);
   console.log('✅ Created Frontdoor');
 
+  // 2-10 Home Warranty - Corporate Partner
+  const twoTenBlocks: ContentBlock[] = [
+    {
+      id: '2-10-hero',
+      type: 'hero',
+      order: 1,
+      data: {
+        image: '/partners/2-10-home-warranty/hero.jpg',
+        title: 'Welcome, 2-10 Home Warranty Customers!',
+        subtitle: 'YOUR EXCLUSIVE DISCOUNT WILL BE APPLIED AT CHECKOUT'
+      }
+    },
+    {
+      id: '2-10-text',
+      type: 'text',
+      order: 2,
+      data: {
+        content: 'As a 2-10 Home Warranty customer, you understand the importance of maintaining your home. FiltersFast.com is here to help you maintain cleaner air and water in your home with our wide selection of air filters, water filters, and home wellness products. Your exclusive discount is automatically applied at checkout!'
+      }
+    },
+    {
+      id: '2-10-perks',
+      type: 'perks',
+      order: 3,
+      data: {
+        backgroundColor: '#085394',
+        columns: 4,
+        perks: [
+          {
+            title: 'Exclusive Savings',
+            description: 'Special discount for 2-10 customers',
+            icon: '/partners/icons/save.png'
+          },
+          {
+            title: '1000s of Products',
+            description: 'Air filters, water filters, and more',
+            icon: '/partners/icons/shop.png'
+          },
+          {
+            title: 'Subscribe & Save',
+            description: 'Never run out of filters again',
+            icon: '/partners/icons/subscribe.png'
+          },
+          {
+            title: 'Free Shipping',
+            description: 'on qualifying orders',
+            icon: '/partners/icons/ship.png'
+          }
+        ]
+      }
+    }
+  ];
+
+  const twoTen: CreatePartnerInput = {
+    name: '2-10 Home Warranty',
+    slug: '2-10-home-warranty',
+    type: 'corporate',
+    shortDescription: 'Exclusive discount for 2-10 Home Warranty customers',
+    description: '2-10 Home Warranty customers receive exclusive savings on all FiltersFast.com products. Maintain your home with quality air and water filters.',
+    logo: '/partners/2-10-home-warranty/logo.png',
+    heroImage: '/partners/2-10-home-warranty/hero.jpg',
+    websiteUrl: 'https://www.2-10.com',
+    discountCode: '2-10-PARTNER',
+    discountDescription: 'Exclusive discount for 2-10 Home Warranty customers',
+    metaTitle: '2-10 Home Warranty Customer Discount | FiltersFast.com',
+    metaDescription: '2-10 Home Warranty customers receive exclusive savings on all FiltersFast.com products.',
+    contentBlocks: twoTenBlocks,
+    active: true,
+    featured: false,
+    displayOrder: 12
+  };
+
+  createPartner(twoTen);
+  console.log('✅ Created 2-10 Home Warranty');
+
+  // AAA - Discount Program Partner
+  const aaaBlocks: ContentBlock[] = [
+    {
+      id: 'aaa-hero',
+      type: 'hero',
+      order: 1,
+      data: {
+        image: '/partners/aaa/hero.jpg',
+        title: 'Welcome, AAA Members!',
+        subtitle: 'YOUR MEMBER DISCOUNT WILL BE APPLIED AT CHECKOUT'
+      }
+    },
+    {
+      id: 'aaa-text',
+      type: 'text',
+      order: 2,
+      data: {
+        content: 'As a valued AAA member, you have access to exclusive savings on FiltersFast.com! Whether you need air filters, water filters, or home wellness products, we\'re here to help you maintain a healthier home environment. Your AAA member discount is automatically applied at checkout.'
+      }
+    },
+    {
+      id: 'aaa-perks',
+      type: 'perks',
+      order: 3,
+      data: {
+        backgroundColor: '#085394',
+        columns: 4,
+        perks: [
+          {
+            title: 'AAA Member Savings',
+            description: 'Exclusive discount for members',
+            icon: '/partners/icons/save.png'
+          },
+          {
+            title: 'Quality Products',
+            description: 'Top brands for your home',
+            icon: '/partners/icons/shop.png'
+          },
+          {
+            title: 'Subscribe & Save',
+            description: 'Automatic delivery options',
+            icon: '/partners/icons/subscribe.png'
+          },
+          {
+            title: 'Fast Shipping',
+            description: 'Quick delivery to your door',
+            icon: '/partners/icons/ship.png'
+          }
+        ]
+      }
+    }
+  ];
+
+  const aaa: CreatePartnerInput = {
+    name: 'AAA',
+    slug: 'aaa',
+    type: 'discount_program',
+    shortDescription: 'Exclusive savings for AAA members',
+    description: 'AAA members receive exclusive discounts on all FiltersFast.com products. Take advantage of your membership benefits for cleaner air and water in your home.',
+    logo: '/partners/aaa/logo.png',
+    heroImage: '/partners/aaa/hero.jpg',
+    websiteUrl: 'https://www.aaa.com',
+    discountCode: 'AAA-MEMBER',
+    discountDescription: 'AAA member exclusive discount',
+    metaTitle: 'AAA Member Discount | FiltersFast.com',
+    metaDescription: 'AAA members receive exclusive discounts on all FiltersFast.com products. Save on air filters, water filters, and more.',
+    contentBlocks: aaaBlocks,
+    active: true,
+    featured: false,
+    displayOrder: 20
+  };
+
+  createPartner(aaa);
+  console.log('✅ Created AAA');
+
   console.log('\n✨ Partner landing pages initialized successfully!\n');
   
   const allPartners = getAllPartners();

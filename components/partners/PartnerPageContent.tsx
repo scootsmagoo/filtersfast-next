@@ -17,9 +17,17 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
 
   return (
     <>
+      {/* WCAG 2.4.1 Fix: Skip to main content link */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-brand-orange focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange focus:font-medium"
+      >
+        Skip to main content
+      </a>
+      
       <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
         {/* Content Blocks */}
-        <div id="main-content" className="partner-content" role="main">
+        <div id="main-content" className="partner-content" role="main" tabIndex={-1}>
           {partner.contentBlocks
             .sort((a, b) => a.order - b.order)
             .map((block) => (
@@ -36,8 +44,11 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
               <div className="text-center mb-8">
                 <img
                   src={partner.logo}
-                  alt={partner.name}
+                  alt={`${partner.name} logo`}
                   className="h-24 mx-auto object-contain"
+                  loading="lazy"
+                  width={200}
+                  height={96}
                 />
               </div>
             )}
@@ -47,8 +58,11 @@ export default function PartnerPageContent({ partner }: PartnerPageContentProps)
               <div className="mb-8 rounded-lg overflow-hidden">
                 <img
                   src={partner.heroImage}
-                  alt={partner.name}
+                  alt={`${partner.name} partnership banner`}
                   className="w-full h-96 object-cover"
+                  loading="lazy"
+                  width={1200}
+                  height={384}
                 />
               </div>
             )}

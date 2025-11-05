@@ -180,8 +180,11 @@ export default function PartnersPage() {
                   <div className="h-48 overflow-hidden flex-shrink-0">
                     <img
                       src={partner.heroImage}
-                      alt=""
+                      alt={`${partner.name} banner image`}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      width={400}
+                      height={192}
                     />
                   </div>
                 )}
@@ -192,8 +195,11 @@ export default function PartnersPage() {
                     <div className="mb-4 flex justify-center">
                       <img
                         src={partner.logo}
-                        alt={partner.name}
+                        alt={`${partner.name} logo`}
                         className="h-16 object-contain"
+                        loading="lazy"
+                        width={120}
+                        height={64}
                       />
                     </div>
                   )}
@@ -305,8 +311,11 @@ export default function PartnersPage() {
                           <div className="h-64 overflow-hidden">
                             <img
                               src={partner.heroImage}
-                              alt=""
+                              alt={`${partner.name} featured partnership`}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                              width={600}
+                              height={256}
                             />
                           </div>
                         )}
@@ -314,8 +323,11 @@ export default function PartnersPage() {
                           {partner.logo && (
                             <img
                               src={partner.logo}
-                              alt={partner.name}
+                              alt={`${partner.name} logo`}
                               className="h-20 object-contain mb-4"
+                              loading="lazy"
+                              width={160}
+                              height={80}
                             />
                           )}
                           <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3 group-hover:text-brand-orange transition-colors">

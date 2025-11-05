@@ -21,7 +21,11 @@ export default function VideoBlock({ data }: VideoBlockProps) {
   const embedUrl = getEmbedUrl(data.videoUrl);
 
   return (
-    <div className="py-12 px-4 bg-gray-900">
+    <section 
+      className="py-12 px-4 bg-gray-900"
+      role="region"
+      aria-label={data.title || 'Video content'}
+    >
       <div className="container-custom max-w-5xl mx-auto">
         {(data.title || data.description) && (
           <div className="text-center mb-8">
@@ -41,14 +45,15 @@ export default function VideoBlock({ data }: VideoBlockProps) {
         <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl">
           <iframe
             src={embedUrl}
-            title={data.title || 'Video'}
+            title={data.title || 'Partnership video'}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 w-full h-full"
+            loading="lazy"
           />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
