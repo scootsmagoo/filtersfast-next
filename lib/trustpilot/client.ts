@@ -335,3 +335,163 @@ export async function getCombinedProductSummary(sku: string): Promise<{
     };
   }
 }
+
+/**
+ * Post a reply to a review
+ * @param reviewId The TrustPilot review ID
+ * @param replyText The reply text (max 2048 characters)
+ * @returns Success status and the reply data
+ */
+export async function postReviewReply(
+  reviewId: string,
+  replyText: string
+): Promise<{ success: boolean; error?: string; reply?: { text: string; createdAt: string } }> {
+  try {
+    // Validate input
+    if (!reviewId || reviewId.trim().length === 0) {
+      return { success: false, error: 'Review ID is required' };
+    }
+    
+    if (!replyText || replyText.trim().length === 0) {
+      return { success: false, error: 'Reply text is required' };
+    }
+    
+    if (replyText.length > 2048) {
+      return { success: false, error: 'Reply text must be 2048 characters or less' };
+    }
+    
+    if (!API_KEY) {
+      return { success: false, error: 'TrustPilot API key not configured' };
+    }
+
+    // TrustPilot API endpoint for posting replies
+    // Note: This requires a Business API key with write permissions
+    const url = `${TRUSTPILOT_API_BASE}/business-units/${BUSINESS_UNIT_ID}/reviews/${reviewId}/reply`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': API_KEY,
+      },
+      body: JSON.stringify({
+        message: replyText.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('TrustPilot API error:', response.status, errorData);
+      
+      if (response.status === 401) {
+        return { success: false, error: 'Unauthorized - Invalid API key' };
+      } else if (response.status === 404) {
+        return { success: false, error: 'Review not found' };
+      } else if (response.status === 429) {
+        return { success: false, error: 'Rate limit exceeded' };
+      } else {
+        return { success: false, error: `API error: ${response.status}` };
+      }
+    }
+
+    const data = await response.json();
+    
+    return {
+      success: true,
+      reply: {
+        text: replyText.trim(),
+        createdAt: data.createdAt || new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error('Error posting review reply:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to post reply',
+    };
+  }
+}
+
+/**
+ * Send a review invitation to a customer
+ * @param customerEmail Customer's email address
+ * @param customerName Customer's name
+ * @param orderReference Order/reference ID
+ * @param productSku Optional product SKU for product-specific review
+ * @returns Success status
+ */
+export async function sendReviewInvitation(
+  customerEmail: string,
+  customerName: string,
+  orderReference: string,
+  productSku?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Validate input
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      return { success: false, error: 'Invalid email address' };
+    }
+    
+    if (!customerName || customerName.trim().length === 0) {
+      return { success: false, error: 'Customer name is required' };
+    }
+    
+    if (!orderReference || orderReference.trim().length === 0) {
+      return { success: false, error: 'Order reference is required' };
+    }
+    
+    if (!API_KEY) {
+      return { success: false, error: 'TrustPilot API key not configured' };
+    }
+
+    // TrustPilot invitation endpoint
+    const url = `${TRUSTPILOT_API_BASE}/business-units/${BUSINESS_UNIT_ID}/email-invitations`;
+    
+    const payload: any = {
+      referenceId: orderReference,
+      email: customerEmail.toLowerCase().trim(),
+      name: customerName.trim(),
+      locale: 'en-US',
+      tags: ['automatic-invitation'],
+    };
+    
+    // If product SKU provided, make it a product review invitation
+    if (productSku) {
+      payload.productUrl = `https://www.filtersfast.com/products/${productSku}`;
+      payload.sku = productSku;
+    }
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': API_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('TrustPilot invitation API error:', response.status, errorData);
+      
+      if (response.status === 401) {
+        return { success: false, error: 'Unauthorized - Invalid API key' };
+      } else if (response.status === 409) {
+        return { success: false, error: 'Invitation already sent for this order' };
+      } else if (response.status === 429) {
+        return { success: false, error: 'Rate limit exceeded' };
+      } else {
+        return { success: false, error: `API error: ${response.status}` };
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending review invitation:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send invitation',
+    };
+  }
+}

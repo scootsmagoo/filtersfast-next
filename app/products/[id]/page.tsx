@@ -292,10 +292,10 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-          <p className="text-gray-600 mb-6">The product you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors">Product Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">The product you're looking for doesn't exist.</p>
           <Link href="/">
             <Button>Back to Home</Button>
           </Link>
@@ -305,7 +305,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container-custom py-6">
         {/* Back Button */}
         <div className="mb-6">
@@ -321,7 +321,7 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="aspect-square bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-colors">
               <img
                 src={product.image}
                 alt={product.name}
@@ -331,7 +331,7 @@ export default function ProductDetailPage() {
                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-              <div className="hidden w-full h-full flex items-center justify-center text-gray-400">
+              <div className="hidden w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500 transition-colors">
                 Product Image
               </div>
             </div>
@@ -342,7 +342,7 @@ export default function ProductDetailPage() {
                 {product.badges.map((badge) => (
                   <span
                     key={badge}
-                    className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-sm font-semibold rounded-full"
+                    className="px-3 py-1 bg-brand-blue/10 dark:bg-brand-blue/20 text-brand-blue dark:text-blue-400 text-sm font-semibold rounded-full transition-colors"
                   >
                     {badge.toUpperCase()}
                   </span>
@@ -354,13 +354,13 @@ export default function ProductDetailPage() {
           {/* Product Details */}
           <div className="space-y-6">
             <div>
-              <div className="text-sm text-gray-600 mb-2">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 transition-colors">
                 {product.brand} • SKU: {product.sku}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
                 {product.name}
               </h1>
-              <p className="text-lg text-gray-700 leading-relaxed">
+              <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed transition-colors">
                 {product.description}
               </p>
             </div>
@@ -374,14 +374,14 @@ export default function ProductDetailPage() {
                     className={`w-5 h-5 ${
                       i < Math.floor(product.rating)
                         ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-300'
+                        : 'text-gray-300 dark:text-gray-600'
                     }`}
                   />
                 ))}
               </div>
               <a 
                 href="#reviews" 
-                className="text-gray-600 hover:text-brand-orange transition-colors cursor-pointer"
+                className="text-gray-600 dark:text-gray-400 hover:text-brand-orange dark:hover:text-brand-orange transition-colors cursor-pointer"
               >
                 {product.rating} ({product.reviewCount} reviews)
               </a>
@@ -484,7 +484,7 @@ export default function ProductDetailPage() {
 
             {/* Social Sharing */}
             <Card className="p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Share this product:</h3>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 transition-colors">Share this product:</h3>
               <SocialShare
                 data={{
                   url: typeof window !== 'undefined' ? window.location.href : '',
@@ -501,12 +501,12 @@ export default function ProductDetailPage() {
             {/* Specifications */}
             {product.specifications && (
               <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Specifications</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">Specifications</h3>
                 <div className="space-y-2">
                   {Object.entries(product.specifications).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
-                      <span className="text-gray-600">{key}:</span>
-                      <span className="font-medium">{value}</span>
+                      <span className="text-gray-600 dark:text-gray-400 transition-colors">{key}:</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -516,12 +516,12 @@ export default function ProductDetailPage() {
             {/* Compatibility */}
             {product.compatibility && product.compatibility.length > 0 && (
               <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Compatibility</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">Compatibility</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.compatibility.map((item) => (
                     <span
                       key={item}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm transition-colors"
                     >
                       {item}
                     </span>
@@ -533,12 +533,12 @@ export default function ProductDetailPage() {
             {/* Part Numbers */}
             {product.partNumbers && product.partNumbers.length > 0 && (
               <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Part Numbers</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">Part Numbers</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.partNumbers.map((part) => (
                     <span
                       key={part}
-                      className="px-3 py-1 bg-brand-orange/10 text-brand-orange rounded-full text-sm font-mono"
+                      className="px-3 py-1 bg-brand-orange/10 dark:bg-brand-orange/20 text-brand-orange dark:text-orange-400 rounded-full text-sm font-mono transition-colors"
                     >
                       {part}
                     </span>

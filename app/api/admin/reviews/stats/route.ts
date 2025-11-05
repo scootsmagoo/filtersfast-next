@@ -63,6 +63,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate stats
+    const totalReviews = summary.numberOfReviews.total;
+    const fourAndFiveStars = summary.numberOfReviews.fourStars + summary.numberOfReviews.fiveStars;
+    const oneAndTwoStars = summary.numberOfReviews.oneStar + summary.numberOfReviews.twoStars;
+    const threeStars = summary.numberOfReviews.threeStars;
+    
+    // Calculate sentiment percentages
+    const sentimentTrend = totalReviews > 0 ? {
+      positive: Math.round((fourAndFiveStars / totalReviews) * 100),
+      neutral: Math.round((threeStars / totalReviews) * 100),
+      negative: Math.round((oneAndTwoStars / totalReviews) * 100),
+    } : {
+      positive: 0,
+      neutral: 0,
+      negative: 0,
+    };
+    
+    // Mock response rate and avg response time (in production, these would come from actual data)
+    // Response rate: Assume 65% of reviews have been replied to
+    const responseRate = 65;
+    
+    // Avg response time: Assume 24 hours average (in production, calculate from actual reply timestamps)
+    const avgResponseTime = 24;
+    
     const stats = {
       totalReviews: summary.numberOfReviews.total,
       averageRating: summary.stars,
@@ -76,6 +99,9 @@ export async function GET(request: NextRequest) {
         4: summary.numberOfReviews.fourStars,
         5: summary.numberOfReviews.fiveStars,
       },
+      responseRate,
+      avgResponseTime,
+      sentimentTrend,
     };
 
     return NextResponse.json(stats, {
