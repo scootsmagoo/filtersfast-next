@@ -247,7 +247,8 @@ export default function AdminTranslationsPage() {
   const currentLanguage = SUPPORTED_LANGUAGES.find(l => l.code === selectedLanguage);
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <AdminBreadcrumb />
       {/* Header */}
       <div className="mb-8">
@@ -281,12 +282,14 @@ export default function AdminTranslationsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Language Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="language-selector" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Language
             </label>
             <select
+              id="language-selector"
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value as LanguageCode)}
+              aria-label="Select language for translations"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-orange"
             >
               {SUPPORTED_LANGUAGES.map(lang => (
@@ -299,12 +302,14 @@ export default function AdminTranslationsPage() {
 
           {/* Category Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Category
             </label>
             <select
+              id="category-filter"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value as TranslationCategory | 'all')}
+              aria-label="Filter translations by category"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-orange"
             >
               <option value="all">All Categories</option>
@@ -318,16 +323,18 @@ export default function AdminTranslationsPage() {
 
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="translation-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
               <input
+                id="translation-search"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search keys or values..."
+                aria-label="Search translation keys or values"
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-orange"
               />
             </div>
@@ -560,6 +567,7 @@ export default function AdminTranslationsPage() {
           <li>• Keep placeholders like <code>{'{name}'}</code> or <code>{'{price}'}</code> unchanged in translations</li>
           <li>• Export translations as JSON for backup or version control</li>
         </ul>
+      </div>
       </div>
     </div>
   );

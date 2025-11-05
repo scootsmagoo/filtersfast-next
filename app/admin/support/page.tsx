@@ -65,8 +65,8 @@ export default function AdminSupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AdminBreadcrumb />
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -152,14 +152,17 @@ export default function AdminSupportPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full" aria-label="Category performance statistics">
+              <caption className="sr-only">
+                Support category performance showing article counts, views, and helpful votes
+              </caption>
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700 transition-colors">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Category</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Articles</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Total Views</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Helpful Votes</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Actions</th>
+                  <th scope="col" className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Category</th>
+                  <th scope="col" className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Articles</th>
+                  <th scope="col" className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Total Views</th>
+                  <th scope="col" className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Helpful Votes</th>
+                  <th scope="col" className="text-right py-3 px-4 font-medium text-gray-700 dark:text-gray-300 transition-colors">Actions</th>
                 </tr>
               </thead>
               <tbody>

@@ -132,7 +132,7 @@ export default function AdminGiveawaysPage() {
 
   if (loading && !giveaways.length) {
     return (
-      <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center text-gray-900 dark:text-gray-100" role="status" aria-live="polite">
           <span className="sr-only">Loading giveaways...</span>
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="progressbar">
@@ -144,7 +144,8 @@ export default function AdminGiveawaysPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <AdminBreadcrumb />
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
@@ -163,98 +164,105 @@ export default function AdminGiveawaysPage() {
 
       {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8" role="region" aria-label="Giveaway statistics">
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Total Giveaways</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors">{stats.total_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors" id="stat-total-label">Total Giveaways</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors" aria-labelledby="stat-total-label">{stats.total_giveaways}</p>
               </div>
-              <Gift className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" />
+              <Gift className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" aria-hidden="true" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Active</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors">{stats.active_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors" id="stat-active-label">Active</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors" aria-labelledby="stat-active-label">{stats.active_giveaways}</p>
               </div>
-              <Calendar className="w-8 h-8 text-green-400" />
+              <Calendar className="w-8 h-8 text-green-400" aria-hidden="true" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Ended</p>
-                <p className="text-2xl font-bold text-gray-600 dark:text-gray-300 transition-colors">{stats.ended_giveaways}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors" id="stat-ended-label">Ended</p>
+                <p className="text-2xl font-bold text-gray-600 dark:text-gray-300 transition-colors" aria-labelledby="stat-ended-label">{stats.ended_giveaways}</p>
               </div>
-              <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" />
+              <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-500 transition-colors" aria-hidden="true" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Total Entries</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors">{stats.total_entries}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors" id="stat-entries-label">Total Entries</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors" aria-labelledby="stat-entries-label">{stats.total_entries}</p>
               </div>
-              <Users className="w-8 h-8 text-blue-400" />
+              <Users className="w-8 h-8 text-blue-400" aria-hidden="true" />
             </div>
           </Card>
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Winners Selected</p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 transition-colors">{stats.winners_selected}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors" id="stat-winners-label">Winners Selected</p>
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 transition-colors" aria-labelledby="stat-winners-label">{stats.winners_selected}</p>
               </div>
-              <Award className="w-8 h-8 text-orange-400" />
+              <Award className="w-8 h-8 text-orange-400" aria-hidden="true" />
             </div>
           </Card>
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilter('active')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'active'
-              ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Active
-        </button>
-        <button
-          onClick={() => setFilter('upcoming')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'upcoming'
-              ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Upcoming
-        </button>
-        <button
-          onClick={() => setFilter('ended')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'ended'
-              ? 'bg-orange-500 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-          }`}
-        >
-          Ended
-        </button>
-      </div>
+      <fieldset className="mb-6">
+        <legend className="sr-only">Filter giveaways by status</legend>
+        <div className="flex gap-2" role="group" aria-label="Status filters">
+          <button
+            onClick={() => setFilter('all')}
+            aria-pressed={filter === 'all'}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter('active')}
+            aria-pressed={filter === 'active'}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'active'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilter('upcoming')}
+            aria-pressed={filter === 'upcoming'}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'upcoming'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            Upcoming
+          </button>
+          <button
+            onClick={() => setFilter('ended')}
+            aria-pressed={filter === 'ended'}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'ended'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            Ended
+          </button>
+        </div>
+      </fieldset>
 
       {/* Giveaways List */}
       {giveaways.length === 0 ? (
@@ -385,6 +393,7 @@ export default function AdminGiveawaysPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }

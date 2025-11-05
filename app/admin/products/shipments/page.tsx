@@ -134,7 +134,8 @@ export default function AdminShipmentsPage() {
         {/* Header */}
         <div className="mb-8">
           <AdminBreadcrumb items={[
-            { label: 'Products', href: '/admin/products', icon: Package }
+            { label: 'Products', href: '/admin/products', icon: Package },
+            { label: 'Shipments', href: '/admin/products/shipments', icon: Truck }
           ]} />
           <div className="flex items-center justify-between">
             <div>
