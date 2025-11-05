@@ -31,6 +31,7 @@
     "init:partners": "tsx scripts/init-partners.ts",
     "init:admin-roles": "tsx scripts/init-admin-roles.ts",
     "init:inventory": "tsx scripts/init-inventory-simple.ts",
+    "init:redirects": "tsx scripts/init-redirects.ts",
     "cron:process-subscriptions": "tsx scripts/process-subscriptions.ts",
     "cron:subscription-reminders": "tsx scripts/process-subscriptions.ts reminders",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",

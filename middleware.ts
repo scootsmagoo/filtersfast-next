@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { findCachedRedirect } from '@/lib/redirects-cache';
 
 // Supported language codes
 const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'fr-ca'] as const;
@@ -47,6 +48,35 @@ function detectLanguage(request: NextRequest): string {
 }
 
 export function middleware(request: NextRequest) {
+  // URL Redirect handling - Check redirects FIRST before any other processing
+  // Skip redirect check for API routes, static files, and admin routes
+  const pathname = request.nextUrl.pathname;
+  const shouldCheckRedirect = !pathname.startsWith('/api/') && 
+                               !pathname.startsWith('/admin/') &&
+                               !pathname.startsWith('/_next/');
+  
+  if (shouldCheckRedirect) {
+    try {
+      const redirect = findCachedRedirect(pathname);
+      
+      if (redirect) {
+        // Track the redirect hit via API call (non-blocking)
+        fetch(`${request.nextUrl.origin}/api/redirects/track/${redirect.id}`, {
+          method: 'POST'
+        }).catch(() => {}); // Ignore errors to not block redirect
+        
+        // Perform the redirect
+        const redirectType = redirect.redirect_type === '302' ? 302 : 301;
+        const destination = new URL(redirect.destination_path, request.url);
+        
+        return NextResponse.redirect(destination, redirectType);
+      }
+    } catch (error) {
+      // Log error but don't break the request if redirect check fails
+      console.error('Error checking redirects:', error);
+    }
+  }
+  
   const response = NextResponse.next();
   
   // Language detection and cookie setting

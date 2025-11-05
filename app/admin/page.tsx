@@ -24,7 +24,8 @@ import {
   Globe,
   Receipt,
   Truck,
-  CreditCard
+  CreditCard,
+  Link as LinkIcon
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -280,6 +281,13 @@ export default function AdminDashboard() {
       icon: Globe,
       href: '/admin/translations',
       color: 'teal'
+    },
+    {
+      title: 'URL Redirects',
+      description: 'Manage SEO redirects and site migration',
+      icon: LinkIcon,
+      href: '/admin/redirects',
+      color: 'cyan'
     },
     {
       title: 'Settings',
