@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { SearchableProduct } from '@/lib/types';
 import { Star, Search } from 'lucide-react';
 import { Price } from '@/components/products/Price';
@@ -24,6 +26,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Fetch search suggestions
   useEffect(() => {
@@ -88,21 +91,6 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     setSelectedIndex(-1);
   }, [suggestions]);
 
-  // Handle click outside - use mouseup instead of mousedown to allow clicks to complete
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isVisible) {
-      // Use mouseup instead of mousedown to allow button clicks to complete first
-      document.addEventListener('mouseup', handleClickOutside);
-      return () => document.removeEventListener('mouseup', handleClickOutside);
-    }
-  }, [isVisible, onClose]);
-
   if (!isVisible || query.length < 2) {
     return null;
   }
@@ -120,18 +108,13 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
       ) : suggestions.length > 0 ? (
         <div className="py-2">
           {suggestions.map((suggestion, index) => (
-            <button
+            <Link
               key={suggestion.product.id}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              href={`/products/${suggestion.product.id}`}
+              onClick={() => {
                 onSelectProduct(suggestion.product);
               }}
-              onMouseDown={(e) => {
-                // Prevent the click-outside handler from firing
-                e.stopPropagation();
-              }}
-              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors ${
+              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors block ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               } ${index === 0 ? 'rounded-t-lg' : ''} ${
                 index === suggestions.length - 1 ? 'rounded-b-lg' : ''
@@ -187,25 +170,21 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                   </div>
                 </div>
               </div>
-            </button>
+            </Link>
           ))}
 
           {/* View All Results */}
           <div className="border-t border-gray-200 px-4 py-2">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/search?q=${encodeURIComponent(query)}`;
-              }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
+            <Link
+              href={`/search?q=${encodeURIComponent(query)}`}
+              onClick={() => {
+                onClose();
               }}
               className="w-full text-left text-sm text-brand-orange hover:text-brand-orange-dark font-medium flex items-center gap-2"
             >
               <Search className="w-4 h-4" />
               View all results for "{query}"
-            </button>
+            </Link>
           </div>
         </div>
       ) : (

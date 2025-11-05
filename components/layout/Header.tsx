@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingCart, Search, Phone, Menu, X, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
@@ -21,12 +21,13 @@ export default function Header() {
   const { itemCount } = useCart();
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSearchPreview(false);
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -36,10 +37,9 @@ export default function Header() {
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
+    // Clear search and close preview (navigation handled by Link component)
     setSearchQuery('');
     setShowSearchPreview(false);
-    // Navigate to product detail page
-    window.location.href = `/products/${product.id}`;
   };
 
   const handleSearchFocus = () => {
@@ -51,27 +51,32 @@ export default function Header() {
 
   const handleSearchBlur = () => {
     setSearchFocused(false);
-    // Delay hiding preview to allow clicks on suggestions
-    setTimeout(() => setShowSearchPreview(false), 300);
   };
 
   const closeSearchPreview = () => {
     setShowSearchPreview(false);
   };
 
-  // Close preview when clicking outside - use mouseup to allow clicks to complete
+  // Close preview when clicking outside
   useEffect(() => {
+    if (!showSearchPreview) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (searchRef.current && !searchRef.current.contains(target)) {
         setShowSearchPreview(false);
       }
     };
 
-    if (showSearchPreview) {
-      // Use mouseup instead of mousedown to allow button clicks to complete first
-      document.addEventListener('mouseup', handleClickOutside);
-      return () => document.removeEventListener('mouseup', handleClickOutside);
-    }
+    // Add listener after a brief delay to avoid closing immediately
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
   }, [showSearchPreview]);
 
   // Close mobile menu when navigating to a new page
