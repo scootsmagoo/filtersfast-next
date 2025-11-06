@@ -205,6 +205,13 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Product Discounts',
+      description: 'Manage product-level discounts',
+      icon: Tag,
+      href: '/admin/product-discounts',
+      color: 'purple'
+    },
+    {
       title: 'Giveaways & Sweepstakes',
       description: 'Create contests and pick winners',
       icon: Gift,
