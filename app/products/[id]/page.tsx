@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Star, ShoppingCart, Check, ArrowLeft } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -173,11 +173,638 @@ const mockProducts: SearchableProduct[] = [
       'Pack Quantity': '6',
       'Filter Life': '3 months'
     }
+  },
+  // Additional Water Filters (203-208)
+  {
+    id: 203,
+    name: 'Reverse Osmosis Membrane',
+    brand: 'APEC Water',
+    sku: 'APEC-RO-75',
+    price: 64.99,
+    rating: 4.9,
+    reviewCount: 1203,
+    image: '/images/water-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'water',
+    description: 'APEC Water reverse osmosis membrane filter for superior water purification.',
+    searchKeywords: ['reverse', 'osmosis', 'ro', 'membrane', 'apec', 'water', 'purification'],
+    partNumbers: ['APEC-RO-75', 'RO-75'],
+    compatibility: ['APEC RO Systems'],
+    specifications: {
+      'Filter Life': '24 months',
+      'Flow Rate': '75 GPD',
+      'Contaminants': 'TDS, Heavy Metals, Chemicals'
+    }
+  },
+  {
+    id: 204,
+    name: 'Countertop Water Filter Replacement',
+    brand: 'PUR',
+    sku: 'PUR-RF99',
+    price: 18.99,
+    rating: 4.5,
+    reviewCount: 567,
+    image: '/images/water-filter-4.jpg',
+    inStock: true,
+    badges: [],
+    category: 'water',
+    description: 'PUR countertop water filter replacement cartridge for clean drinking water.',
+    searchKeywords: ['countertop', 'water', 'filter', 'pur', 'replacement'],
+    partNumbers: ['PUR-RF99', 'RF-99'],
+    compatibility: ['PUR Countertop Systems'],
+    specifications: {
+      'Filter Life': '3 months',
+      'Flow Rate': '1 GPM',
+      'Contaminants': 'Chlorine, Lead, Mercury'
+    }
+  },
+  {
+    id: 205,
+    name: 'Inline Water Filter for Ice Maker',
+    brand: 'Swift Green',
+    sku: 'SGF-IM2',
+    price: 34.99,
+    rating: 4.6,
+    reviewCount: 423,
+    image: '/images/water-filter-5.jpg',
+    inStock: true,
+    badges: [],
+    category: 'water',
+    description: 'Swift Green inline water filter designed for ice makers and refrigerators.',
+    searchKeywords: ['inline', 'ice', 'maker', 'water', 'filter', 'swift', 'green'],
+    partNumbers: ['SGF-IM2', 'IM-2'],
+    compatibility: ['Ice Makers', 'Refrigerators'],
+    specifications: {
+      'Filter Life': '12 months',
+      'Flow Rate': '0.5 GPM',
+      'Contaminants': 'Chlorine, Sediment, Taste'
+    }
+  },
+  {
+    id: 206,
+    name: 'Shower Head Water Filter',
+    brand: 'Aquasana',
+    sku: 'AQ-4100',
+    price: 42.99,
+    rating: 4.7,
+    reviewCount: 789,
+    image: '/images/water-filter-6.jpg',
+    inStock: false,
+    badges: [],
+    category: 'water',
+    description: 'Aquasana shower head water filter for healthier skin and hair.',
+    searchKeywords: ['shower', 'head', 'water', 'filter', 'aquasana', 'skin', 'hair'],
+    partNumbers: ['AQ-4100', 'AQ4100'],
+    compatibility: ['Standard Shower Heads'],
+    specifications: {
+      'Filter Life': '6 months',
+      'Flow Rate': '2.5 GPM',
+      'Contaminants': 'Chlorine, Heavy Metals'
+    }
+  },
+  {
+    id: 207,
+    name: 'Sediment Pre-Filter Cartridge',
+    brand: 'iSpring',
+    sku: 'ISP-FP15',
+    price: 12.99,
+    rating: 4.4,
+    reviewCount: 334,
+    image: '/images/water-filter-7.jpg',
+    inStock: true,
+    badges: [],
+    category: 'water',
+    description: 'iSpring sediment pre-filter cartridge for whole house systems.',
+    searchKeywords: ['sediment', 'pre-filter', 'cartridge', 'ispring', 'whole', 'house'],
+    partNumbers: ['ISP-FP15', 'FP-15'],
+    compatibility: ['iSpring Systems'],
+    specifications: {
+      'Filter Life': '6 months',
+      'Flow Rate': '15 GPM',
+      'Contaminants': 'Sediment, Rust, Sand'
+    }
+  },
+  {
+    id: 208,
+    name: 'Carbon Block Water Filter',
+    brand: 'Pentek',
+    sku: 'PEN-CB10',
+    price: 39.99,
+    rating: 4.8,
+    reviewCount: 921,
+    image: '/images/water-filter-8.jpg',
+    inStock: true,
+    badges: [],
+    category: 'water',
+    description: 'Pentek carbon block water filter for superior taste and odor removal.',
+    searchKeywords: ['carbon', 'block', 'water', 'filter', 'pentek', 'taste', 'odor'],
+    partNumbers: ['PEN-CB10', 'CB-10'],
+    compatibility: ['Standard 10" Housings'],
+    specifications: {
+      'Filter Life': '6 months',
+      'Flow Rate': '2.5 GPM',
+      'Contaminants': 'Chlorine, VOCs, Taste, Odor'
+    }
+  },
+  // Additional Air Filters (303-308)
+  {
+    id: 303,
+    name: '14x20x1 MERV 8 Filter (6-Pack)',
+    brand: 'Filters Fast',
+    sku: 'FF-1420-M8-6PK',
+    price: 34.99,
+    rating: 4.7,
+    reviewCount: 1567,
+    image: '/images/air-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'air',
+    description: 'High-efficiency 14x20x1 air filter 6-pack. MERV 8 rating.',
+    searchKeywords: ['14x20x1', 'air', 'filter', 'merv', '8', 'hvac', '6-pack'],
+    partNumbers: ['FF-1420-M8-6PK', '1420-M8-6PK'],
+    compatibility: ['14x20x1 HVAC Systems'],
+    specifications: {
+      'Size': '14x20x1',
+      'MERV Rating': '8',
+      'Pack Quantity': '6',
+      'Filter Life': '3 months'
+    }
+  },
+  {
+    id: 304,
+    name: '16x25x4 MERV 11 Pleated',
+    brand: 'Honeywell',
+    sku: 'HON-1625-M11',
+    price: 24.99,
+    rating: 4.8,
+    reviewCount: 892,
+    image: '/images/air-filter-4.jpg',
+    inStock: true,
+    badges: [],
+    category: 'air',
+    description: 'Honeywell 16x25x4 deep pleated air filter with MERV 11 rating.',
+    searchKeywords: ['16x25x4', 'air', 'filter', 'honeywell', 'merv', '11', 'deep', 'pleated'],
+    partNumbers: ['HON-1625-M11', 'FC100A1037'],
+    compatibility: ['16x25x4 HVAC Systems'],
+    specifications: {
+      'Size': '16x25x4',
+      'MERV Rating': '11',
+      'Pack Quantity': '1',
+      'Filter Life': '12 months'
+    }
+  },
+  {
+    id: 305,
+    name: '20x25x1 MERV 13 Allergen Filter',
+    brand: 'Filtrete',
+    sku: 'FIL-2025-M13',
+    price: 16.99,
+    rating: 4.9,
+    reviewCount: 2789,
+    image: '/images/air-filter-5.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'air',
+    description: 'Filtrete 20x25x1 allergen filter with MERV 13 rating for superior air quality.',
+    searchKeywords: ['20x25x1', 'air', 'filter', 'filtrete', 'merv', '13', 'allergen'],
+    partNumbers: ['FIL-2025-M13', '2025-M13'],
+    compatibility: ['20x25x1 HVAC Systems'],
+    specifications: {
+      'Size': '20x25x1',
+      'MERV Rating': '13',
+      'Pack Quantity': '1',
+      'Filter Life': '3 months'
+    }
+  },
+  {
+    id: 306,
+    name: '16x20x1 MERV 11 Pleated (12-Pack)',
+    brand: 'Filters Fast',
+    sku: 'FF-1620-M11-12PK',
+    price: 69.99,
+    rating: 4.8,
+    reviewCount: 1234,
+    image: '/images/air-filter-6.jpg',
+    inStock: true,
+    badges: [],
+    category: 'air',
+    description: 'Bulk 12-pack of 16x20x1 MERV 11 pleated air filters for great value.',
+    searchKeywords: ['16x20x1', 'air', 'filter', 'merv', '11', '12-pack', 'bulk'],
+    partNumbers: ['FF-1620-M11-12PK', '1620-M11-12PK'],
+    compatibility: ['16x20x1 HVAC Systems'],
+    specifications: {
+      'Size': '16x20x1',
+      'MERV Rating': '11',
+      'Pack Quantity': '12',
+      'Filter Life': '3 months'
+    }
+  },
+  {
+    id: 307,
+    name: '24x24x1 MERV 8 Pleated Filter',
+    brand: 'Nordic Pure',
+    sku: 'NP-2424-M8',
+    price: 14.99,
+    rating: 4.6,
+    reviewCount: 678,
+    image: '/images/air-filter-7.jpg',
+    inStock: false,
+    badges: [],
+    category: 'air',
+    description: 'Nordic Pure 24x24x1 MERV 8 pleated air filter.',
+    searchKeywords: ['24x24x1', 'air', 'filter', 'nordic', 'pure', 'merv', '8'],
+    partNumbers: ['NP-2424-M8', '2424-M8'],
+    compatibility: ['24x24x1 HVAC Systems'],
+    specifications: {
+      'Size': '24x24x1',
+      'MERV Rating': '8',
+      'Pack Quantity': '1',
+      'Filter Life': '3 months'
+    }
+  },
+  {
+    id: 308,
+    name: '20x20x4 MERV 13 Deep Pleated',
+    brand: 'Aprilaire',
+    sku: 'APR-2020-M13',
+    price: 32.99,
+    rating: 4.9,
+    reviewCount: 1456,
+    image: '/images/air-filter-8.jpg',
+    inStock: true,
+    badges: [],
+    category: 'air',
+    description: 'Aprilaire 20x20x4 deep pleated filter with MERV 13 rating.',
+    searchKeywords: ['20x20x4', 'air', 'filter', 'aprilaire', 'merv', '13', 'deep', 'pleated'],
+    partNumbers: ['APR-2020-M13', '2020-M13'],
+    compatibility: ['20x20x4 HVAC Systems'],
+    specifications: {
+      'Size': '20x20x4',
+      'MERV Rating': '13',
+      'Pack Quantity': '1',
+      'Filter Life': '12 months'
+    }
+  },
+  // Pool & Spa Filters (401-408)
+  {
+    id: 401,
+    name: 'Pool Filter Cartridge - Hayward C-225',
+    brand: 'Filters Fast',
+    sku: 'FF-HC225',
+    price: 39.99,
+    rating: 4.7,
+    reviewCount: 567,
+    image: '/images/pool-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'pool',
+    description: 'Replacement cartridge for Hayward C-225 pool filters.',
+    searchKeywords: ['pool', 'filter', 'cartridge', 'hayward', 'c-225', 'replacement'],
+    partNumbers: ['FF-HC225', 'C-225'],
+    compatibility: ['Hayward C-225'],
+    specifications: {
+      'Filter Life': '1 season',
+      'Dimensions': '4.5" x 8.25"',
+      'Material': 'Polyester'
+    }
+  },
+  {
+    id: 402,
+    name: 'Spa Filter - Unicel 6CH-940',
+    brand: 'Unicel',
+    sku: 'UC-6CH940',
+    price: 29.99,
+    rating: 4.8,
+    reviewCount: 423,
+    image: '/images/pool-filter-2.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'Unicel 6CH-940 spa filter cartridge for hot tubs.',
+    searchKeywords: ['spa', 'filter', 'unicel', '6ch-940', 'hot', 'tub'],
+    partNumbers: ['UC-6CH940', '6CH-940'],
+    compatibility: ['Unicel 6CH-940 Systems'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '6" x 8"',
+      'Material': 'Polyester'
+    }
+  },
+  {
+    id: 403,
+    name: 'Pool Filter Sand - 50 lbs',
+    brand: 'HTH',
+    sku: 'HTH-SAND50',
+    price: 24.99,
+    rating: 4.6,
+    reviewCount: 289,
+    image: '/images/pool-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'HTH pool filter sand for sand filter systems, 50 lb bag.',
+    searchKeywords: ['pool', 'filter', 'sand', 'hth', '50', 'lbs'],
+    partNumbers: ['HTH-SAND50', 'SAND-50'],
+    compatibility: ['Sand Filter Systems'],
+    specifications: {
+      'Filter Life': '3-5 years',
+      'Weight': '50 lbs',
+      'Material': 'Silica Sand'
+    }
+  },
+  {
+    id: 404,
+    name: 'DE Filter Grid Assembly',
+    brand: 'Pentair',
+    sku: 'PEN-GRID48',
+    price: 89.99,
+    rating: 4.9,
+    reviewCount: 178,
+    image: '/images/pool-filter-4.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'Pentair DE filter grid assembly for diatomaceous earth filters.',
+    searchKeywords: ['de', 'filter', 'grid', 'assembly', 'pentair', 'diatomaceous', 'earth'],
+    partNumbers: ['PEN-GRID48', 'GRID-48'],
+    compatibility: ['Pentair DE Filters'],
+    specifications: {
+      'Filter Life': '2-3 years',
+      'Grid Count': '48',
+      'Material': 'Fabric'
+    }
+  },
+  {
+    id: 405,
+    name: 'Hot Tub Filter - Pleatco PRB50-IN',
+    brand: 'Pleatco',
+    sku: 'PLT-PRB50',
+    price: 34.99,
+    rating: 4.8,
+    reviewCount: 512,
+    image: '/images/pool-filter-5.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'Pleatco PRB50-IN hot tub filter cartridge.',
+    searchKeywords: ['hot', 'tub', 'filter', 'pleatco', 'prb50', 'spa'],
+    partNumbers: ['PLT-PRB50', 'PRB50-IN'],
+    compatibility: ['Pleatco PRB50 Systems'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '5" x 13.5"',
+      'Material': 'Polyester'
+    }
+  },
+  {
+    id: 406,
+    name: 'Intex Pool Filter Cartridge (2-Pack)',
+    brand: 'Intex',
+    sku: 'INT-29007-2PK',
+    price: 19.99,
+    rating: 4.5,
+    reviewCount: 891,
+    image: '/images/pool-filter-6.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'Intex pool filter cartridge 2-pack for above-ground pools.',
+    searchKeywords: ['intex', 'pool', 'filter', 'cartridge', '2-pack', 'above-ground'],
+    partNumbers: ['INT-29007-2PK', '29007'],
+    compatibility: ['Intex Pool Pumps'],
+    specifications: {
+      'Filter Life': '2 weeks',
+      'Pack Quantity': '2',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 407,
+    name: 'Pool Skimmer Sock (25-Pack)',
+    brand: 'Filters Fast',
+    sku: 'FF-SOCK25',
+    price: 12.99,
+    rating: 4.4,
+    reviewCount: 234,
+    image: '/images/pool-filter-7.jpg',
+    inStock: false,
+    badges: [],
+    category: 'pool',
+    description: 'Pool skimmer sock 25-pack for capturing fine debris.',
+    searchKeywords: ['pool', 'skimmer', 'sock', 'filter', 'debris', '25-pack'],
+    partNumbers: ['FF-SOCK25', 'SOCK-25'],
+    compatibility: ['Universal Pool Skimmers'],
+    specifications: {
+      'Filter Life': '1 week each',
+      'Pack Quantity': '25',
+      'Material': 'Nylon Mesh'
+    }
+  },
+  {
+    id: 408,
+    name: 'Jandy CS Pool Filter Cartridge',
+    brand: 'Jandy',
+    sku: 'JAN-CS100',
+    price: 54.99,
+    rating: 4.7,
+    reviewCount: 345,
+    image: '/images/pool-filter-8.jpg',
+    inStock: true,
+    badges: [],
+    category: 'pool',
+    description: 'Jandy CS100 pool filter cartridge replacement.',
+    searchKeywords: ['jandy', 'cs', 'pool', 'filter', 'cartridge', 'cs100'],
+    partNumbers: ['JAN-CS100', 'CS100'],
+    compatibility: ['Jandy CS Series'],
+    specifications: {
+      'Filter Life': '1 season',
+      'Surface Area': '100 sq ft',
+      'Material': 'Polyester'
+    }
+  },
+  // Humidifier Filters (501-508)
+  {
+    id: 501,
+    name: 'Aprilaire 35 Humidifier Filter',
+    brand: 'Aprilaire',
+    sku: 'APR-35',
+    price: 16.99,
+    rating: 4.8,
+    reviewCount: 1234,
+    image: '/images/humidifier-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'humidifier',
+    description: 'Aprilaire 35 replacement humidifier filter pad.',
+    searchKeywords: ['aprilaire', '35', 'humidifier', 'filter', 'pad', 'replacement'],
+    partNumbers: ['APR-35', '35'],
+    compatibility: ['Aprilaire 350', 'Aprilaire 360'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '10" x 13" x 1.75"',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 502,
+    name: 'Honeywell HC-14 Replacement Filter',
+    brand: 'Honeywell',
+    sku: 'HON-HC14',
+    price: 14.99,
+    rating: 4.7,
+    reviewCount: 892,
+    image: '/images/humidifier-filter-2.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Honeywell HC-14 replacement humidifier filter.',
+    searchKeywords: ['honeywell', 'hc-14', 'hc14', 'humidifier', 'filter', 'replacement'],
+    partNumbers: ['HON-HC14', 'HC-14', 'HC14'],
+    compatibility: ['Honeywell HCM Series'],
+    specifications: {
+      'Filter Life': '1-3 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 503,
+    name: 'Essick Air HDC-12 Humidifier Wick',
+    brand: 'Essick Air',
+    sku: 'ESS-HDC12',
+    price: 11.99,
+    rating: 4.6,
+    reviewCount: 567,
+    image: '/images/humidifier-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Essick Air HDC-12 humidifier wick filter.',
+    searchKeywords: ['essick', 'air', 'hdc-12', 'hdc12', 'humidifier', 'wick', 'filter'],
+    partNumbers: ['ESS-HDC12', 'HDC-12', 'HDC12'],
+    compatibility: ['Essick Air Humidifiers'],
+    specifications: {
+      'Filter Life': '1-2 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 504,
+    name: 'GeneralAire 990-13 Evaporator Pad',
+    brand: 'GeneralAire',
+    sku: 'GA-99013',
+    price: 18.99,
+    rating: 4.9,
+    reviewCount: 423,
+    image: '/images/humidifier-filter-4.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'GeneralAire 990-13 evaporator pad for whole-house humidifiers.',
+    searchKeywords: ['generalaire', '990-13', 'evaporator', 'pad', 'humidifier'],
+    partNumbers: ['GA-99013', '990-13'],
+    compatibility: ['GeneralAire 990'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '10" x 13" x 1.5"',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 505,
+    name: 'Aprilaire 600 Humidifier Filter (2-Pack)',
+    brand: 'Aprilaire',
+    sku: 'APR-600-2PK',
+    price: 32.99,
+    rating: 4.8,
+    reviewCount: 678,
+    image: '/images/humidifier-filter-5.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Aprilaire 600 humidifier filter 2-pack for extended use.',
+    searchKeywords: ['aprilaire', '600', 'humidifier', 'filter', '2-pack'],
+    partNumbers: ['APR-600-2PK', '600-2PK'],
+    compatibility: ['Aprilaire 600', 'Aprilaire 700'],
+    specifications: {
+      'Filter Life': '1 year each',
+      'Pack Quantity': '2',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 506,
+    name: 'BestAir CB41 Humidifier Pad',
+    brand: 'BestAir',
+    sku: 'BA-CB41',
+    price: 9.99,
+    rating: 4.5,
+    reviewCount: 345,
+    image: '/images/humidifier-filter-6.jpg',
+    inStock: false,
+    badges: [],
+    category: 'humidifier',
+    description: 'BestAir CB41 humidifier pad replacement.',
+    searchKeywords: ['bestair', 'cb41', 'humidifier', 'pad', 'replacement'],
+    partNumbers: ['BA-CB41', 'CB41'],
+    compatibility: ['BestAir Humidifiers'],
+    specifications: {
+      'Filter Life': '1 season',
+      'Type': 'Evaporative Pad',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 507,
+    name: 'Carrier HUMCCSBP2317 Water Panel',
+    brand: 'Carrier',
+    sku: 'CAR-2317',
+    price: 19.99,
+    rating: 4.7,
+    reviewCount: 512,
+    image: '/images/humidifier-filter-7.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Carrier HUMCCSBP2317 water panel for humidifier systems.',
+    searchKeywords: ['carrier', 'water', 'panel', 'humidifier', '2317'],
+    partNumbers: ['CAR-2317', 'HUMCCSBP2317'],
+    compatibility: ['Carrier Humidifiers'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '10" x 13"',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 508,
+    name: 'Lennox X6670 Healthy Climate Filter',
+    brand: 'Lennox',
+    sku: 'LEN-X6670',
+    price: 24.99,
+    rating: 4.8,
+    reviewCount: 789,
+    image: '/images/humidifier-filter-8.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Lennox X6670 Healthy Climate humidifier filter.',
+    searchKeywords: ['lennox', 'x6670', 'healthy', 'climate', 'humidifier', 'filter'],
+    partNumbers: ['LEN-X6670', 'X6670'],
+    compatibility: ['Lennox Humidifiers'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Type': 'Evaporative Pad',
+      'Material': 'Aluminum Mesh'
+    }
   }
 ];
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const productId = parseInt(params.id as string);
   const { data: session } = useSession();
   const [product, setProduct] = useState<SearchableProduct | null>(null);
@@ -309,13 +936,30 @@ export default function ProductDetailPage() {
       <div className="container-custom py-6">
         {/* Back Button */}
         <div className="mb-6">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 text-brand-orange hover:text-brand-orange-dark transition-colors"
+          <button 
+            onClick={() => {
+              // Try to go back in history, or fallback to category page
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else if (product) {
+                // Fallback to category page based on product category
+                const categoryMap: Record<string, string> = {
+                  'refrigerator': '/refrigerator-filters',
+                  'air': '/air-filters',
+                  'water': '/water-filters',
+                  'pool': '/pool-filters',
+                  'humidifier': '/humidifier-filters'
+                };
+                router.push(categoryMap[product.category] || '/');
+              } else {
+                router.push('/');
+              }
+            }}
+            className="inline-flex items-center gap-2 text-brand-orange hover:text-brand-orange-dark transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Search
-          </Link>
+            Back
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

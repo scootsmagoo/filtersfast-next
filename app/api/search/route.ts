@@ -170,6 +170,94 @@ const searchableProducts: SearchableProduct[] = [
       'Pack Quantity': '6',
       'Filter Life': '3 months'
     }
+  },
+  {
+    id: 501,
+    name: 'Aprilaire 35 Humidifier Filter',
+    brand: 'Aprilaire',
+    sku: 'APR-35',
+    price: 16.99,
+    rating: 4.8,
+    reviewCount: 1234,
+    image: '/images/humidifier-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'humidifier',
+    description: 'Aprilaire 35 replacement humidifier filter pad.',
+    searchKeywords: ['aprilaire', '35', 'humidifier', 'filter', 'pad', 'replacement'],
+    partNumbers: ['APR-35', '35'],
+    compatibility: ['Aprilaire 350', 'Aprilaire 360'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '10" x 13" x 1.75"',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 502,
+    name: 'Honeywell HC-14 Replacement Filter',
+    brand: 'Honeywell',
+    sku: 'HON-HC14',
+    price: 14.99,
+    rating: 4.7,
+    reviewCount: 892,
+    image: '/images/humidifier-filter-2.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Honeywell HC-14 replacement humidifier filter.',
+    searchKeywords: ['honeywell', 'hc-14', 'hc14', 'humidifier', 'filter', 'replacement'],
+    partNumbers: ['HON-HC14', 'HC-14', 'HC14'],
+    compatibility: ['Honeywell HCM Series'],
+    specifications: {
+      'Filter Life': '1-3 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 503,
+    name: 'Essick Air HDC-12 Humidifier Wick',
+    brand: 'Essick Air',
+    sku: 'ESS-HDC12',
+    price: 11.99,
+    rating: 4.6,
+    reviewCount: 567,
+    image: '/images/humidifier-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Essick Air HDC-12 humidifier wick filter.',
+    searchKeywords: ['essick', 'air', 'hdc-12', 'hdc12', 'humidifier', 'wick', 'filter'],
+    partNumbers: ['ESS-HDC12', 'HDC-12', 'HDC12'],
+    compatibility: ['Essick Air Humidifiers'],
+    specifications: {
+      'Filter Life': '1-2 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 401,
+    name: 'Pool Filter Cartridge - Hayward C-225',
+    brand: 'Filters Fast',
+    sku: 'FF-HC225',
+    price: 39.99,
+    rating: 4.7,
+    reviewCount: 567,
+    image: '/images/pool-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'pool',
+    description: 'Replacement cartridge for Hayward C-225 pool filters.',
+    searchKeywords: ['pool', 'filter', 'cartridge', 'hayward', 'c-225', 'replacement'],
+    partNumbers: ['FF-HC225', 'C-225'],
+    compatibility: ['Hayward C-225'],
+    specifications: {
+      'Filter Life': '1 season',
+      'Dimensions': '4.5" x 8.25"',
+      'Material': 'Polyester'
+    }
   }
 ];
 

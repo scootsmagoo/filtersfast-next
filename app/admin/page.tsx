@@ -26,7 +26,8 @@ import {
   Truck,
   CreditCard,
   Link as LinkIcon,
-  Star
+  Star,
+  DollarSign
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -171,6 +172,13 @@ export default function AdminDashboard() {
       icon: Truck,
       href: '/admin/shipping',
       color: 'blue'
+    },
+    {
+      title: 'Order Credits',
+      description: 'Manage store credits and refunds',
+      icon: DollarSign,
+      href: '/admin/order-credits',
+      color: 'purple'
     }
   ],
   marketing: [
