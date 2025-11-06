@@ -24,6 +24,8 @@
     "init:orders": "tsx scripts/init-orders.ts",
     "init:order-credits": "tsx scripts/init-order-credits.ts",
     "init:products": "tsx scripts/init-products.ts",
+    "init:product-options": "tsx scripts/init-product-options-schema.ts",
+    "create:sample-options": "tsx scripts/create-sample-options.ts",
     "init:customers": "tsx scripts/init-customers.ts",
     "init:taxjar": "tsx scripts/init-taxjar.ts",
     "init:shipping": "tsx scripts/init-shipping.ts",

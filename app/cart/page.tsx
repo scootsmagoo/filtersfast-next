@@ -151,6 +151,16 @@ export default function CartPage() {
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">{item.brand}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">SKU: {item.sku}</p>
+                        {/* Display selected options */}
+                        {item.options && Object.keys(item.options).length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {Object.entries(item.options).map(([groupId, optionId]) => (
+                              <p key={groupId} className="text-xs text-gray-500 dark:text-gray-400">
+                                Option: {optionId}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       
                       <button

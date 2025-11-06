@@ -3113,6 +3113,68 @@ For issues or questions about the order management system:
 
 **NEW!** Complete product catalog management system for admins to create, edit, and manage the FiltersFast product inventory.
 
+### 🎯 Product Options/Variants
+
+**NEW!** Complete product options/variants system for managing product variations (e.g., sizes, colors, pack quantities).
+
+**Key Features:**
+- **Option Groups** - Organize options into groups (e.g., "Size", "Pack Quantity")
+- **Options** - Individual option values (e.g., "16x20x1", "6-Pack", "12-Pack")
+- **Product Assignment** - Link option groups to products
+- **Option-Level Inventory** - Track stock per product+option combination
+- **Option Images** - Display different images for different options
+- **Option Exclusions** - Exclude specific options from specific products
+- **Price Adjustments** - Options can have fixed price additions or percentage adjustments
+- **Required/Optional Options** - Mark option groups as required or optional
+- **Option Types** - Support dropdown (Select) or text input options
+- **Availability Management** - Mark options as unavailable, blocked, or discontinued
+
+**Database Schema:**
+- `option_groups` - Groups of options (e.g., "Size", "Color")
+- `options` - Individual option values
+- `option_group_xref` - Links options to option groups
+- `product_option_groups` - Links products to option groups
+- `product_option_inventory` - Inventory per product+option combination
+- `product_option_images` - Images for specific product+option combinations
+- `product_option_exclusions` - Options excluded from specific products
+
+**API Endpoints:**
+- `GET /api/admin/option-groups` - List all option groups
+- `POST /api/admin/option-groups` - Create option group
+- `GET /api/admin/option-groups/[id]` - Get option group
+- `PUT /api/admin/option-groups/[id]` - Update option group
+- `DELETE /api/admin/option-groups/[id]` - Delete option group
+- `GET /api/admin/options` - List all options (with optional group filter)
+- `POST /api/admin/options` - Create option
+- `GET /api/admin/options/[id]` - Get option
+- `PUT /api/admin/options/[id]` - Update option
+- `DELETE /api/admin/options/[id]` - Delete option
+- `GET /api/admin/products/[id]/options` - Get product options
+- `POST /api/admin/products/[id]/options` - Manage product options (assign groups, update inventory, set images)
+- `GET /api/products/[id]/options` - Get product options (public)
+
+**Frontend Components:**
+- `ProductOptions` - Component for displaying and selecting product options
+- Product detail page integration - Shows options and updates price/image based on selection
+- Cart integration - Displays selected options in cart items
+
+**Usage:**
+1. Create option groups (e.g., "Size", "Pack Quantity")
+2. Add options to groups (e.g., "16x20x1", "6-Pack")
+3. Assign option groups to products
+4. Set inventory levels per product+option combination
+5. Optionally set custom images for specific options
+6. Customers can select options on product pages
+7. Options affect price and product image display
+
+**Setup:**
+```bash
+# Initialize product options database schema
+npm run init:product-options
+# or
+node scripts/init-product-options-schema.ts
+```
+
 ### Overview
 Enterprise-grade product management with full CRUD operations, inventory tracking, bulk operations, and comprehensive analytics. Built for operational efficiency with security and accessibility as top priorities.
 

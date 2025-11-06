@@ -11,6 +11,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  options?: Record<string, string>; // Selected option groups and options (optionGroupId -> optionId)
   subscription?: {
     enabled: boolean;
     frequency: number; // In months (1-12)
@@ -41,12 +42,23 @@ const initialState: CartState = {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
       const quantityToAdd = action.payload.quantity || 1;
       
+      // Check if item with same ID and options already exists
+      const existingItem = state.items.find(item => {
+        if (item.id !== action.payload.id) return false;
+        
+        // Compare options (if both have options or both don't)
+        const itemOptions = JSON.stringify(item.options || {});
+        const payloadOptions = JSON.stringify(action.payload.options || {});
+        return itemOptions === payloadOptions;
+      });
+      
       if (existingItem) {
+        // Item with same options exists, update quantity
         const updatedItems = state.items.map(item =>
-          item.id === action.payload.id
+          item.id === action.payload.id && 
+          JSON.stringify(item.options || {}) === JSON.stringify(action.payload.options || {})
             ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
@@ -57,6 +69,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
         };
       } else {
+        // New item or different options, add as separate item
         const newItem = { ...action.payload, quantity: quantityToAdd };
         const updatedItems = [...state.items, newItem];
         return {

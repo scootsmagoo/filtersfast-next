@@ -7,106 +7,6 @@ import SizeDimensionSelector from '@/components/products/SizeDimensionSelector';
 import { SizeFilterProduct, CommonSize } from '@/lib/types/size-filter';
 import { Ruler } from 'lucide-react';
 
-// Mock air filter products (will be replaced with API data when size is selected)
-const airFilterProducts = [
-  {
-    id: 301,
-    name: '16x25x1 MERV 11 Air Filter',
-    brand: 'Filters Fast',
-    sku: 'FF-1625-M11',
-    price: 12.99,
-    rating: 4.8,
-    reviewCount: 2145,
-    image: '/images/air-filter-1.jpg',
-    inStock: true,
-    badge: 'Best Value',
-  },
-  {
-    id: 302,
-    name: '20x20x1 MERV 13 Pleated Filter',
-    brand: '3M Filtrete',
-    sku: '3M-2020-M13',
-    price: 18.99,
-    rating: 4.9,
-    reviewCount: 3234,
-    image: '/images/air-filter-2.jpg',
-    inStock: true,
-    badge: 'Top Rated',
-  },
-  {
-    id: 303,
-    name: '14x20x1 MERV 8 Filter (6-Pack)',
-    brand: 'Filters Fast',
-    sku: 'FF-1420-M8-6PK',
-    price: 34.99,
-    rating: 4.7,
-    reviewCount: 1567,
-    image: '/images/air-filter-3.jpg',
-    inStock: true,
-    badge: 'Save 20%',
-  },
-  {
-    id: 304,
-    name: '16x25x4 MERV 11 Pleated',
-    brand: 'Honeywell',
-    sku: 'HON-1625-M11',
-    price: 24.99,
-    rating: 4.8,
-    reviewCount: 892,
-    image: '/images/air-filter-4.jpg',
-    inStock: true,
-    badge: null,
-  },
-  {
-    id: 305,
-    name: '20x25x1 MERV 13 Allergen Filter',
-    brand: 'Filtrete',
-    sku: 'FIL-2025-M13',
-    price: 16.99,
-    rating: 4.9,
-    reviewCount: 2789,
-    image: '/images/air-filter-5.jpg',
-    inStock: true,
-    badge: 'Best Seller',
-  },
-  {
-    id: 306,
-    name: '16x20x1 MERV 11 Pleated (12-Pack)',
-    brand: 'Filters Fast',
-    sku: 'FF-1620-M11-12PK',
-    price: 69.99,
-    rating: 4.8,
-    reviewCount: 1234,
-    image: '/images/air-filter-6.jpg',
-    inStock: true,
-    badge: 'Save 25%',
-  },
-  {
-    id: 307,
-    name: '24x24x1 MERV 8 Pleated Filter',
-    brand: 'Nordic Pure',
-    sku: 'NP-2424-M8',
-    price: 14.99,
-    rating: 4.6,
-    reviewCount: 678,
-    image: '/images/air-filter-7.jpg',
-    inStock: false,
-    badge: null,
-  },
-  {
-    id: 308,
-    name: '20x20x4 MERV 13 Deep Pleated',
-    brand: 'Aprilaire',
-    sku: 'APR-2020-M13',
-    price: 32.99,
-    rating: 4.9,
-    reviewCount: 1456,
-    image: '/images/air-filter-8.jpg',
-    inStock: true,
-    badge: null,
-  },
-];
-
 export default function AirFiltersPage() {
   // Products from size search
   const [sizeProducts, setSizeProducts] = useState<SizeFilterProduct[]>([]);
@@ -135,13 +35,15 @@ export default function AirFiltersPage() {
   // Sidebar filters
   const [sidebarFilters, setSidebarFilters] = useState<any>({});
   
-  // Displayed products (either from size search or default) - use 'any' to allow both types
-  const [displayedProducts, setDisplayedProducts] = useState<any[]>(airFilterProducts);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>(airFilterProducts);
+  // Displayed products (from database)
+  const [displayedProducts, setDisplayedProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  // Load available dimensions on mount
+  // Load available dimensions and products on mount
   useEffect(() => {
     fetchAvailableDimensions();
+    loadAirFilters();
   }, []);
 
   const fetchAvailableDimensions = async () => {
@@ -158,6 +60,39 @@ export default function AirFiltersPage() {
     }
   };
 
+  const loadAirFilters = async () => {
+    try {
+      setLoadingProducts(true);
+      const response = await fetch('/api/products?type=air-filter&limit=100');
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        // Convert database products to display format
+        const formattedProducts = data.products.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          sku: p.sku,
+          price: p.price,
+          originalPrice: p.compareAtPrice,
+          rating: p.rating || 4.5,
+          reviewCount: p.reviewCount || 0,
+          image: p.primaryImage || '/images/air-filter-1.jpg',
+          inStock: p.inventoryQuantity > 0 || !p.trackInventory,
+          badge: p.isBestSeller ? 'Best Seller' : p.isFeatured ? 'Featured' : p.isNew ? 'New' : null,
+          mervRating: p.mervRating,
+        }));
+        
+        setDisplayedProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+      }
+    } catch (err) {
+      console.error('Error loading air filters:', err);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
   const handleSizeSearch = async (
     height: number | null,
     width: number | null,
@@ -168,16 +103,16 @@ export default function AirFiltersPage() {
     setCurrentSizeFilters({ height, width, depth });
     setStatusMessage('Searching for filters...');
     
-    // If no dimensions selected, show default products
+    // If no dimensions selected, reload default products
     if (!height && !width && !depth) {
       setSizeProducts([]);
-      setDisplayedProducts(airFilterProducts);
-      setFilteredProducts(airFilterProducts);
+      setSearchPerformed(false);
       setSidebarFilters({});
       setSelectedMervRating(null);
       setLoading(false);
-      setSearchPerformed(false);
       setStatusMessage('');
+      // Reload default products
+      loadAirFilters();
       return;
     }
     
@@ -217,15 +152,19 @@ export default function AirFiltersPage() {
     
     // Apply MERV filter to current products
     if (rating === null) {
-      // Show all products from size search
-      const allProducts = sizeProducts.length > 0 ? sizeProducts : airFilterProducts;
+      // Show all products from size search or default
+      const allProducts = sizeProducts.length > 0 ? sizeProducts : displayedProducts;
       setDisplayedProducts(allProducts);
       setFilteredProducts(allProducts);
       setStatusMessage(`Showing all MERV ratings. ${allProducts.length} products available.`);
     } else {
-      const filtered = (sizeProducts.length > 0 ? sizeProducts : airFilterProducts).filter(
-        (p) => 'mervRating' in p && p.mervRating === rating
-      );
+      const sourceProducts = sizeProducts.length > 0 ? sizeProducts : displayedProducts;
+      const filtered = sourceProducts.filter((p: any) => {
+        if (!('mervRating' in p)) return false;
+        // Handle MERV rating matching (could be string like "13" or number)
+        const pRating = typeof p.mervRating === 'string' ? parseInt(p.mervRating) : p.mervRating;
+        return pRating === rating;
+      });
       setDisplayedProducts(filtered);
       setFilteredProducts(filtered);
       setStatusMessage(`Filtered to MERV ${rating}. ${filtered.length} products found.`);
@@ -524,7 +463,7 @@ export default function AirFiltersPage() {
 
       {/* Main Content */}
       <div className="container-custom py-8">
-        {loading ? (
+        {loading || loadingProducts ? (
           <div className="text-center py-16" role="status" aria-live="polite">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange" aria-hidden="true"></div>
             <span className="sr-only">Loading, please wait. Searching for filters.</span>

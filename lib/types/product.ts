@@ -287,3 +287,109 @@ export interface ProductExport {
   lastOrderDate: number | null
 }
 
+// ========================================
+// PRODUCT OPTIONS/VARIANTS TYPES
+// ========================================
+
+export type OptionType = 'S' | 'T' // S = Select (dropdown), T = Text input
+export type OptionRequired = 'Y' | 'N' // Y = required, N = optional
+
+export interface OptionGroup {
+  idOptionGroup: string
+  optionGroupDesc: string
+  optionReq: OptionRequired
+  optionType: OptionType
+  sizingLink: number // 1 = show sizing chart link
+  sortOrder: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface Option {
+  idOption: string
+  optionDescrip: string
+  priceToAdd: number // Additional price for this option
+  percToAdd: number // Percentage to add to base price
+  sortOrder: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ProductOptionGroup {
+  id: string
+  idProduct: string
+  idOptionGroup: string
+  createdAt: number
+}
+
+export interface ProductOptionInventory {
+  id: string
+  idProduct: string
+  idOption: string
+  stock: number
+  actualInventory: number
+  ignoreStock: number // 1 = ignore stock levels
+  unavailable: number // 1 = unavailable
+  blocked: number // 1 = blocked/discontinued
+  reasonCode: string | null
+  dropShip: number // 1 = dropship item
+  specialOrder: number // 1 = special order
+  updateCPStock: number // 1 = update ChannelPilot stock
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ProductOptionImage {
+  id: string
+  idProduct: string
+  idOption: string
+  optionImageUrl: string
+  sortOrder: number
+  createdAt: number
+}
+
+export interface ProductOptionExclusion {
+  id: string
+  idProduct: string
+  idOption: string
+  createdAt: number
+}
+
+export interface ProductOptionGroupWithOptions extends OptionGroup {
+  options: Option[]
+  excludedOptions?: string[] // Option IDs excluded for this product
+}
+
+export interface ProductOptionWithInventory extends Option {
+  inventory?: ProductOptionInventory
+  image?: ProductOptionImage
+  available: boolean // Calculated from inventory
+  unavailable?: boolean
+  blocked?: boolean
+}
+
+export interface ProductWithOptions extends Product {
+  optionGroups: ProductOptionGroupWithOptions[]
+  selectedOptions?: Record<string, string> // optionGroupId -> optionId
+}
+
+export interface OptionGroupFormData {
+  optionGroupDesc: string
+  optionReq: OptionRequired
+  optionType: OptionType
+  sizingLink: number
+  sortOrder: number
+}
+
+export interface OptionFormData {
+  optionDescrip: string
+  priceToAdd: number
+  percToAdd: number
+  sortOrder: number
+}
+
+export interface ProductOptionGroupAssignment {
+  idOptionGroup: string
+  excludedOptions?: string[] // Option IDs to exclude for this product
+}
+

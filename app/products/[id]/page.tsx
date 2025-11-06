@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, ShoppingCart, Check, ArrowLeft } from 'lucide-react';
+import { Star, ShoppingCart, Check, ArrowLeft, Package } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useCart } from '@/lib/cart-context';
@@ -14,6 +14,8 @@ import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 import UpsellModal from '@/components/subscriptions/UpsellModal';
 import { useSession } from '@/lib/auth-client';
 import ProductReviewSectionClient from '@/components/reviews/ProductReviewSectionClient';
+import ProductOptions from '@/components/products/ProductOptions';
+import type { ProductOptionGroupWithOptions, ProductOptionWithInventory } from '@/lib/types/product';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -805,21 +807,113 @@ const mockProducts: SearchableProduct[] = [
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const productId = parseInt(params.id as string);
+  const productId = params.id as string; // Use string ID directly
   const { data: session } = useSession();
   const [product, setProduct] = useState<SearchableProduct | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
   const [subscriptionFrequency, setSubscriptionFrequency] = useState(6);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [upcomingOrder, setUpcomingOrder] = useState<any>(null);
+  const [optionGroups, setOptionGroups] = useState<ProductOptionGroupWithOptions[]>([]);
+  const [optionsWithInventory, setOptionsWithInventory] = useState<Record<string, ProductOptionWithInventory[]>>({});
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [priceAdjustment, setPriceAdjustment] = useState(0);
+  const [optionImageUrl, setOptionImageUrl] = useState<string | null>(null);
   const { addItem } = useCart();
 
   useEffect(() => {
-    const foundProduct = mockProducts.find(p => p.id === productId);
-    setProduct(foundProduct || null);
+    if (productId) {
+      loadProduct(productId);
+      loadProductOptions(productId);
+    }
   }, [productId]);
+
+  const loadProduct = async (id: string) => {
+    try {
+      setLoading(true);
+      // Try to load from database first
+      const response = await fetch(`/api/products/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.product) {
+          // Convert database product to SearchableProduct format
+          const categoryMap: Record<string, SearchableProduct['category']> = {
+            'air-filter': 'air',
+            'water-filter': 'water',
+            'refrigerator-filter': 'refrigerator',
+            'humidifier-filter': 'humidifier',
+            'pool-filter': 'pool',
+          };
+          
+          const numericId = parseInt(id.replace(/\D/g, '')) || 0;
+          const searchableProduct: SearchableProduct = {
+            id: numericId,
+            productId: data.product.id, // Store original database ID
+            name: data.product.name,
+            brand: data.product.brand,
+            sku: data.product.sku,
+            price: data.product.price,
+            originalPrice: data.product.compareAtPrice || undefined,
+            rating: data.product.rating || 0,
+            reviewCount: data.product.reviewCount || 0,
+            image: data.product.primaryImage || '/images/product-placeholder.jpg',
+            inStock: data.product.inventoryQuantity > 0 || !data.product.trackInventory,
+            badges: [
+              ...(data.product.isBestSeller ? ['bestseller'] : []),
+              ...(data.product.isFeatured ? ['featured'] : []),
+              ...(data.product.isNew ? ['new'] : []),
+            ],
+            category: categoryMap[data.product.type] || 'other',
+            description: data.product.description || '',
+            searchKeywords: [],
+            partNumbers: [data.product.sku],
+            compatibility: data.product.compatibleModels || [],
+            specifications: data.product.specifications || {},
+          };
+          
+          setProduct(searchableProduct);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Fallback to mock products for numeric IDs (legacy support)
+      const numericId = parseInt(id);
+      if (!isNaN(numericId)) {
+        const foundProduct = mockProducts.find(p => p.id === numericId);
+        if (foundProduct) {
+          setProduct(foundProduct);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Product not found
+      setProduct(null);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading product:', error);
+      setLoading(false);
+    }
+  };
+
+  const loadProductOptions = async (id: string) => {
+    try {
+      const response = await fetch(`/api/products/${id}/options`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setOptionGroups(data.optionGroups || []);
+          setOptionsWithInventory(data.optionsWithInventory || {});
+        }
+      }
+    } catch (error) {
+      console.error('Error loading product options:', error);
+    }
+  };
 
   // Check for upcoming subscription orders
   useEffect(() => {
@@ -845,16 +939,31 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product) return;
     
+    // Check if required options are selected
+    const requiredGroups = optionGroups.filter(og => og.optionReq === 'Y');
+    const missingRequired = requiredGroups.some(og => !selectedOptions[og.idOptionGroup]);
+    
+    if (missingRequired) {
+      alert('Please select all required options');
+      return;
+    }
+    
     setIsAdding(true);
     try {
+      const finalPrice = product.price + priceAdjustment;
+      
       addItem({
-        id: product.id,
+        id: (product.productId || product.id).toString(), // Use productId if available, fallback to id
         name: product.name,
         brand: product.brand,
         sku: product.sku,
-        price: product.price,
-        image: product.image,
+        price: finalPrice,
+        image: optionImageUrl || product.image,
         ...(quantity > 1 && { quantity }),
+        // Include options if any are selected
+        ...(Object.keys(selectedOptions).length > 0 && {
+          options: selectedOptions
+        }),
         // Include subscription info if enabled
         ...(subscriptionEnabled && {
           subscription: {
@@ -890,20 +999,20 @@ export default function ProductDetailPage() {
     if (!product || !upcomingOrder) return;
 
     try {
-      // Add item to upcoming subscription order
-      const response = await fetch(`/api/subscriptions/${upcomingOrder.subscriptionId}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: product.id.toString(),
-          productName: product.name,
-          productImage: product.image,
-          quantity: quantity,
-          price: product.price,
-          createSubscription: asSubscription,
-          frequency: asSubscription ? frequency : undefined
-        })
-      });
+          // Add item to upcoming subscription order
+          const response = await fetch(`/api/subscriptions/${upcomingOrder.subscriptionId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: (product.productId || product.id).toString(),
+              productName: product.name,
+              productImage: product.image,
+              quantity: quantity,
+              price: product.price,
+              createSubscription: asSubscription,
+              frequency: asSubscription ? frequency : undefined
+            })
+          });
 
       if (!response.ok) {
         throw new Error('Failed to add item to subscription');
@@ -917,12 +1026,23 @@ export default function ProductDetailPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 transition-colors">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors">Product Not Found</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">The product you're looking for doesn't exist.</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">The product you're looking for doesn't exist or is not available.</p>
           <Link href="/">
             <Button>Back to Home</Button>
           </Link>
@@ -967,7 +1087,7 @@ export default function ProductDetailPage() {
           <div className="space-y-4">
             <div className="aspect-square bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-colors">
               <img
-                src={product.image}
+                src={optionImageUrl || product.image}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -1034,12 +1154,18 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="space-y-2">
               <HeroPrice 
-                amountUSD={product.price}
-                originalPrice={product.originalPrice}
+                amountUSD={product.price + priceAdjustment}
+                originalPrice={product.originalPrice ? product.originalPrice + priceAdjustment : undefined}
               />
               {product.originalPrice && (
                 <div className="text-sm font-semibold">
                   <Savings amountUSD={product.originalPrice - product.price} />
+                </div>
+              )}
+              {priceAdjustment !== 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Base price: ${product.price.toFixed(2)}
+                  {priceAdjustment > 0 ? ` + $${priceAdjustment.toFixed(2)} (options)` : ''}
                 </div>
               )}
             </div>
@@ -1051,6 +1177,20 @@ export default function ProductDetailPage() {
                 {product.inStock ? 'In Stock' : 'Out of Stock'}
               </span>
             </div>
+
+            {/* Product Options */}
+            {optionGroups.length > 0 && (
+              <div className="space-y-4">
+                <ProductOptions
+                  optionGroups={optionGroups}
+                  optionsWithInventory={optionsWithInventory}
+                  basePrice={product.price}
+                  onOptionChange={setSelectedOptions}
+                  onPriceChange={(adjustment, total) => setPriceAdjustment(adjustment)}
+                  onImageChange={setOptionImageUrl}
+                />
+              </div>
+            )}
 
             {/* Subscription Widget or Upsell Button */}
             {upcomingOrder ? (
@@ -1081,7 +1221,7 @@ export default function ProductDetailPage() {
               /* Show regular subscription widget for non-subscribers */
               <div className="my-6">
                 <SubscriptionWidget
-                  productId={product.id.toString()}
+                  productId={(product.productId || product.id).toString()}
                   productName={product.name}
                   productPrice={product.price}
                   isPrivateLabel={isPrivateLabel}
@@ -1137,7 +1277,7 @@ export default function ProductDetailPage() {
                   hashtags: ['FiltersFast', product.brand, product.category]
                 }}
                 shareType="product"
-                productId={product.id.toString()}
+                productId={(product.productId || product.id).toString()}
                 variant="icons"
               />
             </Card>
@@ -1206,7 +1346,7 @@ export default function ProductDetailPage() {
           <UpsellModal
             isOpen={showUpsellModal}
             onClose={() => setShowUpsellModal(false)}
-            productId={product.id.toString()}
+            productId={(product.productId || product.id).toString()}
             productName={product.name}
             nextOrderDate={upcomingOrder.nextDeliveryDateFormatted}
             onAddToOrder={handleAddToUpcomingOrder}

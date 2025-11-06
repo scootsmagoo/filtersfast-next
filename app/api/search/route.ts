@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SearchableProduct, SearchResult, SearchResponse, SearchFilters } from '@/lib/types';
+import { listProducts } from '@/lib/db/products';
 import { 
   normalizeQuery, 
   calculateScore, 
@@ -9,8 +10,86 @@ import {
   generateSuggestions 
 } from '@/lib/search-utils';
 
-// Mock enhanced product data (in production, this would come from a database)
-const searchableProducts: SearchableProduct[] = [
+// Helper to convert database Product to SearchableProduct
+function productToSearchable(product: any): SearchableProduct {
+  const categoryMap: Record<string, SearchableProduct['category']> = {
+    'air-filter': 'air',
+    'water-filter': 'water',
+    'refrigerator-filter': 'refrigerator',
+    'humidifier-filter': 'humidifier',
+    'pool-filter': 'pool',
+  };
+  
+  // Get the original product ID - should be a string like "prod-xxx" from database
+  const originalId = product.id;
+  
+  // Calculate numeric ID for backward compatibility
+  const numericId = typeof originalId === 'string' 
+    ? parseInt(originalId.replace(/\D/g, '')) || 0
+    : (typeof originalId === 'number' ? originalId : 0);
+  
+  // ALWAYS preserve the original ID as productId for database products
+  // This is critical for proper linking to product detail pages
+  // If originalId is a string (database product), use it as productId
+  // If it's a number (legacy/mock), convert to string
+  const productIdValue: string | undefined = typeof originalId === 'string' && originalId.trim().length > 0
+    ? originalId 
+    : (typeof originalId === 'number' ? String(originalId) : undefined);
+  
+  // Build the searchable product - ALWAYS include productId when we have originalId
+  const searchable: any = {
+    id: numericId, // Keep numeric for backward compatibility with mock data
+    name: product.name,
+    brand: product.brand,
+    sku: product.sku,
+    price: product.price,
+    originalPrice: product.compareAtPrice || undefined,
+    rating: product.rating || 0,
+    reviewCount: product.reviewCount || 0,
+    image: product.primaryImage || '/images/product-placeholder.jpg',
+    inStock: product.inventoryQuantity > 0 || !product.trackInventory,
+    badges: [
+      ...(product.isBestSeller ? ['bestseller'] : []),
+      ...(product.isFeatured ? ['featured'] : []),
+      ...(product.isNew ? ['new'] : []),
+      ...(product.madeInUSA ? ['made-in-usa'] : []),
+    ],
+    category: categoryMap[product.type] || 'other',
+    description: product.description || '',
+    searchKeywords: [
+      product.name.toLowerCase(),
+      product.brand.toLowerCase(),
+      product.sku.toLowerCase(),
+      ...(product.description || '').toLowerCase().split(/\s+/),
+      ...(product.tags || []),
+    ],
+    partNumbers: [product.sku, ...(product.tags || [])],
+    compatibility: product.compatibleModels || [],
+    specifications: product.specifications || {},
+  };
+  
+  // CRITICAL: Explicitly set productId AFTER building the object to ensure it's included
+  // This is the most important field for proper product linking
+  if (productIdValue) {
+    searchable.productId = productIdValue;
+  }
+  
+  // Verify productId is set (for database products starting with "prod-")
+  if (typeof originalId === 'string' && originalId.startsWith('prod-') && !searchable.productId) {
+    console.error('[productToSearchable] ERROR: productId not set for database product!', {
+      originalId,
+      productIdValue,
+      searchableKeys: Object.keys(searchable)
+    });
+    // Force set it as a fallback
+    searchable.productId = originalId;
+  }
+  
+  return searchable as SearchableProduct;
+}
+
+// Mock enhanced product data (fallback if database is empty)
+const mockSearchableProducts: SearchableProduct[] = [
   // Refrigerator Filters
   {
     id: 1,
@@ -291,6 +370,72 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Map category filter to product type
+    const categoryToType: Record<string, string> = {
+      'air': 'air-filter',
+      'water': 'water-filter',
+      'refrigerator': 'refrigerator-filter',
+      'humidifier': 'humidifier-filter',
+      'pool': 'pool-filter',
+    };
+
+    // Fetch products from database
+    const productFilters = {
+      status: 'active' as const, // Only search active products
+      type: category ? (categoryToType[category] as any) : undefined,
+      brand: brand || undefined,
+      search: query,
+      minPrice,
+      maxPrice,
+      inStock: inStock || undefined,
+      limit: 1000, // Get more products for better search results
+      offset: 0,
+    };
+
+    const dbResult = listProducts(productFilters);
+    console.log(`[Search API] Found ${dbResult.products.length} products from database for query: "${query}"`);
+    
+    // Convert database products to searchable format, ensuring productId is preserved
+    const dbProducts = dbResult.products.map(product => {
+      const searchable = productToSearchable(product);
+      // Debug: Log product conversion for troubleshooting
+      if (query.toLowerCase().includes('fart') || product.name?.toLowerCase().includes('fart')) {
+        console.log('[Search API] Converting product with "fart":', {
+          originalId: product.id,
+          originalIdType: typeof product.id,
+          productId: searchable.productId,
+          productIdType: typeof searchable.productId,
+          numericId: searchable.id,
+          name: product.name,
+          'hasProductId': !!searchable.productId
+        });
+      }
+      // Warn if productId should be set but isn't
+      if (!searchable.productId && product.id && typeof product.id === 'string' && product.id.startsWith('prod-')) {
+        console.error('[Search API] ERROR: productId not set for database product!', {
+          productId: product.id,
+          searchableKeys: Object.keys(searchable),
+          searchableId: searchable.id
+        });
+      }
+      return searchable;
+    });
+
+    // Use database products, fallback to mock if empty
+    const searchableProducts = dbProducts.length > 0 ? dbProducts : mockSearchableProducts;
+    
+    // Debug: Log which data source is being used
+    if (query.toLowerCase().includes('fart')) {
+      console.log(`[Search API] Using ${dbProducts.length > 0 ? 'DATABASE' : 'MOCK'} products for query "${query}"`);
+      if (dbProducts.length > 0) {
+        console.log(`[Search API] First database product:`, {
+          id: dbProducts[0].id,
+          productId: dbProducts[0].productId,
+          name: dbProducts[0].name
+        });
+      }
+    }
+
     const normalizedQuery = normalizeQuery(query);
 
     // Perform search
@@ -315,7 +460,7 @@ export async function GET(request: NextRequest) {
     // Sort by score (highest first)
     searchResults.sort((a, b) => b.score - a.score);
 
-    // Apply filters
+    // Apply additional filters (category filter already applied at DB level, but check again for consistency)
     const filters: SearchFilters = {
       category: category || undefined,
       brand: brand || undefined,
@@ -345,11 +490,34 @@ export async function GET(request: NextRequest) {
         acc[product.brand] = (acc[product.brand] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      priceRange: {
+      priceRange: searchableProducts.length > 0 ? {
         min: Math.min(...searchableProducts.map(p => p.price)),
         max: Math.max(...searchableProducts.map(p => p.price))
-      }
+      } : { min: 0, max: 0 }
     };
+
+    // Debug: Log the first result to verify productId is included
+    if (paginatedResults.length > 0 && query.toLowerCase().includes('fart')) {
+      const firstResult = paginatedResults[0].product;
+      console.log('[Search API] First paginated result for "fart":', {
+        id: firstResult.id,
+        productId: firstResult.productId,
+        productIdType: typeof firstResult.productId,
+        name: firstResult.name,
+        'hasProductId': !!firstResult.productId,
+        'productKeys': Object.keys(firstResult),
+        'fullProduct': JSON.stringify(firstResult, null, 2)
+      });
+      
+      // Verify productId is actually in the object
+      if (!firstResult.productId && firstResult.id) {
+        console.error('[Search API] ERROR: productId is missing from result!', {
+          id: firstResult.id,
+          name: firstResult.name,
+          allKeys: Object.keys(firstResult)
+        });
+      }
+    }
 
     const response: SearchResponse = {
       results: paginatedResults,
@@ -360,6 +528,12 @@ export async function GET(request: NextRequest) {
       suggestions,
       filters: filterOptions
     };
+
+    // Double-check that productId is in the response
+    const responseJson = JSON.parse(JSON.stringify(response));
+    if (responseJson.results?.length > 0 && query.toLowerCase().includes('fart')) {
+      console.log('[Search API] Response JSON (first result productId):', responseJson.results[0].product?.productId);
+    }
 
     return NextResponse.json(response);
 

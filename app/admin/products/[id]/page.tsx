@@ -415,6 +415,59 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
               </Card>
 
+              {/* Images */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
+                  Product Images
+                </h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                      Primary Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.primaryImage}
+                      onChange={(e) => updateField('primaryImage', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                      placeholder="https://example.com/image.jpg or /images/product.jpg"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Enter a full URL or relative path to the product image
+                    </p>
+                    {formData.primaryImage && (
+                      <div className="mt-2">
+                        <img
+                          src={formData.primaryImage}
+                          alt="Preview"
+                          className="max-w-xs h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                      Additional Images (URLs, one per line)
+                    </label>
+                    <textarea
+                      value={formData.additionalImages}
+                      onChange={(e) => updateField('additionalImages', e.target.value)}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors font-mono text-sm"
+                      placeholder="https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Enter one image URL per line
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
               {/* Pricing */}
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">

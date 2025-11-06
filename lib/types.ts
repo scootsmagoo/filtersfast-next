@@ -1,6 +1,7 @@
 // Enhanced product interface for search functionality
 export interface SearchableProduct {
-  id: number;
+  id: number | string; // Can be numeric (legacy) or string (database IDs)
+  productId?: string; // Original database product ID (for linking)
   name: string;
   brand: string;
   sku: string;
