@@ -321,11 +321,10 @@ export default function AdminDashboard() {
     },
     {
       title: 'Settings',
-      description: 'Site configuration and preferences',
+      description: 'Manage system modules and feature toggles',
       icon: Settings,
       href: '/admin/settings',
-      color: 'gray',
-      comingSoon: true
+      color: 'gray'
     }
   ]
 }
