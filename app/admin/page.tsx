@@ -197,6 +197,13 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Order Discounts',
+      description: 'Manage order-level discount codes (SA_disc)',
+      icon: Tag,
+      href: '/admin/order-discounts',
+      color: 'orange'
+    },
+    {
       title: 'Giveaways & Sweepstakes',
       description: 'Create contests and pick winners',
       icon: Gift,
