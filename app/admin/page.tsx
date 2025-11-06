@@ -27,7 +27,8 @@ import {
   CreditCard,
   Link as LinkIcon,
   Star,
-  DollarSign
+  DollarSign,
+  Wrench
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -324,6 +325,13 @@ export default function AdminDashboard() {
       description: 'Manage system modules and feature toggles',
       icon: Settings,
       href: '/admin/settings',
+      color: 'gray'
+    },
+    {
+      title: 'Utilities',
+      description: 'System maintenance and diagnostic tools',
+      icon: Wrench,
+      href: '/admin/utilities',
       color: 'gray'
     }
   ]
