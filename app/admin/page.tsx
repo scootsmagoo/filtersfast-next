@@ -130,6 +130,13 @@ export default function AdminDashboard() {
       color: 'blue'
     },
     {
+      title: 'Large Orders',
+      description: 'Report of orders above threshold',
+      icon: TrendingUp,
+      href: '/admin/orders/large',
+      color: 'orange'
+    },
+    {
       title: 'Products',
       description: 'Manage product catalog and inventory',
       icon: Package,

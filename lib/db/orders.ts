@@ -556,6 +556,88 @@ export function getOrderRefunds(order_id: string): OrderRefund[] {
 
 // ==================== Statistics ====================
 
+export interface LargeOrder {
+  id: string
+  order_number: string
+  user_id: string | null
+  customer_name: string
+  customer_email: string
+  phone: string | null
+  status: string
+  payment_status: string
+  payment_method: string
+  total: number
+  created_at: number
+  paid_at: number | null
+}
+
+export interface LargeOrdersFilters {
+  min_total?: number
+  date_from?: number
+  date_to?: number
+}
+
+/**
+ * Get large orders (orders above a minimum total threshold)
+ * Filters by payment status (paid), order status (processing/shipped/delivered), and payment method (stripe/paypal)
+ */
+export function getLargeOrders(filters: LargeOrdersFilters = {}): LargeOrder[] {
+  const minTotal = filters.min_total || 600
+  const dateFrom = filters.date_from || (Date.now() - 7 * 24 * 60 * 60 * 1000) // Default: last 7 days
+  const dateTo = filters.date_to || Date.now()
+
+  // Get orders that:
+  // 1. Have total >= minTotal
+  // 2. Are paid (payment_status = 'paid')
+  // 3. Are in active status (processing, shipped, delivered)
+  // 4. Were paid via Stripe or PayPal
+  // 5. Were created/paid within date range
+  const stmt = db.prepare(`
+    SELECT 
+      id,
+      order_number,
+      user_id,
+      customer_name,
+      customer_email,
+      CASE 
+        WHEN shipping_address IS NOT NULL 
+        THEN json_extract(shipping_address, '$.phone')
+        ELSE NULL
+      END as phone,
+      status,
+      payment_status,
+      payment_method,
+      total,
+      created_at,
+      COALESCE(updated_at, created_at) as paid_at
+    FROM orders
+    WHERE total >= ?
+      AND payment_status = 'paid'
+      AND status IN ('processing', 'shipped', 'delivered')
+      AND payment_method IN ('stripe', 'paypal')
+      AND COALESCE(updated_at, created_at) >= ?
+      AND COALESCE(updated_at, created_at) <= ?
+    ORDER BY paid_at DESC
+  `)
+
+  const orders = stmt.all(minTotal, dateFrom, dateTo) as any[]
+
+  return orders.map((row) => ({
+    id: row.id,
+    order_number: row.order_number,
+    user_id: row.user_id,
+    customer_name: row.customer_name,
+    customer_email: row.customer_email,
+    phone: row.phone || null,
+    status: row.status,
+    payment_status: row.payment_status,
+    payment_method: row.payment_method,
+    total: row.total,
+    created_at: row.created_at,
+    paid_at: row.paid_at || row.created_at,
+  }))
+}
+
 export function getOrderStats(): OrderStats {
   // Total orders and revenue
   const totalsStmt = db.prepare(`

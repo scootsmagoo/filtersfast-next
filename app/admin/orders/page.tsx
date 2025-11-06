@@ -183,6 +183,16 @@ export default function AdminOrdersPage() {
               View and manage customer orders
             </p>
           </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/orders/large"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+              aria-label="View large orders report"
+            >
+              <TrendingUp className="w-4 h-4" aria-hidden="true" />
+              Large Orders Report
+            </Link>
+          </div>
         </div>
 
         {/* Statistics Cards */}
