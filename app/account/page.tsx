@@ -126,8 +126,8 @@ function AccountPageContent() {
 
         {/* Verification Sent Banner */}
         {verificationSent && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-            <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+            <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Verification email sent!</p>
               <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
@@ -242,19 +242,29 @@ function AccountPageContent() {
                 </Link>
                 
                 {/* Admin Portal Link - Admin layout will handle authorization */}
-                <hr className="my-4" />
-                <Link href="/admin" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-purple-50 transition-colors text-purple-600 font-medium border border-purple-200 bg-purple-50/50">
-                  <Shield className="w-5 h-5" />
+                <hr className="my-4 border-gray-200 dark:border-gray-700" />
+                <Link 
+                  href="/admin" 
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors font-medium border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
+                    bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/40 dark:hover:bg-purple-900/60
+                    text-purple-700 dark:text-purple-300
+                    border-purple-200 dark:border-purple-700"
+                  aria-label="Access admin portal"
+                >
+                  <Shield className="w-5 h-5" aria-hidden="true" />
                   Admin Portal
                 </Link>
                 
-                <hr className="my-4" />
+                <hr className="my-4 border-gray-200 dark:border-gray-700" />
                 <button
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-red-50 transition-colors text-red-600 disabled:opacity-50"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
+                    hover:bg-red-50 dark:hover:bg-red-900/30
+                    text-red-600 dark:text-red-400"
+                  aria-label="Sign out of your account"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-5 h-5" aria-hidden="true" />
                   {isSigningOut ? 'Signing out...' : 'Sign Out'}
                 </button>
               </nav>
