@@ -398,9 +398,9 @@ export default function SKUCompatibilityModal({
               className="sr-only"
               id="compatibility-status"
             >
-              {loading && 'Loading compatibility data, please wait.'}
-              {saving && 'Saving compatibility changes, please wait.'}
-              {error && `Error: ${error}`}
+              {loading && <span>Loading compatibility data, please wait.</span>}
+              {saving && <span>Saving compatibility changes, please wait.</span>}
+              {error && <span>Error: {error}</span>}
             </div>
 
             {view === 'parts' && (
@@ -477,42 +477,46 @@ export default function SKUCompatibilityModal({
                               >
                                 <td className="py-3 px-4">
                                   {canEdit ? (
-                                    <label htmlFor={`brand-${comp.id}`} className="sr-only">
-                                      Brand name for compatibility record {comp.id}
-                                    </label>
-                                    <input
-                                      type="text"
-                                      id={`brand-${comp.id}`}
-                                      value={comp.skuBrand}
-                                      onChange={(e) => handleUpdateField(comp.id, 'skuBrand', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                                      placeholder="Brand name"
-                                      maxLength={100}
-                                      required
-                                      aria-required="true"
-                                      aria-describedby={error ? "compatibility-status" : undefined}
-                                    />
+                                    <>
+                                      <label htmlFor={`brand-${comp.id}`} className="sr-only">
+                                        {`Brand name for compatibility record ${comp.id}`}
+                                      </label>
+                                      <input
+                                        type="text"
+                                        id={`brand-${comp.id}`}
+                                        value={comp.skuBrand}
+                                        onChange={(e) => handleUpdateField(comp.id, 'skuBrand', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                                        placeholder="Brand name"
+                                        maxLength={100}
+                                        required
+                                        aria-required="true"
+                                        aria-describedby={error ? "compatibility-status" : undefined}
+                                      />
+                                    </>
                                   ) : (
                                     <span className="text-gray-900 dark:text-gray-100">{comp.skuBrand}</span>
                                   )}
                                 </td>
                                 <td className="py-3 px-4">
                                   {canEdit ? (
-                                    <label htmlFor={`sku-${comp.id}`} className="sr-only">
-                                      SKU or part number for compatibility record {comp.id}
-                                    </label>
-                                    <input
-                                      type="text"
-                                      id={`sku-${comp.id}`}
-                                      value={comp.skuValue}
-                                      onChange={(e) => handleUpdateField(comp.id, 'skuValue', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
-                                      placeholder="SKU/Part number"
-                                      maxLength={100}
-                                      required
-                                      aria-required="true"
-                                      aria-describedby={error ? "compatibility-status" : undefined}
-                                    />
+                                    <>
+                                      <label htmlFor={`sku-${comp.id}`} className="sr-only">
+                                        {`SKU or part number for compatibility record ${comp.id}`}
+                                      </label>
+                                      <input
+                                        type="text"
+                                        id={`sku-${comp.id}`}
+                                        value={comp.skuValue}
+                                        onChange={(e) => handleUpdateField(comp.id, 'skuValue', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                                        placeholder="SKU/Part number"
+                                        maxLength={100}
+                                        required
+                                        aria-required="true"
+                                        aria-describedby={error ? "compatibility-status" : undefined}
+                                      />
+                                    </>
                                   ) : (
                                     <span className="text-gray-900 dark:text-gray-100">{comp.skuValue}</span>
                                   )}
