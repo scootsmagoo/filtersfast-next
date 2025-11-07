@@ -196,31 +196,51 @@ function SearchPageContent() {
       <div className="container-custom py-6">
         {/* Search Header */}
         <div className="mb-6">
-          <form onSubmit={handleSearchSubmit} className="relative max-w-2xl">
+          <form onSubmit={handleSearchSubmit} className="relative max-w-2xl" role="search" aria-label="Product search">
             <div className="relative">
+              <label htmlFor="search-input" className="sr-only">
+                Search for filters by part number, brand, or product name
+              </label>
               <input
+                id="search-input"
                 type="text"
                 value={query}
                 onChange={handleSearchChange}
                 placeholder="Search by part #, brand, or product..."
+                aria-label="Search for filters by part number, brand, or product name"
+                aria-describedby="search-help"
+                aria-autocomplete="list"
+                aria-controls="search-suggestions"
+                aria-expanded={showSuggestions && suggestions.length > 0}
                 className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-colors"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors"
+                aria-label="Submit search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-orange text-white p-2 rounded hover:bg-brand-orange-dark transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-5 h-5" aria-hidden="true" />
               </button>
+              <div id="search-help" className="sr-only">
+                Enter a part number, brand name, or product description to search our filter catalog. Use the arrow keys to navigate suggestions.
+              </div>
             </div>
 
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 mt-1">
+              <div 
+                id="search-suggestions"
+                role="listbox"
+                aria-label="Search suggestions"
+                className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 mt-1"
+              >
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
+                    role="option"
+                    aria-selected="false"
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 first:rounded-t-lg last:rounded-b-lg transition-colors focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-orange"
                   >
                     {suggestion}
                   </button>
@@ -229,18 +249,36 @@ function SearchPageContent() {
             )}
           </form>
 
+          {/* Screen reader announcement for search results */}
+          <div 
+            role="status" 
+            aria-live="polite" 
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {loading && 'Searching for products...'}
+            {!loading && query && total > 0 && `Found ${total} result${total !== 1 ? 's' : ''} for ${query}`}
+            {!loading && query && total === 0 && `No results found for ${query}`}
+          </div>
+
           {/* Results Summary */}
           {query && (
             <div className="mt-4 flex items-center justify-between">
-              <p className="text-gray-600 dark:text-gray-300 transition-colors">
-                {loading ? 'Searching...' : `${total} results for "${query}"`}
+              <p className="text-gray-600 dark:text-gray-300 transition-colors" aria-live="polite">
+                {loading ? (
+                  <span aria-label="Searching for products">Searching...</span>
+                ) : (
+                  <span>{total} result{total !== 1 ? 's' : ''} for "{query}"</span>
+                )}
               </p>
               <Button
                 onClick={() => setShowFilters(!showFilters)}
                 variant="outline"
-                className="flex items-center gap-2"
+                aria-expanded={showFilters}
+                aria-controls="search-filters"
+                className="flex items-center gap-2 focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
               >
-                <Filter className="w-4 h-4" />
+                <Filter className="w-4 h-4" aria-hidden="true" />
                 Filters
               </Button>
             </div>
@@ -250,27 +288,35 @@ function SearchPageContent() {
         <div className="flex gap-6">
           {/* Filters Sidebar */}
           {showFilters && (
-            <div className="w-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 transition-colors">
+            <div 
+              id="search-filters"
+              className="w-64 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 transition-colors"
+              role="region"
+              aria-label="Search filters"
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">Filters</h3>
                 <button
                   onClick={() => setShowFilters(false)}
-                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  aria-label="Close filters"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
 
               <div className="space-y-4">
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  <label htmlFor="filter-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                     Category
                   </label>
                   <select
+                    id="filter-category"
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+                    aria-label="Filter by category"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors focus:ring-2 focus:ring-brand-orange focus:border-brand-orange"
                   >
                     <option value="">All Categories</option>
                     <option value="refrigerator">Refrigerator Filters</option>
@@ -283,39 +329,57 @@ function SearchPageContent() {
 
                 {/* Brand Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  <label htmlFor="filter-brand" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                     Brand
                   </label>
                   <input
+                    id="filter-brand"
                     type="text"
                     value={filters.brand}
                     onChange={(e) => handleFilterChange('brand', e.target.value)}
                     placeholder="Enter brand name"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                    aria-label="Filter by brand name"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors focus:ring-2 focus:ring-brand-orange focus:border-brand-orange"
                   />
                 </div>
 
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
-                    Price Range
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={filters.minPrice}
-                      onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                      placeholder="Min"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-                    />
-                    <input
-                      type="number"
-                      value={filters.maxPrice}
-                      onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                      placeholder="Max"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-                    />
-                  </div>
+                  <fieldset>
+                    <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                      Price Range
+                    </legend>
+                    <div className="flex gap-2">
+                      <label htmlFor="filter-min-price" className="sr-only">
+                        Minimum price
+                      </label>
+                      <input
+                        id="filter-min-price"
+                        type="number"
+                        value={filters.minPrice}
+                        onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                        placeholder="Min"
+                        aria-label="Minimum price"
+                        min="0"
+                        step="0.01"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors focus:ring-2 focus:ring-brand-orange focus:border-brand-orange"
+                      />
+                      <label htmlFor="filter-max-price" className="sr-only">
+                        Maximum price
+                      </label>
+                      <input
+                        id="filter-max-price"
+                        type="number"
+                        value={filters.maxPrice}
+                        onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                        placeholder="Max"
+                        aria-label="Maximum price"
+                        min="0"
+                        step="0.01"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors focus:ring-2 focus:ring-brand-orange focus:border-brand-orange"
+                      />
+                    </div>
+                  </fieldset>
                 </div>
 
                 {/* In Stock Filter */}
@@ -325,7 +389,8 @@ function SearchPageContent() {
                       type="checkbox"
                       checked={filters.inStock}
                       onChange={(e) => handleFilterChange('inStock', e.target.checked)}
-                      className="mr-2 rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                      aria-label="Show only products in stock"
+                      className="mr-2 rounded border-gray-300 text-brand-orange focus:ring-brand-orange focus:ring-2"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">In Stock Only</span>
                   </label>
@@ -333,13 +398,15 @@ function SearchPageContent() {
 
                 {/* Rating Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  <label htmlFor="filter-rating" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                     Minimum Rating
                   </label>
                   <select
+                    id="filter-rating"
                     value={filters.minRating}
                     onChange={(e) => handleFilterChange('minRating', e.target.value)}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+                    aria-label="Filter by minimum rating"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors focus:ring-2 focus:ring-brand-orange focus:border-brand-orange"
                   >
                     <option value="">Any Rating</option>
                     <option value="4">4+ Stars</option>
@@ -363,15 +430,20 @@ function SearchPageContent() {
           {/* Search Results */}
           <div className="flex-1">
             {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-orange mx-auto"></div>
-                <p className="mt-2 text-gray-600 dark:text-gray-400 transition-colors">Searching...</p>
+              <div className="text-center py-8" role="status" aria-live="polite">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-orange mx-auto" aria-hidden="true"></div>
+                <p className="mt-2 text-gray-600 dark:text-gray-400 transition-colors">
+                  <span className="sr-only">Loading search results</span>
+                  <span aria-hidden="true">Searching...</span>
+                </p>
               </div>
             )}
 
             {!loading && results.length === 0 && query && (
-              <div className="text-center py-8">
-                <p className="text-gray-600 dark:text-gray-300 transition-colors">No results found for "{query}"</p>
+              <div className="text-center py-8" role="status" aria-live="polite">
+                <p className="text-gray-600 dark:text-gray-300 transition-colors">
+                  No results found for "{query}"
+                </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 transition-colors">
                   Try different keywords or check your spelling
                 </p>
@@ -379,7 +451,7 @@ function SearchPageContent() {
             )}
 
             {!loading && results.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-4" role="region" aria-label="Search results">
                 {results.map((result) => {
                   // CRITICAL: Use productId if available (string ID from database), otherwise use numeric id
                   // The API returns productId: "prod-1762456823138-11r0fq" for database products
@@ -431,7 +503,8 @@ function SearchPageContent() {
                           <div>
                             <a 
                               href={`/products/${productLinkId}`}
-                              className="text-lg font-semibold text-gray-900 dark:text-gray-100 hover:text-brand-orange cursor-pointer block transition-colors"
+                              className="text-lg font-semibold text-gray-900 dark:text-gray-100 hover:text-brand-orange cursor-pointer block transition-colors focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded"
+                              aria-label={`View details for ${result.product.name}`}
                             >
                               {result.product.name}
                             </a>
@@ -455,7 +528,7 @@ function SearchPageContent() {
 
                         {/* Rating and Reviews */}
                         <div className="flex items-center gap-2 mt-2">
-                          <div className="flex items-center">
+                          <div className="flex items-center" role="img" aria-label={`Rating: ${result.product.rating} out of 5 stars`}>
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
@@ -464,11 +537,12 @@ function SearchPageContent() {
                                     ? 'text-yellow-400 fill-yellow-400'
                                     : 'text-gray-300 dark:text-gray-600'
                                 } transition-colors`}
+                                aria-hidden="true"
                               />
                             ))}
                           </div>
                           <span className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
-                            {result.product.rating} ({result.product.reviewCount} reviews)
+                            {result.product.rating} ({result.product.reviewCount} review{result.product.reviewCount !== 1 ? 's' : ''})
                           </span>
                         </div>
 
@@ -486,9 +560,10 @@ function SearchPageContent() {
                           <Button
                             onClick={() => handleAddToCart(result.product)}
                             disabled={!result.product.inStock}
-                            className="flex items-center gap-2"
+                            aria-label={`Add ${result.product.name} to cart`}
+                            className="flex items-center gap-2 focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
                           >
-                            <ShoppingCart className="w-4 h-4" />
+                            <ShoppingCart className="w-4 h-4" aria-hidden="true" />
                             {result.product.inStock ? 'Add to Cart' : 'Out of Stock'}
                           </Button>
                         </div>
@@ -501,7 +576,12 @@ function SearchPageContent() {
                 {/* Load More Button */}
                 {results.length < total && (
                   <div className="text-center mt-8">
-                    <Button onClick={loadMore} variant="outline">
+                    <Button 
+                      onClick={loadMore} 
+                      variant="outline"
+                      aria-label={`Load more results. Showing ${results.length} of ${total} results`}
+                      className="focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                    >
                       Load More Results
                     </Button>
                   </div>

@@ -9,6 +9,8 @@ import {
   applyFilters,
   generateSuggestions 
 } from '@/lib/search-utils';
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
+import { sanitizeText, sanitizeNumber } from '@/lib/sanitize';
 
 // Helper to convert database Product to SearchableProduct
 function productToSearchable(product: any): SearchableProduct {
@@ -342,16 +344,59 @@ const mockSearchableProducts: SearchableProduct[] = [
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting - prevent abuse
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(clientId, rateLimitPresets.generous);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.reset - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(rateLimitPresets.generous.maxRequests),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q') || '';
-    const category = searchParams.get('category') || '';
-    const brand = searchParams.get('brand') || '';
-    const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined;
-    const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined;
+    
+    // Sanitize and validate input parameters
+    // Strip HTML tags and limit length (React will escape on render, but we sanitize for safety)
+    const rawQuery = searchParams.get('q') || '';
+    const query = rawQuery.replace(/<[^>]*>/g, '').trim().slice(0, 200); // Limit to 200 chars, strip HTML
+    const category = (searchParams.get('category') || '').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 50);
+    const brand = (searchParams.get('brand') || '').replace(/<[^>]*>/g, '').trim().slice(0, 100);
+    
+    // Validate and sanitize numeric inputs
+    const minPriceParam = searchParams.get('minPrice');
+    const maxPriceParam = searchParams.get('maxPrice');
+    const minPrice = minPriceParam ? sanitizeNumber(minPriceParam, 0, 100000) : undefined;
+    const maxPrice = maxPriceParam ? sanitizeNumber(maxPriceParam, 0, 100000) : undefined;
+    
+    // Validate price range
+    if (minPrice !== null && maxPrice !== null && minPrice !== undefined && maxPrice !== undefined) {
+      if (minPrice > maxPrice) {
+        return NextResponse.json(
+          { error: 'Invalid price range. Minimum price cannot be greater than maximum price.' },
+          { status: 400 }
+        );
+      }
+    }
+    
     const inStock = searchParams.get('inStock') === 'true';
-    const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined;
-    const page = Number(searchParams.get('page')) || 1;
-    const limit = Number(searchParams.get('limit')) || 20;
+    const minRatingParam = searchParams.get('minRating');
+    const minRating = minRatingParam ? sanitizeNumber(minRatingParam, 0, 5) : undefined;
+    
+    // Validate pagination parameters
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const page = pageParam ? Math.max(1, Math.min(1000, Math.floor(sanitizeNumber(pageParam, 1, 1000) || 1))) : 1;
+    const limit = limitParam ? Math.max(1, Math.min(100, Math.floor(sanitizeNumber(limitParam, 1, 100) || 20))) : 20;
 
     // If no query, return empty results
     if (!query.trim()) {
@@ -393,25 +438,14 @@ export async function GET(request: NextRequest) {
     };
 
     const dbResult = listProducts(productFilters);
-    console.log(`[Search API] Found ${dbResult.products.length} products from database for query: "${query}"`);
     
     // Convert database products to searchable format, ensuring productId is preserved
+    // Note: React automatically escapes rendered content, so we don't need to HTML-encode product data
     const dbProducts = dbResult.products.map(product => {
       const searchable = productToSearchable(product);
-      // Debug: Log product conversion for troubleshooting
-      if (query.toLowerCase().includes('fart') || product.name?.toLowerCase().includes('fart')) {
-        console.log('[Search API] Converting product with "fart":', {
-          originalId: product.id,
-          originalIdType: typeof product.id,
-          productId: searchable.productId,
-          productIdType: typeof searchable.productId,
-          numericId: searchable.id,
-          name: product.name,
-          'hasProductId': !!searchable.productId
-        });
-      }
-      // Warn if productId should be set but isn't
-      if (!searchable.productId && product.id && typeof product.id === 'string' && product.id.startsWith('prod-')) {
+      
+      // Warn if productId should be set but isn't (only in development)
+      if (process.env.NODE_ENV === 'development' && !searchable.productId && product.id && typeof product.id === 'string' && product.id.startsWith('prod-')) {
         console.error('[Search API] ERROR: productId not set for database product!', {
           productId: product.id,
           searchableKeys: Object.keys(searchable),
@@ -423,18 +457,6 @@ export async function GET(request: NextRequest) {
 
     // Use database products, fallback to mock if empty
     const searchableProducts = dbProducts.length > 0 ? dbProducts : mockSearchableProducts;
-    
-    // Debug: Log which data source is being used
-    if (query.toLowerCase().includes('fart')) {
-      console.log(`[Search API] Using ${dbProducts.length > 0 ? 'DATABASE' : 'MOCK'} products for query "${query}"`);
-      if (dbProducts.length > 0) {
-        console.log(`[Search API] First database product:`, {
-          id: dbProducts[0].id,
-          productId: dbProducts[0].productId,
-          name: dbProducts[0].name
-        });
-      }
-    }
 
     const normalizedQuery = normalizeQuery(query);
 
@@ -496,29 +518,6 @@ export async function GET(request: NextRequest) {
       } : { min: 0, max: 0 }
     };
 
-    // Debug: Log the first result to verify productId is included
-    if (paginatedResults.length > 0 && query.toLowerCase().includes('fart')) {
-      const firstResult = paginatedResults[0].product;
-      console.log('[Search API] First paginated result for "fart":', {
-        id: firstResult.id,
-        productId: firstResult.productId,
-        productIdType: typeof firstResult.productId,
-        name: firstResult.name,
-        'hasProductId': !!firstResult.productId,
-        'productKeys': Object.keys(firstResult),
-        'fullProduct': JSON.stringify(firstResult, null, 2)
-      });
-      
-      // Verify productId is actually in the object
-      if (!firstResult.productId && firstResult.id) {
-        console.error('[Search API] ERROR: productId is missing from result!', {
-          id: firstResult.id,
-          name: firstResult.name,
-          allKeys: Object.keys(firstResult)
-        });
-      }
-    }
-
     const response: SearchResponse = {
       results: paginatedResults,
       total: filteredResults.length,
@@ -529,13 +528,15 @@ export async function GET(request: NextRequest) {
       filters: filterOptions
     };
 
-    // Double-check that productId is in the response
-    const responseJson = JSON.parse(JSON.stringify(response));
-    if (responseJson.results?.length > 0 && query.toLowerCase().includes('fart')) {
-      console.log('[Search API] Response JSON (first result productId):', responseJson.results[0].product?.productId);
-    }
-
-    return NextResponse.json(response);
+    // Return response with security headers
+    return NextResponse.json(response, {
+      headers: {
+        'X-RateLimit-Limit': String(rateLimitPresets.generous.maxRequests),
+        'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+        'X-RateLimit-Reset': String(rateLimitResult.reset),
+        'X-Content-Type-Options': 'nosniff',
+      }
+    });
 
   } catch (error) {
     console.error('Search API error:', error);

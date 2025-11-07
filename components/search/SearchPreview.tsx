@@ -98,27 +98,49 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
   return (
     <div
       ref={dropdownRef}
+      role="listbox"
+      aria-label="Search suggestions"
+      aria-expanded={isVisible && suggestions.length > 0}
       className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 mt-1 max-h-96 overflow-y-auto"
     >
       {loading ? (
-        <div className="p-4 text-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-orange mx-auto"></div>
-          <p className="text-sm text-gray-600 mt-2">Searching...</p>
+        <div className="p-4 text-center" role="status" aria-live="polite">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-orange mx-auto" aria-hidden="true"></div>
+          <p className="text-sm text-gray-600 mt-2">
+            <span className="sr-only">Loading search suggestions</span>
+            <span aria-hidden="true">Searching...</span>
+          </p>
         </div>
       ) : suggestions.length > 0 ? (
         <div className="py-2">
-          {suggestions.map((suggestion, index) => (
+          {suggestions.map((suggestion, index) => {
+            // CRITICAL: Use productId if available (string ID from database), otherwise use numeric id
+            // The API returns productId: "prod-1762456823138-11r0fq" for database products
+            // We MUST use this instead of the numeric id to avoid 404 errors
+            const product = suggestion.product;
+            
+            // ALWAYS prefer productId over numeric id for database products
+            // The API returns productId: "prod-xxx" for database products
+            // Check if productId exists - it should be a string like "prod-1762456823138-11r0fq"
+            const productLinkId: string = product.productId && typeof product.productId === 'string'
+              ? product.productId  // Use the string productId from database
+              : String(product.id); // Fallback to numeric id (for mock/legacy products)
+            
+            return (
             <Link
-              key={suggestion.product.id}
-              href={`/products/${suggestion.product.id}`}
+              key={product.id}
+              href={`/products/${productLinkId}`}
+              role="option"
+              aria-selected={index === selectedIndex}
               onClick={() => {
                 onSelectProduct(suggestion.product);
               }}
-              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors block ${
+              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors block focus:outline-none focus:ring-2 focus:ring-brand-orange focus:bg-gray-50 ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               } ${index === 0 ? 'rounded-t-lg' : ''} ${
                 index === suggestions.length - 1 ? 'rounded-b-lg' : ''
               }`}
+              aria-label={`${suggestion.product.name}, ${suggestion.product.brand}, $${suggestion.product.price}`}
             >
               {/* Product Image */}
               <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
@@ -147,7 +169,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                         {suggestion.product.brand} • SKU: {suggestion.product.sku}
                       </span>
                       {suggestion.matchType === 'exact' && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded" aria-label="Exact match">
                           Exact Match
                         </span>
                       )}
@@ -161,8 +183,8 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                         className="text-sm"
                       />
                     </div>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                    <div className="flex items-center gap-1 mt-1" role="img" aria-label={`Rating: ${suggestion.product.rating} out of 5 stars`}>
+                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" aria-hidden="true" />
                       <span className="text-xs text-gray-600">
                         {suggestion.product.rating}
                       </span>
@@ -171,7 +193,8 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
 
           {/* View All Results */}
           <div className="border-t border-gray-200 px-4 py-2">
@@ -188,7 +211,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
           </div>
         </div>
       ) : (
-        <div className="p-4 text-center text-gray-500">
+        <div className="p-4 text-center text-gray-500" role="status" aria-live="polite">
           <p className="text-sm">No products found for "{query}"</p>
           <p className="text-xs mt-1">Try different keywords or check spelling</p>
         </div>

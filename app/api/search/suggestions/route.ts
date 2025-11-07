@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSuggestions } from '@/lib/search-utils';
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
 
 // Import the same product data (in production, this would be shared)
 const searchableProducts = [
@@ -122,17 +123,42 @@ const searchableProducts = [
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(clientId, rateLimitPresets.generous);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.reset - Date.now()) / 1000)),
+          }
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q') || '';
-    const limit = Number(searchParams.get('limit')) || 5;
+    const rawQuery = searchParams.get('q') || '';
+    // Sanitize input: strip HTML and limit length
+    const query = rawQuery.replace(/<[^>]*>/g, '').trim().slice(0, 200);
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? Math.max(1, Math.min(10, Math.floor(Number(limitParam) || 5))) : 5;
 
     if (query.length < 2) {
       return NextResponse.json({ suggestions: [] });
     }
 
     const suggestions = generateSuggestions(searchableProducts, query, limit);
+    // Sanitize suggestions output
+    const sanitizedSuggestions = suggestions.map(s => s.replace(/<[^>]*>/g, '').trim()).slice(0, limit);
 
-    return NextResponse.json({ suggestions });
+    return NextResponse.json({ suggestions: sanitizedSuggestions }, {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+      }
+    });
 
   } catch (error) {
     console.error('Search suggestions API error:', error);
