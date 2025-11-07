@@ -7,10 +7,29 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from './auth'
 import { hasAdminAccess, hasPermission, getAdminDetails, PERMISSION_LEVEL } from './auth-admin'
-import { addAuditLog } from './db/admin-roles'
+import { addAuditLog, ensurePermissionSeeded } from './db/admin-roles'
 
 // Re-export PERMISSION_LEVEL for convenience
 export { PERMISSION_LEVEL }
+
+const PERMISSION_SEED_CONFIG: Record<string, {
+  description: string
+  group: string
+  sortOrder: number
+  roleDefaults: Record<string, number>
+}> = {
+  Blog: {
+    description: 'Manage blog posts and content',
+    group: 'Content & Support',
+    sortOrder: 52,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: 0,
+    },
+  },
+}
 
 // ============================================================================
 // Types
@@ -94,6 +113,17 @@ export async function verifyPermission(
   const adminCheck = await verifyAdmin(request)
   if (!adminCheck.authorized) {
     return adminCheck
+  }
+
+  const seedConfig = PERMISSION_SEED_CONFIG[permissionName]
+  if (seedConfig) {
+    ensurePermissionSeeded(
+      permissionName,
+      seedConfig.description,
+      seedConfig.group,
+      seedConfig.sortOrder,
+      seedConfig.roleDefaults
+    )
   }
 
   // Then check specific permission

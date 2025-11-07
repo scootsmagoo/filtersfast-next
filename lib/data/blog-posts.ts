@@ -1,9 +1,17 @@
 import { BlogPost } from '../types/blog';
+import { 
+  getPublishedBlogPosts, 
+  getAllBlogPosts,
+  getBlogPostBySlug,
+  getBlogPostsByCategory,
+  getFeaturedPosts as getFeaturedPostsFromDb,
+  searchBlogPosts
+} from '../db/blog';
 
-// This file contains sample blog posts migrated from the production blog
-// Real blog posts should eventually be stored in a database or CMS
+// This file now uses the database for blog posts
+// The static data below is kept as a fallback/reference
 
-export const blogPosts: BlogPost[] = [
+export const blogPostsStatic: BlogPost[] = [
   {
     id: '1',
     slug: 'merv-vs-mpr-vs-fpr-understanding-air-filter-ratings',
@@ -452,40 +460,69 @@ export const blogPosts: BlogPost[] = [
   },
 ];
 
+// Export static posts for reference/migration
+export { blogPostsStatic as blogPosts };
+
 // Helper functions for blog data
+// These now use the database, with fallback to static data if database fails
 export function getAllPosts(): BlogPost[] {
-  return blogPosts.sort((a, b) => 
-    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
+  try {
+    return getPublishedBlogPosts();
+  } catch (error) {
+    console.error('Error loading blog posts from database, using static data:', error);
+    return blogPostsStatic.sort((a, b) => 
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    );
+  }
 }
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
-  return blogPosts.find(post => post.slug === slug);
+  try {
+    return getBlogPostBySlug(slug) || undefined;
+  } catch (error) {
+    console.error('Error loading blog post from database, using static data:', error);
+    return blogPostsStatic.find(post => post.slug === slug);
+  }
 }
 
 export function getPostsByCategory(category: string): BlogPost[] {
-  return blogPosts
-    .filter(post => post.category === category)
-    .sort((a, b) => 
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    );
+  try {
+    return getBlogPostsByCategory(category as any, false);
+  } catch (error) {
+    console.error('Error loading blog posts from database, using static data:', error);
+    return blogPostsStatic
+      .filter(post => post.category === category)
+      .sort((a, b) => 
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      );
+  }
 }
 
 export function getFeaturedPosts(limit: number = 3): BlogPost[] {
-  return blogPosts
-    .sort((a, b) => 
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-    )
-    .slice(0, limit);
+  try {
+    return getFeaturedPostsFromDb(limit);
+  } catch (error) {
+    console.error('Error loading featured posts from database, using static data:', error);
+    return blogPostsStatic
+      .sort((a, b) => 
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      )
+      .slice(0, limit);
+  }
 }
 
 export function searchPosts(query: string): BlogPost[] {
-  const lowerQuery = query.toLowerCase();
-  return blogPosts.filter(post => 
-    post.title.toLowerCase().includes(lowerQuery) ||
-    post.excerpt.toLowerCase().includes(lowerQuery) ||
-    post.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
-  );
+  try {
+    return searchBlogPosts(query, false);
+  } catch (error) {
+    console.error('Error searching blog posts in database, using static data:', error);
+    const lowerQuery = query.toLowerCase();
+    return blogPostsStatic.filter(post => 
+      post.title.toLowerCase().includes(lowerQuery) ||
+      post.excerpt.toLowerCase().includes(lowerQuery) ||
+      post.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
+    );
+  }
 }
 
 

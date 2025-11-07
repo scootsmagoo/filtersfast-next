@@ -207,7 +207,8 @@ try {
   // Content & Support
   insertPermission.run('Support', 'Manage support tickets', 'Content & Support', 50)
   insertPermission.run('Reviews', 'Manage product reviews', 'Content & Support', 51)
-  insertPermission.run('Translations', 'Manage translations', 'Content & Support', 52)
+  insertPermission.run('Blog', 'Manage blog posts and content', 'Content & Support', 52)
+  insertPermission.run('Translations', 'Manage translations', 'Content & Support', 53)
 
   // Business
   insertPermission.run('B2B', 'Manage B2B accounts', 'Business', 60)

@@ -31,7 +31,8 @@ import {
   Search,
   Wrench,
   FolderTree,
-  Image
+  Image,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -269,6 +270,13 @@ export default function AdminDashboard() {
       icon: Star,
       href: '/admin/reviews',
       color: 'yellow'
+    },
+    {
+      title: 'Blog Management',
+      description: 'Manage blog posts and content',
+      icon: FileText,
+      href: '/admin/blog',
+      color: 'purple'
     }
   ],
   customerService: [

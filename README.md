@@ -4,6 +4,33 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## 🆕 Latest Updates (January 2025)
 
+### ✍️ BLOG ADMIN CMS - NEW!
+
+**Full blog content management experience integrated into the admin portal.**
+
+- ✅ **Post Management**: Create, edit, delete, and search posts with filtering and stats
+- ✅ **Rich Metadata**: Easily manage slugs, excerpts, categories, featured images, authors, and tags
+- ✅ **Draft & Publish Workflow**: Save drafts, schedule publish dates, and track published counts
+- ✅ **Database Integration**: SQLite-backed `blog_posts` table with indexes and initialization script (`npm run init:blog`)
+- ✅ **Admin Permissions**: Blog management protected by the new `Blog` permission seeded into admin roles
+- ✅ **Security Hardening**: Slug normalization, tag sanitization, strict input validation, permission-based access controls
+- ✅ **Accessibility Enhancements**: Semantic labels, fieldsets, keyboard-friendly filters, screen reader support across forms and tables
+
+**Quick Start:**
+```bash
+# Initialize the blog schema
+npm run init:blog
+
+# Visit the admin interface
+# http://localhost:3000/admin/blog
+```
+
+**Based on Legacy Features:**
+- ✅ Blog/newsletter management (`Manager/SA_news.asp`, related legacy add-from-blog workflows)
+- ✅ Enhanced with modern CRUD APIs, database schema, admin UI, and full security/accessibility audit coverage
+
+---
+
 ### 🔍 SEARCH ANALYTICS & CATALOG INSIGHTS - NEW!
 
 **Complete search analytics system - Search tracking and catalog insights feature complete!**

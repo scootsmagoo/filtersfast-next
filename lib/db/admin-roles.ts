@@ -467,6 +467,53 @@ export function getPermissionByName(name: string): AdminPermission | null {
   return stmt.get(name) as AdminPermission | null
 }
 
+/**
+ * Ensure a permission exists with default role levels
+ */
+export function ensurePermissionSeeded(
+  permissionName: string,
+  description: string,
+  permissionGroup: string,
+  sortOrder: number,
+  roleDefaults: Record<string, number> = {}
+): void {
+  try {
+    let permission = getPermissionByName(permissionName)
+    let permissionId: number
+
+    if (!permission) {
+      const insertStmt = db.prepare(`
+        INSERT INTO admin_permissions (name, description, permission_group, sort_order, created_at)
+        VALUES (?, ?, ?, ?, unixepoch())
+      `)
+      const result = insertStmt.run(permissionName, description, permissionGroup, sortOrder)
+      permissionId = Number(result.lastInsertRowid)
+    } else {
+      permissionId = permission.id
+
+      // Keep metadata in sync if it changed
+      const updateStmt = db.prepare(`
+        UPDATE admin_permissions
+        SET description = ?, permission_group = ?, sort_order = ?
+        WHERE id = ?
+      `)
+      updateStmt.run(description, permissionGroup, sortOrder, permissionId)
+    }
+
+    if (Object.keys(roleDefaults).length > 0) {
+      const roles = db.prepare('SELECT id, name FROM admin_roles').all() as Array<{ id: number; name: string }>
+      for (const role of roles) {
+        const desiredLevel = roleDefaults[role.name]
+        if (typeof desiredLevel === 'number') {
+          setRolePermission(role.id, permissionId, desiredLevel)
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`[ensurePermissionSeeded] Failed for permission "${permissionName}":`, error)
+  }
+}
+
 // ============================================================================
 // Role Permission Functions
 // ============================================================================
