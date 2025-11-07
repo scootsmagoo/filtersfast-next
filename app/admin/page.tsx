@@ -29,7 +29,8 @@ import {
   Star,
   DollarSign,
   Wrench,
-  FolderTree
+  FolderTree,
+  Image
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -71,7 +72,7 @@ function AdminCard({ section }: { section: AdminSection }) {
             <Icon className="w-6 h-6" />
           </div>
           
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{section.title}</h3>
               {section.comingSoon && (
@@ -85,7 +86,7 @@ function AdminCard({ section }: { section: AdminSection }) {
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">{section.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors truncate">{section.description}</p>
           </div>
         </div>
       </Card>
@@ -151,6 +152,13 @@ export default function AdminDashboard() {
       icon: FolderTree,
       href: '/admin/categories',
       color: 'teal'
+    },
+    {
+      title: 'Image Management',
+      description: 'Upload and manage product images and media files',
+      icon: Image,
+      href: '/admin/images',
+      color: 'purple'
     },
     {
       title: 'Customers',
