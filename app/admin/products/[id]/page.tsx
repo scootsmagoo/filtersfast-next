@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { ArrowLeft, Save, Trash2, Eye, History } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Eye, History, Link2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product, ProductFormData, ProductHistoryEntry, ProductType, ProductStatus } from '@/lib/types/product';
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
+import SKUCompatibilityModal from '@/components/admin/SKUCompatibilityModal';
 
 interface ProductResponse {
   success: boolean;
@@ -23,6 +24,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -257,6 +259,15 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setShowCompatibilityModal(true)}
+                className="flex items-center gap-2"
+                aria-label="Manage SKU compatibility"
+              >
+                <Link2 className="w-5 h-5" aria-hidden="true" />
+                Compatibility
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setShowHistory(!showHistory)}
@@ -844,6 +855,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </form>
+
+        {/* SKU Compatibility Modal */}
+        {productId && (
+          <SKUCompatibilityModal
+            isOpen={showCompatibilityModal}
+            onClose={() => setShowCompatibilityModal(false)}
+            productId={parseInt(productId)}
+            productName={product?.name}
+            onSave={() => {
+              // Optionally reload product data if needed
+              loadProduct();
+            }}
+          />
+        )}
       </div>
     </div>
   );

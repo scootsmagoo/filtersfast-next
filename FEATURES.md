@@ -4577,6 +4577,211 @@ POST /api/admin/inventory/alerts
 
 ---
 
+## 🔗 SKU Compatibility Manager
+
+### Overview
+Enterprise-grade SKU compatibility management system for tracking which products are compatible with other brands and part numbers. Enables customers to find alternative brands and SKUs that work with their appliances, improving product discoverability and customer satisfaction.
+
+### Features
+
+**Compatibility Management:**
+- ✅ **Add Compatible SKUs** - Link multiple brands/SKUs to each product
+- ✅ **Brand & SKU Tracking** - Store brand name and SKU/part number pairs
+- ✅ **Bulk Operations** - Add, update, or remove multiple compatibilities at once
+- ✅ **Merge Functionality** - Merge compatibilities when consolidating products
+- ✅ **Search Integration** - Compatible SKUs indexed for search functionality
+- ✅ **Product Display** - Show compatible alternatives on product pages
+
+**Admin Interface:**
+- ✅ **Modal Management** - Easy-to-use modal interface for managing compatibilities
+- ✅ **Parts & Models Views** - Separate tabs for parts compatibility and model compatibility
+- ✅ **Real-Time Updates** - Instant save and validation
+- ✅ **Paired Product Support** - Handle parent/child product relationships
+- ✅ **Merge to Parent** - Transfer compatibilities to parent products
+
+### Database Schema
+
+**product_sku_compatibility Table:**
+```sql
+CREATE TABLE product_sku_compatibility (
+    id INTEGER PRIMARY KEY,
+    idProduct INTEGER NOT NULL,
+    skuBrand VARCHAR(100) NOT NULL,
+    skuValue VARCHAR(100) NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idProduct) REFERENCES products(idProduct) ON DELETE CASCADE
+);
+```
+
+**Indexes:**
+- Product lookup (idProduct)
+- Brand search (skuBrand)
+- SKU search (skuValue)
+- Composite index (idProduct, skuBrand, skuValue)
+
+### API Endpoints
+
+**GET /api/admin/products/[id]/compatibility**
+- Get all compatible SKUs for a product
+- Returns: compatibility list and statistics
+- Requires: Admin access
+
+**POST /api/admin/products/[id]/compatibility**
+- Add a new compatible SKU
+- Body: `{ skuBrand: string, skuValue: string }`
+- Returns: Created compatibility record
+
+**PUT /api/admin/products/[id]/compatibility**
+- Bulk update compatible SKUs
+- Body: `{ compatibilities: Array<{id?, skuBrand, skuValue}> }`
+- Returns: Updated list and operation statistics
+
+**DELETE /api/admin/products/[id]/compatibility?compatibilityId=123**
+- Delete a specific compatibility record
+- Query: `compatibilityId` (required)
+- Returns: Success confirmation
+
+**DELETE /api/admin/products/[id]/compatibility?mergeToProductId=456**
+- Merge all compatibilities to another product
+- Query: `mergeToProductId` (required)
+- Returns: Number of merged records
+
+### Components
+
+**SKUCompatibilityModal** (`components/admin/SKUCompatibilityModal.tsx`):
+- Full-featured modal for managing SKU compatibilities
+- Tabs for Parts and Models (models coming soon)
+- Add, edit, and remove compatibility records
+- Validation and error handling
+- Support for paired products
+- Merge functionality
+
+**Integration:**
+- Integrated into product edit page (`/admin/products/[id]`)
+- Accessible via "Compatibility" button in product header
+- Real-time updates and validation
+
+### Database Helper Functions
+
+**lib/db/sku-compatibility.ts:**
+- `getProductCompatibility(idProduct)` - Get all compatibilities for a product
+- `addCompatibility(idProduct, compatibility)` - Add new compatibility
+- `updateCompatibility(id, compatibility)` - Update existing compatibility
+- `deleteCompatibility(id)` - Delete compatibility record
+- `bulkUpdateCompatibility(idProduct, compatibilities)` - Bulk update
+- `mergeCompatibility(fromProductId, toProductId)` - Merge compatibilities
+- `findProductsByCompatibleSKU(skuBrand, skuValue)` - Reverse lookup
+- `getCompatibilityStats(idProduct)` - Get statistics
+
+### Usage Examples
+
+**Adding Compatible SKUs:**
+1. Navigate to product edit page (`/admin/products/[id]`)
+2. Click "Compatibility" button in header
+3. Click "Add SKU" button
+4. Enter Brand (e.g., "Pentek")
+5. Enter SKU/Part Number (e.g., "P5")
+6. Click "Save Changes"
+
+**Bulk Import:**
+1. Add multiple SKU rows in modal
+2. Fill in brand and SKU for each
+3. Click "Save Changes" to save all at once
+4. System validates all entries before saving
+
+**Merging Products:**
+1. Open compatibility modal for child product
+2. If product is paired, "Merge Parts to Parent" button appears
+3. Click to merge all compatibilities to parent
+4. Compatibilities are transferred and child product cleared
+
+### Search Integration
+
+**Compatible SKU Search:**
+- Compatible SKUs are indexed in product search
+- Customers can search by alternative brand/SKU
+- Results show primary product with compatible alternatives
+- Improves product discoverability
+
+**Example:**
+- Product: "FiltersFast FF20S-5"
+- Compatible with: "Pentek P5", "Culligan P5", "Ametek P5"
+- Search for "Pentek P5" → Shows "FiltersFast FF20S-5" as result
+
+### Business Benefits
+
+**Customer Experience:**
+- **Better Discovery** - Find products using alternative brand names
+- **Confidence** - See which brands are compatible
+- **Flexibility** - Multiple ways to find the right product
+- **Trust** - Transparent compatibility information
+
+**Operational:**
+- **Reduced Support** - Fewer "is this compatible?" questions
+- **Increased Sales** - More ways for customers to find products
+- **SEO Benefits** - More search keywords indexed
+- **Data Quality** - Centralized compatibility management
+
+### Security & Validation
+
+**Input Validation:**
+- Brand: 1-100 characters, required
+- SKU: 1-100 characters, required
+- Product ID: Must exist and be valid
+- All inputs trimmed and uppercased for consistency
+
+**Access Control:**
+- Admin-only access (requires admin authentication)
+- Product ownership validation
+- SQL injection prevention (parameterized queries)
+
+**Error Handling:**
+- Validation errors returned with details
+- Generic error messages in production
+- Comprehensive error logging
+
+### Initialization
+
+**Setup Database Schema:**
+```bash
+npx tsx scripts/init-sku-compatibility-schema.ts
+```
+
+This creates:
+- `product_sku_compatibility` table
+- Indexes for efficient queries
+- Views for compatibility summaries
+
+### Future Enhancements
+
+**Planned Features:**
+- Model compatibility integration (currently placeholder)
+- Import/export CSV functionality
+- Bulk import from legacy data
+- Compatibility suggestions (AI-powered)
+- Compatibility verification system
+- Customer-facing compatibility display
+- Compatibility search filters
+- Reverse compatibility tracking
+
+### Migration from Legacy
+
+**Legacy System:**
+- Table: `productCompSkuList`
+- Files: `Manager/SA_CompSKUManager.asp`, `Manager/SA_GetCompatibles.asp`
+- Features: Parts compatibility, model compatibility, merge functionality
+
+**Modern Implementation:**
+- ✅ All core functionality migrated
+- ✅ Improved UI/UX (React modal vs iframe)
+- ✅ Better validation and error handling
+- ✅ TypeScript type safety
+- ✅ Modern API architecture
+- ✅ Database schema optimization
+
+---
+
 ## 🔍 Search & Navigation
 
 ### Search Functionality
