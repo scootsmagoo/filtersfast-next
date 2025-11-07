@@ -43,8 +43,8 @@ auth.db
 *.db-wal
 database.sqlite
 
-# uploaded images and media files
+# uploaded images and media files (keep directory structure)
 public/ProdImages/**/*
-!public/ProdImages/.gitkeep
-!public/ProdImages/*/.gitkeep
+!public/ProdImages/
+!public/ProdImages/**/.gitkeep
 
