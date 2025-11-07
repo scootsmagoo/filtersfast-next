@@ -159,6 +159,7 @@ export default function Footer() {
               <li><Link href="/partners/frontdoor" className="hover:text-brand-orange transition-colors">Frontdoor Discount</Link></li>
               <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/sale" className="hover:text-brand-orange transition-colors">Shop Sale</Link></li>
+              <li><Link href="/deals" className="hover:text-brand-orange transition-colors">Special Offers</Link></li>
             </ul>
           </div>
 

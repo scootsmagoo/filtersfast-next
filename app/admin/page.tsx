@@ -85,7 +85,7 @@ function AdminCard({ section }: { section: AdminSection }) {
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">{section.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors whitespace-nowrap overflow-hidden text-ellipsis">{section.description}</p>
           </div>
         </div>
       </Card>
@@ -198,6 +198,13 @@ export default function AdminDashboard() {
     }
   ],
   marketing: [
+    {
+      title: 'Deals & Special Offers',
+      description: 'Manage cart-total based deals and special offers',
+      icon: Tag,
+      href: '/admin/deals',
+      color: 'orange'
+    },
     {
       title: 'Promo Codes',
       description: 'Manage discount codes and promotions',

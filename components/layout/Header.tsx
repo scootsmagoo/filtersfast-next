@@ -259,10 +259,10 @@ export default function Header() {
       {/* Navigation */}
       <nav className="bg-brand-blue text-white">
         <div className="container-custom">
-          <div className="hidden md:flex items-center justify-center gap-8 py-3">
+          <div className="hidden md:flex items-center justify-center gap-4 py-2.5">
             <Link 
               href="/model-lookup" 
-              className={`${pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors font-medium px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue`}
+              className={`${pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Find filter by appliance model"
               aria-current={pathname === '/model-lookup' ? 'page' : undefined}
             >
@@ -270,7 +270,7 @@ export default function Header() {
             </Link>
             <Link 
               href="/auto-delivery" 
-              className={`${pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors font-medium px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue`}
+              className={`${pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Home Filter Club - Subscribe and save"
               aria-current={pathname === '/auto-delivery' ? 'page' : undefined}
             >
@@ -278,45 +278,52 @@ export default function Header() {
             </Link>
             <Link 
               href="/refrigerator-filters" 
-              className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/refrigerator-filters' ? 'page' : undefined}
             >
               Refrigerator Filters
             </Link>
             <Link 
               href="/air-filters" 
-              className={`${pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              className={`${pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/air-filters' ? 'page' : undefined}
             >
               Air Filters
             </Link>
             <Link 
               href="/water-filters" 
-              className={`${pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              className={`${pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/water-filters' ? 'page' : undefined}
             >
               Water Filters
             </Link>
             <Link 
               href="/pool-filters" 
-              className={`${pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              className={`${pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/pool-filters' ? 'page' : undefined}
             >
               Pool & Spa
             </Link>
             <Link 
               href="/humidifier-filters" 
-              className={`${pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium px-3 py-2 rounded-lg`}
+              className={`${pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/humidifier-filters' ? 'page' : undefined}
             >
               Humidifier Filters
             </Link>
             <Link 
               href="/sale" 
-              className={`${pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors font-medium text-brand-orange px-3 py-2 rounded-lg`}
+              className={`${pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/sale' ? 'page' : undefined}
             >
               Sale
+            </Link>
+            <Link 
+              href="/deals" 
+              className={`${pathname === '/deals' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={pathname === '/deals' ? 'page' : undefined}
+            >
+              Offers
             </Link>
           </div>
         </div>
@@ -363,6 +370,9 @@ export default function Header() {
             </Link>
             <Link href="/sale" className="block py-2 text-brand-orange font-semibold">
               Sale
+            </Link>
+            <Link href="/deals" className="block py-2 text-brand-orange font-semibold">
+              Special Offers
             </Link>
             <hr />
             {session ? (
