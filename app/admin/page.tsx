@@ -28,7 +28,8 @@ import {
   Link as LinkIcon,
   Star,
   DollarSign,
-  Wrench
+  Wrench,
+  FolderTree
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -143,6 +144,13 @@ export default function AdminDashboard() {
       icon: Package,
       href: '/admin/products',
       color: 'cyan'
+    },
+    {
+      title: 'Categories',
+      description: 'Manage product categories and hierarchy',
+      icon: FolderTree,
+      href: '/admin/categories',
+      color: 'teal'
     },
     {
       title: 'Customers',
