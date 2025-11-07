@@ -46,4 +46,5 @@ database.sqlite
 # uploaded images and media files
 public/ProdImages/**/*
 !public/ProdImages/.gitkeep
+!public/ProdImages/*/.gitkeep
 
