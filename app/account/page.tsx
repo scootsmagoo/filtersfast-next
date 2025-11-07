@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard, Shield, MessageSquare, Gift, TrendingUp, Bell } from 'lucide-react';
+import { User, Mail, ShoppingBag, Heart, Settings, LogOut, Loader2, AlertCircle, CheckCircle, Send, Package, RefreshCw, CreditCard, Shield, MessageSquare, Gift, TrendingUp, Bell, MapPin, Edit, Trash2, Star } from 'lucide-react';
 import SavedModels from '@/components/models/SavedModels';
 import QuickReorder from '@/components/orders/QuickReorder';
+import AddressFormModal from '@/components/account/AddressFormModal';
+import type { SavedAddress } from '@/lib/types/address';
 
 function AccountPageContent() {
   const router = useRouter();
@@ -19,12 +21,135 @@ function AccountPageContent() {
   const [showEmailVerified, setShowEmailVerified] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<SavedAddress | null>(null);
 
   useEffect(() => {
     if (!isPending && !session) {
       router.push('/sign-in');
     }
   }, [session, isPending, router]);
+
+  // Load addresses
+  useEffect(() => {
+    if (session?.user) {
+      loadAddresses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
+
+  const loadAddresses = async () => {
+    try {
+      setLoadingAddresses(true);
+      const response = await fetch('/api/account/addresses');
+      if (response.ok) {
+        const data = await response.json();
+        setAddresses(data.addresses || []);
+      }
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
+
+  const handleAddAddress = () => {
+    setEditingAddress(null);
+    setShowAddressModal(true);
+  };
+
+  const handleEditAddress = (address: SavedAddress) => {
+    setEditingAddress(address);
+    setShowAddressModal(true);
+  };
+
+  const handleDeleteAddress = async (id: number, label: string) => {
+    if (!confirm(`Are you sure you want to delete the address "${label}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/account/addresses/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        loadAddresses();
+        // Announce to screen readers
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.className = 'sr-only';
+        announcement.textContent = `Address "${label}" deleted successfully`;
+        document.body.appendChild(announcement);
+        setTimeout(() => document.body.removeChild(announcement), 1000);
+      } else {
+        const errorMsg = 'Failed to delete address';
+        const errorDiv = document.createElement('div');
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.className = 'sr-only';
+        errorDiv.textContent = errorMsg;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 1000);
+        alert(errorMsg);
+      }
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      const errorMsg = 'Failed to delete address';
+      const errorDiv = document.createElement('div');
+      errorDiv.setAttribute('role', 'alert');
+      errorDiv.setAttribute('aria-live', 'assertive');
+      errorDiv.className = 'sr-only';
+      errorDiv.textContent = errorMsg;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 1000);
+      alert(errorMsg);
+    }
+  };
+
+  const handleSetDefault = async (id: number, label: string) => {
+    try {
+      const response = await fetch(`/api/account/addresses/${id}`, {
+        method: 'PATCH'
+      });
+
+      if (response.ok) {
+        loadAddresses();
+        // Announce to screen readers
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.className = 'sr-only';
+        announcement.textContent = `Address "${label}" set as default`;
+        document.body.appendChild(announcement);
+        setTimeout(() => document.body.removeChild(announcement), 1000);
+      } else {
+        const errorMsg = 'Failed to set default address';
+        const errorDiv = document.createElement('div');
+        errorDiv.setAttribute('role', 'alert');
+        errorDiv.setAttribute('aria-live', 'assertive');
+        errorDiv.className = 'sr-only';
+        errorDiv.textContent = errorMsg;
+        document.body.appendChild(errorDiv);
+        setTimeout(() => document.body.removeChild(errorDiv), 1000);
+        alert(errorMsg);
+      }
+    } catch (error) {
+      console.error('Error setting default address:', error);
+      const errorMsg = 'Failed to set default address';
+      const errorDiv = document.createElement('div');
+      errorDiv.setAttribute('role', 'alert');
+      errorDiv.setAttribute('aria-live', 'assertive');
+      errorDiv.className = 'sr-only';
+      errorDiv.textContent = errorMsg;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 1000);
+      alert(errorMsg);
+    }
+  };
 
   // Check for URL parameters
   useEffect(() => {
@@ -390,14 +515,117 @@ function AccountPageContent() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                   Saved Addresses
                 </h2>
-                <Button variant="secondary" size="sm">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={handleAddAddress}
+                  aria-label="Add new address"
+                >
                   Add Address
                 </Button>
               </div>
-              <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400 transition-colors">No saved addresses</p>
-              </div>
+              
+              {loadingAddresses ? (
+                <div className="text-center py-12" role="status" aria-live="polite">
+                  <Loader2 
+                    className="w-8 h-8 animate-spin text-brand-orange mx-auto mb-4" 
+                    aria-label="Loading addresses"
+                  />
+                  <p className="text-gray-600 dark:text-gray-400">Loading addresses...</p>
+                  <span className="sr-only">Loading your saved addresses</span>
+                </div>
+              ) : addresses.length === 0 ? (
+                <div className="text-center py-12">
+                  <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" aria-hidden="true" />
+                  <p className="text-gray-600 dark:text-gray-400 transition-colors">No saved addresses</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Add an address to save time during checkout</p>
+                </div>
+              ) : (
+                <div className="space-y-4" role="list" aria-label="Saved addresses">
+                  {addresses.map((address) => (
+                    <div
+                      key={address.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-brand-orange transition-colors"
+                      role="listitem"
+                      aria-label={`Address: ${address.label}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                              {address.label}
+                            </h3>
+                            {address.is_default === 1 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-brand-orange/10 text-brand-orange" aria-label="Default address">
+                                <Star className="w-3 h-3 fill-current" aria-hidden="true" />
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                            {address.name}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {address.address_line1}
+                            {address.address_line2 && `, ${address.address_line2}`}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {address.city}, {address.state} {address.postal_code}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {address.country}
+                          </p>
+                          {address.phone && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {address.phone}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          {address.is_default === 0 && (
+                            <button
+                              onClick={() => handleSetDefault(address.id, address.label)}
+                              className="p-2 text-gray-400 hover:text-brand-orange transition-colors focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded"
+                              aria-label={`Set ${address.label} as default address`}
+                              title="Set as default"
+                            >
+                              <Star className="w-5 h-5" aria-hidden="true" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleEditAddress(address)}
+                            className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                            aria-label={`Edit address ${address.label}`}
+                            title="Edit"
+                          >
+                            <Edit className="w-5 h-5" aria-hidden="true" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAddress(address.id, address.label)}
+                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
+                            aria-label={`Delete address ${address.label}`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-5 h-5" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
+
+            {/* Address Form Modal */}
+            <AddressFormModal
+              isOpen={showAddressModal}
+              onClose={() => {
+                setShowAddressModal(false);
+                setEditingAddress(null);
+              }}
+              onSave={loadAddresses}
+              address={editingAddress}
+            />
 
             {/* Subscription */}
             <Card className="p-6 bg-gradient-to-br from-brand-orange/10 to-brand-blue/10 dark:from-brand-orange/20 dark:to-brand-blue/20 border-brand-orange/20 transition-colors">
