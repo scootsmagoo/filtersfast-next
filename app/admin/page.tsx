@@ -28,6 +28,7 @@ import {
   Link as LinkIcon,
   Star,
   DollarSign,
+  Search,
   Wrench,
   FolderTree,
   Image
@@ -328,6 +329,13 @@ export default function AdminDashboard() {
       icon: TrendingUp,
       href: '/admin/analytics',
       color: 'emerald'
+    },
+    {
+      title: 'Search Analytics',
+      description: 'Search queries and catalog insights',
+      icon: Search,
+      href: '/admin/search-analytics',
+      color: 'purple'
     },
     {
       title: 'B2B Portal',

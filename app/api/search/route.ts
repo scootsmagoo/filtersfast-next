@@ -11,6 +11,7 @@ import {
 } from '@/lib/search-utils';
 import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
 import { sanitizeText, sanitizeNumber } from '@/lib/sanitize';
+import { logSearch } from '@/lib/db/search-analytics';
 
 // Helper to convert database Product to SearchableProduct
 function productToSearchable(product: any): SearchableProduct {
@@ -527,6 +528,69 @@ export async function GET(request: NextRequest) {
       suggestions,
       filters: filterOptions
     };
+
+    // Log search for analytics (async, don't block response)
+    try {
+      const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                       request.headers.get('x-real-ip') || 
+                       'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
+      const referrer = request.headers.get('referer') || null;
+      const sessionId = request.cookies.get('sessionId')?.value || 
+                       request.headers.get('x-session-id') || 
+                       null;
+
+      // Determine search type based on query patterns
+      let searchType: 'product' | 'size' | 'sku' | 'model' | 'custom' | undefined;
+      const normalizedQuery = query.toLowerCase().trim();
+      if (/^\d+x\d+x\d+/.test(normalizedQuery) || /^\d+\s*x\s*\d+\s*x\s*\d+/.test(normalizedQuery)) {
+        searchType = 'size';
+      } else if (/^[a-z0-9-]+$/i.test(normalizedQuery) && normalizedQuery.length <= 20) {
+        searchType = 'sku';
+      } else if (/^[a-z]+\s*\d+$/i.test(normalizedQuery)) {
+        searchType = 'model';
+      } else {
+        searchType = 'product';
+      }
+
+      // Determine outcome
+      const outcome = filteredResults.length > 0 ? 'results_found' : 'no_results';
+
+      // Extract filters
+      const filtersApplied: Record<string, any> = {};
+      if (category) filtersApplied.category = category;
+      if (brand) filtersApplied.brand = brand;
+      if (minPrice !== undefined) filtersApplied.minPrice = minPrice;
+      if (maxPrice !== undefined) filtersApplied.maxPrice = maxPrice;
+      if (inStock) filtersApplied.inStock = true;
+      if (minRating !== undefined) filtersApplied.minRating = minRating;
+
+      // Get product IDs from results
+      const resultProductIds = paginatedResults
+        .map(r => r.product.productId || String(r.product.id))
+        .filter(Boolean)
+        .slice(0, 100); // OWASP: Limit to prevent DoS
+
+      // OWASP: Sanitize search term before logging (query is already sanitized above)
+      // Log the search (function will further sanitize inputs)
+      logSearch({
+        searchTerm: query, // Already sanitized above
+        searchTermNormalized: normalizedQuery,
+        sessionId: sessionId || undefined,
+        ipAddress: ipAddress.slice(0, 45), // OWASP: Limit IP address length
+        userAgent: userAgent.slice(0, 500), // OWASP: Limit user agent length
+        outcome,
+        resultCount: filteredResults.length,
+        searchType,
+        filtersApplied: Object.keys(filtersApplied).length > 0 ? filtersApplied : undefined,
+        resultProductIds: resultProductIds.length > 0 ? resultProductIds : undefined,
+        mobile: /mobile|android|iphone|ipad/i.test(userAgent),
+        referrer: referrer ? referrer.slice(0, 500) : undefined // OWASP: Limit referrer length
+      });
+    } catch (error) {
+      // Log search errors but don't fail the request
+      console.error('Error logging search:', error);
+    }
 
     // Return response with security headers
     return NextResponse.json(response, {
