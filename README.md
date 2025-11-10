@@ -4,6 +4,43 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## 🆕 Latest Updates (January 2025)
 
+### 📧 EMAIL CAMPAIGN MANAGER - NEW!
+
+**Full lifecycle marketing campaign management inside the admin portal.**
+
+- ✅ **Campaign Dashboard**: Sortable, filterable overview with engagement metrics and status badges
+- ✅ **Campaign Builder**: Create broadcasts with template IDs or custom HTML/text content, metadata, and segmentation
+- ✅ **Recipient Management**: Bulk paste/import flows with dedupe support and overwrite mode
+- ✅ **Send Controls**: Schedule, send-now, pause/resume, and cancel actions with guardrails and live feedback
+- ✅ **Event Timeline**: Real-time tracking of opens, clicks, bounces, and status transitions
+- ✅ **Auto-Provisioned Schema**: Database tables created on first use—no separate init script required
+- ✅ **Admin Permissions**: Protected by the `EmailCampaigns` role seed with full audit logging
+
+**Security & Accessibility:**
+- **OWASP Top 10 2021:** ✅ Hardened against injection, XSS, DoS, access control bypass, and data leakage
+  - Server-side validation + sanitization for all campaign inputs and recipient uploads
+  - Strict permission gating with admin role seeding and audit trails
+  - Defensive error handling with generic responses and schema auto-healing
+- **WCAG 2.1 Level AA:** ✅ Screen reader and keyboard friendly interface
+  - `aria-live` success/error regions replacing disruptive alerts
+  - Semantic tables, labels, and focus management across dashboard, forms, and modals
+  - High-contrast status badges and skip/back controls for keyboard users
+
+**Quick Start:**
+```bash
+# Launch the dev server
+npm run dev
+
+# Visit the admin UI
+# http://localhost:3000/admin/email-campaigns
+```
+
+**Based on Legacy Features:**
+- ✅ Marketing broadcast tools (`Manager/email.asp`, `Manager/email_exec.asp`)
+- ✅ Rebuilt with modern CRUD APIs, automated schema, stronger security posture, and WCAG-compliant UX
+
+---
+
 ### ✍️ BLOG ADMIN CMS - NEW!
 
 **Full blog content management experience integrated into the admin portal.**
