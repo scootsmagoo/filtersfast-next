@@ -18,6 +18,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
   sortOrder: number
   roleDefaults: Record<string, number>
 }> = {
+  EmailCampaigns: {
+    description: 'Manage marketing email campaigns',
+    group: 'Marketing & Sales',
+    sortOrder: 45,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: 0,
+    },
+  },
   Blog: {
     description: 'Manage blog posts and content',
     group: 'Content & Support',

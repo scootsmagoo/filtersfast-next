@@ -26,6 +26,7 @@
     "init:products": "tsx scripts/init-products.ts",
     "init:product-options": "tsx scripts/init-product-options-schema.ts",
     "init:images-schema": "tsx scripts/init-images-schema.ts",
+    "init:email-campaigns": "tsx scripts/init-email-campaigns.ts",
     "create:sample-options": "tsx scripts/create-sample-options.ts",
     "init:customers": "tsx scripts/init-customers.ts",
     "init:taxjar": "tsx scripts/init-taxjar.ts",

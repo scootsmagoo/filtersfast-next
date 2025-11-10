@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import { useEffect } from 'react'
 import Card from '@/components/ui/Card'
-import { 
-  Tag, 
-  Users, 
-  Package, 
+import {
+  Tag,
+  Users,
+  Package,
   TrendingUp,
   Settings,
   ShoppingBag,
@@ -32,7 +32,8 @@ import {
   Wrench,
   FolderTree,
   Image,
-  FileText
+  FileText,
+  Mail
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -242,6 +243,13 @@ export default function AdminDashboard() {
       icon: Gift,
       href: '/admin/giveaways',
       color: 'orange'
+    },
+    {
+      title: 'Email Campaigns',
+      description: 'Manage marketing broadcasts and recipients',
+      icon: Mail,
+      href: '/admin/email-campaigns',
+      color: 'indigo'
     },
     {
       title: 'Referral Program',
