@@ -1360,7 +1360,54 @@ npm run init:search-analytics  # Initialize search analytics schema
 
 ---
 
-## 🆕 Latest Updates (November 3, 2025)
+## 🆕 Latest Updates (November 10, 2025)
+
+### 🚚 SHIPPING LABEL WORKFLOW + CANADA POST & DHL SUPPORT - NEW!
+
+**Complete carrier label management with shipment history, DHL, and Canada Post integrations.**
+
+- ✅ **Carrier Label API**: `POST /api/admin/shipping/labels` for end-to-end label creation
+- ✅ **Shipment History**: Persist labels in `shipment_history` with status updates and metadata
+- ✅ **Admin UI**: Create/download labels and review history directly in `/admin/shipping`
+- ✅ **DHL eCommerce**: OAuth token management, label creation, and tracking support
+- ✅ **Canada Post**: XML shipment creation, label download, and tracking parity with legacy workflows
+- ✅ **Return Labels**: Flip origin/destination addresses automatically for customer returns
+- ✅ **Multi-Package Support**: Generate single or multi-carton labels with dimensional data
+- ✅ **Notification Hooks**: Optional email metadata for downstream confirmation workflows
+- ✅ **Data URLs**: Instant PDF/PNG/ZPL download buttons without exposing temp files
+- ✅ **Legacy Parity**: Mirrors classic `createReturnDHL` return flow with modern APIs
+
+**Database Enhancements:**
+- `shipment_history` table gains `label_format` + `metadata` columns (auto-migrated)
+- New persistence helpers in `lib/db/shipment-history.ts`
+
+**Client Libraries:**
+- `lib/shipping/dhl.ts` – OAuth, label, and tracking support
+- `lib/shipping/canada-post.ts` – XML builder/parser using `fast-xml-parser`
+
+**Quick Start:**
+```bash
+npm run init:shipping  # Ensures schema + new columns
+
+# .env.local additions
+DHL_CLIENT_ID=your_client_id
+DHL_CLIENT_SECRET=your_client_secret
+DHL_PICKUP_ACCOUNT=optional_pickup_account
+DHL_MERCHANT_ID=optional_merchant_id
+
+CANADAPOST_USERNAME=cp_username
+CANADAPOST_PASSWORD=cp_password
+CANADAPOST_CUSTOMER_NUMBER=123456789
+CANADAPOST_CONTRACT_ID=optional_contract_id
+CANADAPOST_ENVIRONMENT=staging  # or production
+```
+
+Visit `/admin/shipping` to configure carriers, create outbound/return labels, and download history instantly.
+
+**Security & Accessibility:**
+- OWASP Top 10 2021: ✅ full server-side validation + payload sanitization (label sizes, package dimensions, metadata)
+- WCAG 2.1 Level AA: ✅ accessible `/admin/shipping` workflow (labels tied to inputs, ARIA live regions, keyboard friendly)
+- Defensive defaults: request size limits, package count caps, format allow-lists, sanitized customs data
 
 ### 💰 PAYPAL & VENMO INTEGRATION - NEW!
 

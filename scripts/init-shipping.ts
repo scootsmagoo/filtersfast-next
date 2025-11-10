@@ -16,7 +16,7 @@ async function initShipping() {
     console.log('✓ Shipping tables created\n');
 
     // Create default shipping configurations for each carrier
-    const carriers: ShippingCarrier[] = ['usps', 'ups', 'fedex', 'dhl'];
+    const carriers: ShippingCarrier[] = ['usps', 'ups', 'fedex', 'dhl', 'canada_post'];
 
     // Default origin address (update this for your warehouse)
     const defaultOrigin = {
@@ -62,6 +62,8 @@ async function initShipping() {
     console.log('     - USPS_USER_ID');
     console.log('     - UPS_CLIENT_ID, UPS_CLIENT_SECRET, UPS_ACCOUNT_NUMBER');
     console.log('     - FEDEX_ACCOUNT_NUMBER, FEDEX_METER_NUMBER, FEDEX_API_KEY, FEDEX_API_SECRET');
+    console.log('     - DHL_CLIENT_ID, DHL_CLIENT_SECRET, DHL_PICKUP_ACCOUNT, DHL_MERCHANT_ID');
+    console.log('     - CANADAPOST_USERNAME, CANADAPOST_PASSWORD, CANADAPOST_CUSTOMER_NUMBER');
     console.log('  2. Visit /admin/shipping to configure carriers');
     console.log('  3. Enable carriers you want to use');
     console.log('  4. Update origin address for your warehouse location');

@@ -27,7 +27,7 @@ export interface ShippingConfig {
   updated_at: number;
 }
 
-export type ShippingCarrier = 'fedex' | 'usps' | 'ups' | 'dhl';
+export type ShippingCarrier = 'fedex' | 'usps' | 'ups' | 'dhl' | 'canada_post';
 
 export interface ShippingOriginAddress {
   name: string;
@@ -80,6 +80,7 @@ export interface Package {
   height?: number;       // inches
   insured_value?: number;
   contents_type?: 'merchandise' | 'documents' | 'gift' | 'sample';
+  description?: string;
 }
 
 export interface ShippingRate {
@@ -139,6 +140,10 @@ export interface CreateShipmentRequest {
   signature_required?: boolean;
   saturday_delivery?: boolean;
   insurance_amount?: number;
+  is_return_label?: boolean;
+  pickup_account_number?: string;
+  billing_account_number?: string;
+  metadata?: Record<string, string>;
   
   // Reference
   reference_number?: string;  // Order number, etc.
@@ -177,6 +182,7 @@ export interface Shipment {
   // Tracking
   tracking_number: string;
   label_url: string;
+  label_format?: 'PDF' | 'PNG' | 'ZPL';
   
   // Pricing
   rate: number;
@@ -195,6 +201,7 @@ export interface Shipment {
   created_at: number;
   carrier_shipment_id?: string;
   raw_response?: any;
+  metadata?: Record<string, string>;
 }
 
 export type ShipmentStatus =
@@ -347,6 +354,51 @@ export type FedExServiceType =
   | 'INTERNATIONAL_ECONOMY'
   | 'INTERNATIONAL_PRIORITY'
   | 'INTERNATIONAL_FIRST';
+
+// ==================== DHL Specific Types ====================
+
+export interface DHLCredentials {
+  client_id: string;
+  client_secret: string;
+  pickup_account?: string;
+  merchant_id?: string;
+  access_token?: string;
+  region?: 'us' | 'ca' | 'eu' | 'apac';
+}
+
+export type DHLServiceCode =
+  | 'DLH_EXPRESS_WORLDWIDE'
+  | 'DLH_EXPRESS_12'
+  | 'DLH_EXPRESS_9'
+  | 'DLH_ECOM_RETURN_LIGHT'
+  | 'DLH_ECOM_RETURN_GROUND'
+  | 'DLH_ECOM_PARCL_DIRECT'
+  | 'DLH_ECOM_PARCEL_EXPRESS'
+  | 'DLH_ECOM_PARCEL_PLUS'
+  | 'DLH_SM_RETURN_LIGHT'
+  | 'DLH_SM_RETURN_GROUND'
+  | string;
+
+// ==================== Canada Post Specific Types ====================
+
+export interface CanadaPostCredentials {
+  username: string;
+  password: string;
+  customer_number: string;
+  contract_id?: string;
+  mailing_plan?: string;
+  environment?: 'staging' | 'production';
+}
+
+export type CanadaPostServiceCode =
+  | 'DOM.EP'
+  | 'DOM.XP'
+  | 'DOM.PC'
+  | 'DOM.RP'
+  | 'USA.EP'
+  | 'USA.XP'
+  | 'INT.XP'
+  | string;
 
 export interface FedExRateRequest {
   credentials: FedExCredentials;

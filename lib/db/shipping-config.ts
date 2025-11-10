@@ -89,9 +89,23 @@ export function initShippingTables() {
         raw_response TEXT,
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
+        label_format TEXT,
+        metadata TEXT,
         FOREIGN KEY (order_id) REFERENCES orders(id)
       )
     `);
+
+    // Ensure new columns exist for legacy databases
+    const shipmentColumns = db.prepare(`PRAGMA table_info(shipment_history)`).all() as any[];
+    const shipmentColumnNames = new Set(shipmentColumns.map((col) => col.name as string));
+
+    if (!shipmentColumnNames.has('label_format')) {
+      db.exec(`ALTER TABLE shipment_history ADD COLUMN label_format TEXT`);
+    }
+
+    if (!shipmentColumnNames.has('metadata')) {
+      db.exec(`ALTER TABLE shipment_history ADD COLUMN metadata TEXT`);
+    }
 
     // Create indexes
     db.exec(`

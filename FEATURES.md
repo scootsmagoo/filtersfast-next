@@ -46,6 +46,45 @@ Complete guide to all implemented features.
 - Preserves Sellbrite-driven workflow while adding typed DB layer, orchestration scripts, and proactive telemetry
 
 
+## 🚚 Shipping Label Workflow & Carrier Integrations
+
+### Overview
+- End-to-end shipping label creation across USPS, UPS, FedEx, DHL eCommerce, and Canada Post
+- Return-label aware: automatically flips origin/destination when `is_return_label` is enabled
+- Admin UI enhancements on `/admin/shipping` for label generation, download, and shipment history
+- Supports PDF, PNG, and ZPL label formats with instant data-URL download buttons
+
+### Database & Schema
+- `shipment_history` — persists label metadata, tracking numbers, label formats, and raw carrier payloads
+- Auto-migration ensures `label_format` + `metadata` columns exist for legacy databases
+
+### API Endpoints
+- `POST /api/admin/shipping/labels` — create outbound or return labels (protected admin endpoint)
+- `GET /api/admin/shipping/labels` — filterable shipment history feed
+- `GET /api/shipping/track` — now supports DHL & Canada Post tracking alongside USPS/UPS/FedEx
+
+### Carrier Clients
+- `lib/shipping/dhl.ts` — OAuth token lifecycle, label creation, and tracking parsing
+- `lib/shipping/canada-post.ts` — XML payload builder, PDF retrieval, and tracking adapter
+- Existing USPS/UPS/FedEx clients reused for consistent request/response shaping
+
+### Admin UI Highlights
+- Multi-package form with dimensional inputs and insurance/signature toggles
+- Notification email capture stored in shipment metadata for downstream automations
+- Accessible status messaging, loading indicators, and table export shortcuts
+
+### Legacy Parity
+- Mirrors classic ASP workflows such as `createReturnDHL` while modernizing with RESTful APIs
+- Canada Post integration reproduces legacy rate + label behavior using official SOAP replacement
+
+### Quick Start
+- `npm run init:shipping` — ensures tables + new columns
+- `.env.local` requirements:
+  - `DHL_CLIENT_ID`, `DHL_CLIENT_SECRET`, `DHL_PICKUP_ACCOUNT`, `DHL_MERCHANT_ID`
+  - `CANADAPOST_USERNAME`, `CANADAPOST_PASSWORD`, `CANADAPOST_CUSTOMER_NUMBER`, `CANADAPOST_CONTRACT_ID`, `CANADAPOST_ENVIRONMENT`
+- Navigate to `/admin/shipping` to configure carriers and create labels in one workflow
+
+
 ## 🔐 Authentication System
 
 ### Core Features

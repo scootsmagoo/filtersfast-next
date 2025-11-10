@@ -11,6 +11,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import type { ShippingConfig, ShippingCarrier } from '@/lib/types/shipping';
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
+import LabelWorkflow from '@/components/admin/shipping/LabelWorkflow';
 
 export default function AdminShippingPage() {
   const [configs, setConfigs] = useState<ShippingConfig[]>([]);
@@ -123,7 +124,7 @@ export default function AdminShippingPage() {
 
         {/* Carrier Configurations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {['usps', 'ups', 'fedex', 'dhl'].map((carrier) => {
+          {['usps', 'ups', 'fedex', 'dhl', 'canada_post'].map((carrier) => {
             const config = configs.find((c) => c.carrier === carrier);
             const isEditing = editingCarrier === carrier;
 
@@ -329,6 +330,9 @@ export default function AdminShippingPage() {
           })}
         </div>
 
+        {/* Label Workflow */}
+        <LabelWorkflow configs={configs} />
+
         {/* Environment Variables Guide */}
         <Card className="p-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
@@ -355,6 +359,19 @@ export default function AdminShippingPage() {
               <p className="text-gray-600 dark:text-gray-400">FEDEX_METER_NUMBER=your_fedex_meter_number</p>
               <p className="text-gray-600 dark:text-gray-400">FEDEX_API_KEY=your_fedex_api_key</p>
               <p className="text-gray-600 dark:text-gray-400">FEDEX_API_SECRET=your_fedex_api_secret</p>
+              
+              <p className="text-gray-800 dark:text-gray-200 mt-3"># DHL eCommerce</p>
+              <p className="text-gray-600 dark:text-gray-400">DHL_CLIENT_ID=your_dhl_client_id</p>
+              <p className="text-gray-600 dark:text-gray-400">DHL_CLIENT_SECRET=your_dhl_client_secret</p>
+              <p className="text-gray-600 dark:text-gray-400">DHL_PICKUP_ACCOUNT=optional_pickup_account</p>
+              <p className="text-gray-600 dark:text-gray-400">DHL_MERCHANT_ID=optional_merchant_id</p>
+              
+              <p className="text-gray-800 dark:text-gray-200 mt-3"># Canada Post</p>
+              <p className="text-gray-600 dark:text-gray-400">CANADAPOST_USERNAME=cp_api_username</p>
+              <p className="text-gray-600 dark:text-gray-400">CANADAPOST_PASSWORD=cp_api_password</p>
+              <p className="text-gray-600 dark:text-gray-400">CANADAPOST_CUSTOMER_NUMBER=cp_customer_number</p>
+              <p className="text-gray-600 dark:text-gray-400">CANADAPOST_CONTRACT_ID=optional_contract_id</p>
+              <p className="text-gray-600 dark:text-gray-400">CANADAPOST_ENVIRONMENT=staging|production</p>
             </div>
           </div>
         </Card>

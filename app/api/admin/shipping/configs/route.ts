@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const { carrier } = body;
 
     // Validate carrier
-    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl'];
+    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl', 'canada_post'];
     if (!carrier || !validCarriers.includes(carrier)) {
       return NextResponse.json(
         { error: 'Invalid carrier' },

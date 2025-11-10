@@ -8,6 +8,8 @@ import { rateLimit } from '@/lib/rate-limit';
 import { createUSPSClient } from '@/lib/shipping/usps';
 import { createUPSClient } from '@/lib/shipping/ups';
 import { createFedExClient } from '@/lib/shipping/fedex';
+import { createDHLClient } from '@/lib/shipping/dhl';
+import { createCanadaPostClient } from '@/lib/shipping/canada-post';
 import type { ShippingCarrier, TrackingInfo } from '@/lib/types/shipping';
 
 // Rate limit: 30 requests per minute per IP
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate carrier
-    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl'];
+    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl', 'canada_post'];
     if (!validCarriers.includes(carrier)) {
       return NextResponse.json(
         { error: 'Invalid carrier' },
@@ -133,7 +135,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate carrier
-    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl'];
+    const validCarriers: ShippingCarrier[] = ['fedex', 'ups', 'usps', 'dhl', 'canada_post'];
     if (!validCarriers.includes(carrier)) {
       return NextResponse.json(
         { error: 'Invalid carrier' },
@@ -180,8 +182,15 @@ async function trackShipment(
       return await client.trackShipment({ carrier, tracking_number });
     }
 
-    case 'dhl':
-      throw new Error('DHL tracking not yet implemented');
+    case 'dhl': {
+      const client = createDHLClient(isProduction);
+      return await client.trackShipment({ carrier, tracking_number });
+    }
+
+    case 'canada_post': {
+      const client = createCanadaPostClient();
+      return await client.trackShipment({ carrier, tracking_number });
+    }
 
     default:
       throw new Error(`Unsupported carrier: ${carrier}`);

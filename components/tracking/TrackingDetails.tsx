@@ -23,15 +23,26 @@ interface TrackingDetailsProps {
 
 export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) {
   const getCarrierLogo = (carrier: string) => {
-    // You can add actual carrier logos later
     const carriers: Record<string, string> = {
-      'UPS': '📦',
-      'FedEx': '📮',
-      'USPS': '✉️',
-      'DHL': '🚚',
+      'ups': '📦',
+      'fedex': '📮',
+      'usps': '✉️',
+      'dhl': '🚚',
+      'canada post': '📫',
+      'canada_post': '📫',
+      'canadapost': '📫',
     };
-    return carriers[carrier] || '📦';
+    const key = carrier.toLowerCase();
+    return carriers[key] || carriers[key.replace('_', ' ')] || '📦';
   };
+
+  const formatCarrierName = (carrier: string) =>
+    carrier
+      .replace(/[_-]/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   return (
     <Card className="p-6">
@@ -51,7 +62,9 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
           <span className="text-3xl">{getCarrierLogo(trackingInfo.carrier)}</span>
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">Carrier</p>
-            <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">{trackingInfo.carrier}</p>
+            <p className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">
+              {formatCarrierName(trackingInfo.carrier)}
+            </p>
           </div>
         </div>
 
@@ -70,7 +83,7 @@ export default function TrackingDetails({ trackingInfo }: TrackingDetailsProps) 
             className="flex-shrink-0"
           >
             <Button variant="secondary" size="sm" className="flex items-center gap-2">
-              Track on {trackingInfo.carrier}
+              Track on {formatCarrierName(trackingInfo.carrier)}
               <ExternalLink className="w-4 h-4" />
             </Button>
           </a>
