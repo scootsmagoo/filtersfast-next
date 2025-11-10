@@ -132,11 +132,20 @@ export function convertPriceClient(
 /**
  * Parse currency from locale/country header
  */
-export function parseCurrencyFromHeaders(headers: Headers): CurrencyCode {
-  // Try to get country from Cloudflare header (common on edge deployments)
-  const cfCountry = headers.get('cf-ipcountry');
-  if (cfCountry) {
-    return getCurrencyFromCountry(cfCountry);
+export function parseCurrencyFromHeaders(
+  headers: Headers,
+  options: { fallback?: CurrencyCode | null } = {}
+): CurrencyCode | null {
+  const fallback = options.fallback ?? 'USD';
+
+  // Try country headers provided by edge networks (Cloudflare, Vercel, etc.)
+  const countryHeaders = ['cf-ipcountry', 'x-vercel-ip-country'];
+  for (const headerName of countryHeaders) {
+    const countryCode = headers.get(headerName);
+    if (countryCode) {
+      const currency = COUNTRY_TO_CURRENCY[countryCode.toUpperCase()];
+      if (currency) return currency;
+    }
   }
   
   // Try to parse from Accept-Language header
@@ -153,7 +162,7 @@ export function parseCurrencyFromHeaders(headers: Headers): CurrencyCode {
     }
   }
   
-  return 'USD'; // Default
+  return fallback;
 }
 
 /**

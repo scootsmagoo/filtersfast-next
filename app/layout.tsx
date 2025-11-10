@@ -13,6 +13,10 @@ import ReferralTracker from "@/components/tracking/ReferralTracker";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { LanguageProvider } from "@/lib/language-context";
+import { cookies, headers } from "next/headers";
+import { isValidCurrency, parseCurrencyFromHeaders } from "@/lib/currency-utils";
+import type { CurrencyCode } from "@/lib/types/currency";
+import CurrencyDetectionNotice from "@/components/layout/CurrencyDetectionNotice";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -58,11 +62,33 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = await headers();
+  const cookieStore = await cookies();
+  const cookieCurrency = cookieStore.get("ff_currency")?.value;
+
+  let initialCurrency: CurrencyCode = "USD";
+  let serverCurrencyHint: CurrencyCode | null = null;
+
+  if (cookieCurrency && isValidCurrency(cookieCurrency)) {
+    initialCurrency = cookieCurrency as CurrencyCode;
+  } else {
+    const detectedCurrency = parseCurrencyFromHeaders(headerList, { fallback: null });
+    if (detectedCurrency && isValidCurrency(detectedCurrency)) {
+      initialCurrency = detectedCurrency as CurrencyCode;
+      serverCurrencyHint = detectedCurrency as CurrencyCode;
+    }
+  }
+
+  const serverCountry =
+    headerList.get("cf-ipcountry")?.toUpperCase() ??
+    headerList.get("x-vercel-ip-country")?.toUpperCase() ??
+    null;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -91,8 +117,12 @@ export default function RootLayout({
         <ThemeProvider>
           <StatusAnnouncementProvider>
             <LanguageProvider>
-              <CurrencyProvider>
+              <CurrencyProvider initialCurrency={initialCurrency}>
                 <CartProvider>
+              <CurrencyDetectionNotice
+                serverHint={serverCurrencyHint}
+                serverCountry={serverCountry}
+              />
               {/* Skip Links */}
               <a 
                 href="#main-content" 

@@ -3,9 +3,9 @@
  * Manages currency selection and conversion rates across the application
  */
 
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import type { CurrencyCode } from './types/currency';
 import { getCurrencySymbol, convertPriceClient } from './currency-utils';
 
@@ -27,6 +27,7 @@ interface CurrencyProviderProps {
 }
 
 const CURRENCY_STORAGE_KEY = 'filterfast_currency';
+const CURRENCY_COOKIE_API_ENDPOINT = '/api/currency/set-preference';
 
 export function CurrencyProvider({ children, initialCurrency }: CurrencyProviderProps) {
   const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || 'USD');
@@ -81,6 +82,15 @@ export function CurrencyProvider({ children, initialCurrency }: CurrencyProvider
     setCurrencyState(newCurrency);
     if (typeof window !== 'undefined') {
       localStorage.setItem(CURRENCY_STORAGE_KEY, newCurrency);
+      void fetch(CURRENCY_COOKIE_API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: newCurrency })
+      }).catch((error) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Failed to persist currency preference:', error);
+        }
+      });
     }
   };
 
@@ -136,24 +146,60 @@ export function usePrice(priceUSD: number) {
   };
 }
 
+export type CurrencyDetectionSource = 'server' | 'client';
+
+interface GeoDetectOptions {
+  serverHint?: CurrencyCode | null;
+  onDetected?: (currency: CurrencyCode, source: CurrencyDetectionSource) => void;
+}
+
 /**
  * Hook to detect user's currency from geo-location
  */
-export function useGeoDetectCurrency() {
+export function useGeoDetectCurrency(options: GeoDetectOptions = {}) {
   const { setCurrency } = useCurrency();
-  
+  const serverNotifiedRef = useRef(false);
+  const clientNotifiedRef = useRef(false);
+  const { serverHint = null, onDetected } = options;
+
   useEffect(() => {
-    // Check if user has already set a preference
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(CURRENCY_STORAGE_KEY);
-      if (saved) return; // Don't override user preference
+    if (typeof window === 'undefined') return;
+
+    const saved = localStorage.getItem(CURRENCY_STORAGE_KEY);
+    if (saved) return; // Don't override user preference
+
+    const notify = (currencyCode: CurrencyCode, source: CurrencyDetectionSource) => {
+      if (currencyCode === 'USD') return;
+      if (source === 'server') {
+        if (serverNotifiedRef.current) return;
+        serverNotifiedRef.current = true;
+      } else {
+        if (clientNotifiedRef.current) return;
+        clientNotifiedRef.current = true;
+      }
+      onDetected?.(currencyCode, source);
+    };
+
+    if (serverHint) {
+      setCurrency(serverHint);
+      notify(serverHint, 'server');
+
+      if (serverHint !== 'USD') {
+        return;
+      }
     }
-    
+
+    const controller = new AbortController();
+
     // Try to detect from browser/location
     async function detectCurrency() {
       try {
-        // Try Cloudflare trace API (works on edge deployments)
-        const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
+        const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace', {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) return;
+
         const data = await response.text();
         const locMatch = data.match(/loc=([A-Z]{2})/);
         
@@ -172,15 +218,20 @@ export function useGeoDetectCurrency() {
           const detectedCurrency = currencyMap[countryCode];
           if (detectedCurrency) {
             setCurrency(detectedCurrency);
+            notify(detectedCurrency, 'client');
           }
         }
       } catch (error) {
-        // Silently fail - user can manually select currency
-        console.debug('Could not detect currency from location:', error);
+        if (!controller.signal.aborted) {
+          // Silently fail - user can manually select currency
+          console.debug('Could not detect currency from location:', error);
+        }
       }
     }
     
     detectCurrency();
-  }, [setCurrency]);
+
+    return () => controller.abort();
+  }, [setCurrency, serverHint, onDetected]);
 }
 

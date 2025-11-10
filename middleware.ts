@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { findCachedRedirect } from '@/lib/redirects-cache';
+import { COUNTRY_TO_CURRENCY, isValidCurrency, parseCurrencyFromHeaders } from '@/lib/currency-utils';
+import type { CurrencyCode } from '@/lib/types/currency';
 
 // Supported language codes
 const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'fr-ca'] as const;
 const DEFAULT_LANGUAGE = 'en';
+const CURRENCY_COOKIE_NAME = 'ff_currency';
+const CURRENCY_COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 /**
  * Detect user's preferred language from various sources
@@ -89,6 +93,21 @@ export function middleware(request: NextRequest) {
       sameSite: 'lax'
     });
   }
+
+  // Currency detection and cookie setting
+  const existingCurrency = request.cookies.get(CURRENCY_COOKIE_NAME)?.value;
+  if (!existingCurrency || !isValidCurrency(existingCurrency)) {
+    const detectedCurrency = detectCurrency(request) || existingCurrency;
+    if (detectedCurrency && isValidCurrency(detectedCurrency)) {
+      response.cookies.set(CURRENCY_COOKIE_NAME, detectedCurrency, {
+        path: '/',
+        maxAge: CURRENCY_COOKIE_MAX_AGE,
+        sameSite: 'lax',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      });
+    }
+  }
   
   // Security headers to prevent common attacks
   const securityHeaders = {
@@ -146,6 +165,19 @@ export function middleware(request: NextRequest) {
   }
   
   return response;
+}
+
+function detectCurrency(request: NextRequest): CurrencyCode | null {
+  const geoCountry = request.geo?.country;
+  if (geoCountry) {
+    const currency = COUNTRY_TO_CURRENCY[geoCountry.toUpperCase()];
+    if (currency) return currency;
+  }
+
+  const headerCurrency = parseCurrencyFromHeaders(request.headers, { fallback: null });
+  if (headerCurrency) return headerCurrency;
+
+  return null;
 }
 
 // Apply middleware to all routes

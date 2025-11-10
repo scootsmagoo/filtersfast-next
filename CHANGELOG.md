@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added - 2025-11-10
+- **Automatic Currency Detection & Locale Handoff** 🌍
+  - Middleware now seeds a secure `ff_currency` cookie using Cloudflare/Vercel geo headers for hydration-safe defaults.
+  - Root layout hydrates `CurrencyProvider` with geo hints and surfaces an accessible `CurrencyDetectionNotice` banner.
+  - `useGeoDetectCurrency()` accepts server hints and detection callbacks; preferences persist via new `POST /api/currency/set-preference`.
+  - Currency selections now sync to both localStorage and secure cookies so SSR/edge renders honor user overrides.
 - **Backorder Notification System** 🔔
   - Public notify-me capture on PDP when products or specific variants are out of stock.
   - New SQLite table `backorder_notifications` with duplicate suppression and daily per-email limits.

@@ -12719,7 +12719,10 @@ Comprehensive international currency support allowing customers to shop in their
 - **Geo-location based:** Detects user's country via Cloudflare headers
 - **Smart mapping:** Country codes automatically map to appropriate currency
 - **User preference:** Manual selection overrides auto-detection
-- **Persistent:** Currency preference saved in localStorage
+- **Server hints:** Edge middleware seeds a secure `ff_currency` cookie using Cloudflare/Vercel country headers for hydration-safe defaults
+- **Persistent:** Currency preference saved to both localStorage and secure cookies for consistent SSR/CSR behavior
+- **User notification:** Accessible `CurrencyDetectionNotice` banner announces automatic currency changes with screen reader support and dismiss controls
+- **Preference API:** `/api/currency/set-preference` keeps cookie and client state in sync when users pick a currency manually
 
 **Supported Regions:**
 - **North America:** US (USD), Canada (CAD)
@@ -12786,7 +12789,7 @@ import { Price } from '@/components/products/Price';
 **Hooks Available:**
 - `useCurrency()` - Main currency hook
 - `usePrice(amount)` - Convert & format single price
-- `useGeoDetectCurrency()` - Auto-detect user currency
+- `useGeoDetectCurrency(options)` - Auto-detect user currency with optional server hints and detection callbacks
 
 **Example:**
 ```tsx

@@ -1388,6 +1388,13 @@ npm run init:search-analytics  # Initialize search analytics schema
 
 ## 🆕 Latest Updates (November 10, 2025)
 
+### 🌍 Automatic Currency Detection & Locale Handoff — NEW
+
+- Edge middleware now seeds a secure `ff_currency` cookie from Cloudflare/Vercel geo headers so server-rendered pages and hydration stay in sync.
+- Root layout hydrates the currency context with server hints, and an accessible banner announces detected changes with `aria-live` + `aria-atomic`.
+- Manual selections persist across sessions through localStorage and a hardened `/api/currency/set-preference` endpoint (origin/referrer validation, payload limits, cache controls).
+- Fully aligned with OWASP Top 10 (CSRF mitigations, size limits, sanitized responses) and WCAG 2.1 AA (screen reader support, keyboard-dismissable notice).
+
 ### 🚚 SHIPPING LABEL WORKFLOW + CANADA POST & DHL SUPPORT - NEW!
 
 **Complete carrier label management with shipment history, DHL, and Canada Post integrations.**
