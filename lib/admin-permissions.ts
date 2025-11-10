@@ -51,6 +51,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
       Sales: -1,
     },
   },
+  Marketplaces: {
+    description: 'Manage marketplace channel integrations and sync jobs',
+    group: 'Operations & Integrations',
+    sortOrder: 28,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: -1,
+    },
+  },
 }
 
 // ============================================================================

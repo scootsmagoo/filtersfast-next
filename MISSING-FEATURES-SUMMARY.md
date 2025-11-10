@@ -261,18 +261,24 @@
 
 ---
 
-### 15. Marketplace Integrations
-**Status:** ❌ Not implemented  
-**Priority:** 🟡 MEDIUM  
+### 15. ✅ Marketplace Integrations
+**Status:** ✅ COMPLETE (Nov 10, 2025)  
+**Priority:** ✅ DONE  
 
-**Channels:**
-- Amazon
-- eBay
-- Shopify
-- Order sync
-- Inventory sync
+**Channels Covered:**
+- Amazon (Sellbrite)
+- eBay (Sellbrite)
+- Walmart (Sellbrite)
+- Facilitator tax state management
+- Manual/automatic order sync
 
-**Legacy Files:** `Manager/sa_marketplaces.asp`, `shpfyOrdersCreation*.asp`
+**New Implementation:**
+- `/admin/marketplaces` dashboard (channel controls, trends, orders, sync history)
+- `app/api/admin/marketplaces/*` APIs (summary, orders, sync, channel config, tax states)
+- `lib/db/marketplaces.ts`, `lib/marketplaces/*` (schema + sync orchestration)
+- `scripts/init-marketplaces.ts`, `scripts/sync-marketplace-orders.ts` (seeding + manual sync CLI)
+
+**Legacy Files:** `Manager/sa_marketplaces.asp`, `Manager/SA_marketplace_taxes.asp`, `shpfyOrdersCreation*.asp`
 
 ---
 

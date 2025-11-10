@@ -4,6 +4,48 @@ Complete guide to all implemented features.
 
 ---
 
+## 🛒 Marketplace Channel Management
+
+### Overview
+- Unified Amazon, eBay, and Walmart marketplace hub powered by Sellbrite API integration
+- Admin dashboard at `/admin/marketplaces` with channel configuration, facilitator state management, and sync telemetry
+- Manual sync triggers with per-channel frequency configuration and health monitoring
+
+### Database & Schema
+- `marketplace_channels` — channel metadata, status, credentials/settings JSON
+- `marketplace_orders` — normalized order headers with financial/fulfillment state, totals, and raw payload snapshots
+- `marketplace_order_items` — per-line detail with quantity, pricing, and marketplace fees
+- `marketplace_sync_runs` — audit trail of manual/automatic sync executions
+- `marketplace_tax_states` — facilitator state registry mirroring legacy marketplace tax handling
+
+### API Endpoints
+- `GET /api/admin/marketplaces` — channels + summary + trends + sync history (protected by `Marketplaces` permission)
+- `POST /api/admin/marketplaces/sync` — manual sync orchestration with optional filters (`channelId`, `platform`, `since`, `until`)
+- `GET /api/admin/marketplaces/orders` — paginated order drill-down with filters (channel, platform, status, date range, search)
+- `PATCH /api/admin/marketplaces/:channelId` — update channel sync settings, frequency, credentials, or status
+- `GET|POST /api/admin/marketplaces/:channelId/taxes` — manage facilitator states
+- `DELETE /api/admin/marketplaces/:channelId/taxes/:taxId` — remove facilitator state entry
+
+### CLI Tooling
+- `npm run init:marketplaces [-- --with-sample-orders]` — seeds Amazon/eBay/Walmart channels (+ optional sample orders)
+- `npm run sync:marketplaces [-- --channel=mp_amazon --since=2024-10-01]` — on-demand sync runner for cron/manual use
+
+### Admin UI Highlights
+- Channel cards with status badges, last sync timestamps, sync-frequency inputs, and facilitator state chips
+- Revenue/order trend visualization using accessible progress charts
+- Orders table with filters, search, pagination, and item previews
+- Sync history list with per-run status, counts, and messages
+
+### Security & Accessibility
+- Protected by new `Marketplaces` permission seed (Admin/Manager default access)
+- Sanitized JSON storage, validated payloads, and audit-friendly sync logs
+- WCAG 2.1 AA compliant dashboard (semantic headings, focusable controls, descriptive labels, sr-only context)
+
+### Legacy Parity
+- Modern replacement for `Manager/sa_marketplaces.asp` and `SA_marketplace_taxes.asp`
+- Preserves Sellbrite-driven workflow while adding typed DB layer, orchestration scripts, and proactive telemetry
+
+
 ## 🔐 Authentication System
 
 ### Core Features

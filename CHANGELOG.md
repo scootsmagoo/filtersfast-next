@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
   - Admin dashboard at `/admin/backorder-notifications` with readiness indicators and completion workflow.
   - REST endpoints: `POST /api/backorder-notifications`, `GET/PATCH /api/admin/backorder-notifications`.
   - RBAC integration via new `BackorderNotifications` permission (view for Support, manage for Admin/Manager).
+- **Marketplace Channel Management** 🛒
+  - New admin hub at `/admin/marketplaces` for Amazon/eBay/Walmart channels with trends, orders, and sync history.
+  - SQLite schema (`marketplace_channels`, `marketplace_orders`, `marketplace_order_items`, `marketplace_sync_runs`, `marketplace_tax_states`).
+  - Sellbrite-powered sync orchestrator with manual sync API (`POST /api/admin/marketplaces/sync`) and CLI (`npm run sync:marketplaces`).
+  - Channel configuration APIs, facilitator state management, and paginated order drill-down endpoints.
+  - New `Marketplaces` permission seed plus CLI seeding via `npm run init:marketplaces`.
 
 ### Added - 2025-11-05
 - **System Configuration / Settings** ⚙️

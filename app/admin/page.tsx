@@ -164,6 +164,13 @@ export default function AdminDashboard() {
       color: 'purple'
     },
     {
+      title: 'Marketplaces',
+      description: 'Amazon, eBay, and Walmart channel management',
+      icon: Globe,
+      href: '/admin/marketplaces',
+      color: 'orange'
+    },
+    {
       title: 'Customers',
       description: 'View and manage customer accounts',
       icon: Users,

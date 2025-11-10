@@ -43,7 +43,9 @@
     "cron:subscription-reminders": "tsx scripts/process-subscriptions.ts reminders",
     "update:currency-rates": "tsx scripts/update-currency-rates.ts",
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
-    "reset:sms": "tsx scripts/reset-sms.ts"
+    "reset:sms": "tsx scripts/reset-sms.ts",
+    "init:marketplaces": "tsx scripts/init-marketplaces.ts",
+    "sync:marketplaces": "tsx scripts/sync-marketplace-orders.ts"
   },
   "dependencies": {
     "@paypal/paypal-js": "^9.0.1",

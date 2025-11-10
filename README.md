@@ -130,6 +130,42 @@ npm run init:search-analytics
 
 ---
 
+### 🛒 MARKETPLACE CHANNEL MANAGEMENT - NEW!
+
+**Unified Amazon, eBay, and Walmart operations with Sellbrite-powered syncing.**
+
+- ✅ **Channel Hub**: `/admin/marketplaces` dashboard with channel status cards, facilitator state controls, and recent sync history
+- ✅ **Order Sync Service**: Rebuilt Sellbrite integration with manual sync triggers, per-channel frequency, and sync health tracking
+- ✅ **Reporting & Trends**: Revenue/order breakdown by platform & channel plus daily trend visualization and recent order drill-down
+- ✅ **Tax Facilitator States**: Editable state list per marketplace with instant updates and role-gated access
+- ✅ **Database Schema**: `marketplace_channels`, `marketplace_orders`, `marketplace_order_items`, `marketplace_sync_runs`, `marketplace_tax_states`
+- ✅ **CLI Tooling**: `npm run init:marketplaces` to seed channels (Amazon/eBay/Walmart) + optional samples, `npm run sync:marketplaces` for on-demand sync
+- ✅ **Permissions & Audit**: Guarded by new `Marketplaces` permission with seeded role defaults and audit log coverage
+
+**Security & Accessibility:**
+- **OWASP Top 10 2021:** ✅ Auth-only APIs, validated payloads, sanitized JSON storage, resilient error handling
+- **WCAG 2.1 Level AA:** ✅ Accessible tables, focusable controls, semantic badges, and descriptive labels throughout dashboard
+
+**Quick Start:**
+```bash
+# Seed marketplace channels (optionally include sample orders)
+npm run init:marketplaces -- --with-sample-orders
+
+# Run a manual sync (supports --channel, --platform, --since, --until flags)
+npm run sync:marketplaces
+
+# Visit the admin interface
+# http://localhost:3000/admin/marketplaces
+```
+
+- ♿ **Nov 10, 2025:** Hardened marketplace APIs (input validation, sanitized date filters) and upgraded admin dashboard accessibility (labels, live regions, busy states).
+
+**Based on Legacy Features:**
+- ✅ Marketplace dashboards & Sellbrite workflows (`Manager/sa_marketplaces.asp`, `SA_marketplace_taxes.asp`)
+- ✅ Enhanced with typed DB layer, admin tooling, sync orchestration, and richer reporting UX
+
+---
+
 ### 🔗 SKU COMPATIBILITY MANAGER - NEW!
 
 **Complete SKU compatibility management system - Product compatibility feature complete!**

@@ -1000,8 +1000,8 @@ Add search analytics for insights:
 - ✅ Order insertion API
 
 **FiltersFast-Next Status:**
-- ❌ Marketplace integrations
-- ❌ Multi-channel management
+- ✅ Marketplace integrations (Amazon, eBay, Walmart via Sellbrite)
+- ✅ Multi-channel management dashboard
 
 **Files in Legacy:**
 ```
@@ -1013,13 +1013,14 @@ Add search analytics for insights:
 /OrderInsertionAPIManual.asp
 ```
 
-**Recommendation:**
-Build marketplace channel management:
-1. **Amazon Integration** - Sync orders, inventory
-2. **eBay Integration** - Multi-channel selling
-3. **Shopify B2B** - Wholesale channel
-4. **Marketplace Hub** - Centralized order management
-5. **Inventory Sync** - Real-time stock levels across channels
+**Implemented in FiltersFast-Next:**
+- `lib/types/marketplace.ts` — typed channel/order/sync definitions
+- `lib/db/marketplaces.ts` — SQLite schema + CRUD for channels, orders, sync runs, tax states
+- `lib/marketplaces/` — Sellbrite provider, provider dispatcher, sync orchestrator
+- `app/api/admin/marketplaces/*` — admin APIs for summary, orders, channel updates, facilitator states, manual sync
+- `app/admin/marketplaces/page.tsx` — marketplace dashboard with trends, orders, channel controls, sync history
+- `scripts/init-marketplaces.ts`, `scripts/sync-marketplace-orders.ts` — CLI seeding and manual sync tooling
+- `database/marketplaces-schema.sql` — schema reference snapshot
 
 **Business Impact:** HIGH - Expands sales channels and revenue.
 
