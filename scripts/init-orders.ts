@@ -128,6 +128,7 @@ try {
       shipped_quantity INTEGER NOT NULL DEFAULT 0,
       
       -- Metadata
+      metadata TEXT,
       created_at INTEGER NOT NULL,
       
       FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
@@ -141,6 +142,40 @@ try {
     CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
   `);
   console.log('✅ Created order_items indexes');
+
+  // Order Gift Cards Table
+  mainDb.exec(`
+    CREATE TABLE IF NOT EXISTS order_gift_cards (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL,
+      gift_card_id TEXT,
+      code TEXT NOT NULL,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'USD',
+      balance_before REAL,
+      balance_after REAL,
+      redeemed_at INTEGER,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+      FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE SET NULL
+    )
+  `);
+  console.log('✅ Created order_gift_cards table');
+
+  mainDb.exec(`
+    CREATE INDEX IF NOT EXISTS idx_order_gift_cards_order ON order_gift_cards(order_id);
+    CREATE INDEX IF NOT EXISTS idx_order_gift_cards_code ON order_gift_cards(code);
+  `);
+  console.log('✅ Created order_gift_cards indexes');
+
+  // Ensure metadata column exists for existing databases
+  const orderItemsColumns = mainDb.prepare(`PRAGMA table_info(order_items)`).all() as Array<{ name: string }>;
+  const hasMetadataColumn = orderItemsColumns.some(column => column.name === 'metadata');
+  if (!hasMetadataColumn) {
+    console.log('ℹ️ Adding metadata column to order_items table...');
+    mainDb.exec(`ALTER TABLE order_items ADD COLUMN metadata TEXT`);
+    console.log('✅ Added metadata column to order_items table');
+  }
 
   // Order Notes Table
   mainDb.exec(`

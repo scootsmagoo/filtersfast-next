@@ -5,13 +5,17 @@ import { InsuranceSelection, validateInsurance } from '@/lib/types/insurance';
 
 // OWASP: Input validation interfaces
 interface CartItem {
-  id: number;
+  id: string | number;
+  cartItemId?: string | number;
   name: string;
   brand: string;
   sku: string;
   price: number;
   quantity: number;
   image: string;
+  productType?: string;
+  giftCardDetails?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export async function POST(request: NextRequest) {
@@ -72,7 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const shipping = subtotal >= 99 ? 0 : 9.99;
+    const requiresShipping = items.some(item => (item.productType ?? '').toLowerCase() !== 'gift-card');
+    const shipping = requiresShipping ? (subtotal >= 99 ? 0 : 9.99) : 0;
     const total = subtotal + shipping;
 
     // Create line items for Stripe (already validated above)
@@ -91,7 +96,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // Add shipping as a line item if applicable
-    if (shipping > 0) {
+    if (requiresShipping && shipping > 0) {
       lineItems.push({
         price_data: {
           currency: 'usd',
@@ -107,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Add shipping insurance as a line item if applicable
-    if (insurance && insurance.carrier !== 'none' && insurance.cost > 0) {
+    if (requiresShipping && insurance && insurance.carrier !== 'none' && insurance.cost > 0) {
       // OWASP: Server-side validation of insurance selection
       const validation = validateInsurance(insurance.carrier, subtotal);
       if (!validation.valid) {

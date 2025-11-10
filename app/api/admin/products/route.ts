@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       name: z.string().min(1, 'Product name is required').max(500, 'Name too long'),
       sku: z.string().min(1, 'SKU is required').max(100, 'SKU too long'),
       brand: z.string().min(1, 'Brand is required').max(100, 'Brand too long'),
-      type: z.enum(['air-filter', 'water-filter', 'refrigerator-filter', 'humidifier-filter', 'pool-filter', 'custom', 'accessory', 'other']),
+      type: z.enum(['air-filter', 'water-filter', 'refrigerator-filter', 'humidifier-filter', 'pool-filter', 'gift-card', 'custom', 'accessory', 'other']),
       status: z.enum(['active', 'draft', 'archived', 'out-of-stock']).default('draft'),
       price: z.number().min(0, 'Price must be non-negative').max(999999.99, 'Price too high').finite('Price must be a valid number'),
       description: z.string().max(10000, 'Description too long').optional().default(''),

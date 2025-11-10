@@ -12,6 +12,8 @@ export interface SearchableProduct {
   image: string;
   inStock: boolean;
   badges?: string[];
+  productType?: string;
+  requiresShipping?: boolean;
   
   // Search-specific fields
   category: 'refrigerator' | 'water' | 'air' | 'pool' | 'humidifier' | 'sale';

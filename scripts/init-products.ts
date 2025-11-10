@@ -37,7 +37,7 @@ try {
       -- Type & Classification
       type TEXT NOT NULL CHECK(type IN (
         'air-filter', 'water-filter', 'refrigerator-filter', 
-        'humidifier-filter', 'pool-filter', 'custom', 'accessory', 'other'
+        'humidifier-filter', 'pool-filter', 'gift-card', 'custom', 'accessory', 'other'
       )),
       status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN (
         'active', 'draft', 'archived', 'out-of-stock'

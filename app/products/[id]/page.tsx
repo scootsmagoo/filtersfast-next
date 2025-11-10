@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Star, ShoppingCart, Check, ArrowLeft, Package, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { useCart } from '@/lib/cart-context';
+import { useCart, type GiftCardCartDetails } from '@/lib/cart-context';
 import { SearchableProduct } from '@/lib/types';
 import Link from 'next/link';
 import SocialShare from '@/components/social/SocialShare';
@@ -17,6 +17,7 @@ import ProductReviewSectionClient from '@/components/reviews/ProductReviewSectio
 import ProductOptions from '@/components/products/ProductOptions';
 import type { ProductOptionGroupWithOptions, ProductOptionWithInventory } from '@/lib/types/product';
 import BackorderNotify from '@/components/products/BackorderNotify';
+import GiftCardPurchaseForm from '@/components/gift-card/GiftCardPurchaseForm';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -831,6 +832,15 @@ export default function ProductDetailPage() {
     unavailable?: boolean;
   } | null>(null);
   const { addItem } = useCart();
+  const [giftCardDetails, setGiftCardDetails] = useState<GiftCardCartDetails>({
+    recipientName: '',
+    recipientEmail: '',
+    message: '',
+    sendAt: null,
+    purchaserName: '',
+    purchaserEmail: '',
+  });
+  const isGiftCard = product?.productType === 'gift-card';
 
   useEffect(() => {
     if (productId) {
@@ -879,6 +889,7 @@ export default function ProductDetailPage() {
             'refrigerator-filter': 'refrigerator',
             'humidifier-filter': 'humidifier',
             'pool-filter': 'pool',
+            'gift-card': 'sale',
           };
           
           const numericId = parseInt(id.replace(/\D/g, '')) || 0;
@@ -899,6 +910,8 @@ export default function ProductDetailPage() {
               ...(data.product.isFeatured ? ['featured'] : []),
               ...(data.product.isNew ? ['new'] : []),
             ],
+            productType: data.product.type,
+            requiresShipping: data.product.requiresShipping,
             category: categoryMap[data.product.type] || 'other',
             description: data.product.description || '',
             searchKeywords: [],
@@ -955,6 +968,21 @@ export default function ProductDetailPage() {
     }
   }, [session]);
 
+  useEffect(() => {
+    if (!isGiftCard) return;
+    setGiftCardDetails((prev) => ({
+      ...prev,
+      purchaserName: session?.user?.name || prev.purchaserName || '',
+      purchaserEmail: session?.user?.email || prev.purchaserEmail || '',
+    }));
+  }, [session?.user?.name, session?.user?.email, isGiftCard]);
+
+  useEffect(() => {
+    if (isGiftCard && subscriptionEnabled) {
+      setSubscriptionEnabled(false);
+    }
+  }, [isGiftCard, subscriptionEnabled]);
+
   const checkUpcomingOrders = async () => {
     try {
       const response = await fetch('/api/subscriptions/upcoming');
@@ -971,43 +999,78 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    
-    // Check if required options are selected
-    const requiredGroups = optionGroups.filter(og => og.optionReq === 'Y');
-    const missingRequired = requiredGroups.some(og => !selectedOptions[og.idOptionGroup]);
-    
-    if (missingRequired) {
-      alert('Please select all required options');
+
+    if (!isGiftCard) {
+      const requiredGroups = optionGroups.filter((og) => og.optionReq === 'Y');
+      const missingRequired = requiredGroups.some((og) => !selectedOptions[og.idOptionGroup]);
+      if (missingRequired) {
+        alert('Please select all required options');
+        return;
+      }
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const normalizedRecipientEmail = isGiftCard ? giftCardDetails.recipientEmail.trim() : '';
+
+    if (isGiftCard && !emailRegex.test(normalizedRecipientEmail)) {
+      alert('Please enter a valid recipient email for the gift card.');
       return;
     }
     
     setIsAdding(true);
     try {
       const finalPrice = product.price + priceAdjustment;
-      
+      const baseProductId = (product.productId || product.id).toString();
+      const cartItemId = isGiftCard
+        ? `${baseProductId}-gift-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        : baseProductId;
+
+      const giftCardMetadata = isGiftCard
+        ? {
+            recipientName: giftCardDetails.recipientName?.trim() || null,
+            recipientEmail: normalizedRecipientEmail,
+            message: giftCardDetails.message?.trim() || null,
+            sendAt: giftCardDetails.sendAt || null,
+            purchaserName: giftCardDetails.purchaserName || session?.user?.name || null,
+            purchaserEmail: giftCardDetails.purchaserEmail || session?.user?.email || null,
+          }
+        : null;
+
       addItem({
-        id: (product.productId || product.id).toString(), // Use productId if available, fallback to id
+        id: cartItemId,
+        productId: baseProductId,
+        productType: product.productType,
         name: product.name,
         brand: product.brand,
         sku: product.sku,
         price: finalPrice,
         image: optionImageUrl || product.image,
         ...(quantity > 1 && { quantity }),
-        // Include options if any are selected
         ...(Object.keys(selectedOptions).length > 0 && {
-          options: selectedOptions
+          options: selectedOptions,
         }),
-        // Include subscription info if enabled
-        ...(subscriptionEnabled && {
+        ...(subscriptionEnabled && !isGiftCard && {
           subscription: {
             enabled: true,
-            frequency: subscriptionFrequency
-          }
-        })
+            frequency: subscriptionFrequency,
+          },
+        }),
+        ...(giftCardMetadata && {
+          metadata: { giftCard: giftCardMetadata },
+          giftCardDetails: {
+            recipientName: giftCardDetails.recipientName?.trim() || '',
+            recipientEmail: normalizedRecipientEmail,
+            message: giftCardDetails.message?.trim() || '',
+            sendAt: giftCardDetails.sendAt || null,
+            purchaserName: giftCardMetadata.purchaserName || undefined,
+            purchaserEmail: giftCardMetadata.purchaserEmail || undefined,
+          },
+        }),
       });
-      
-      // Show success message (you could add a toast notification here)
-      if (subscriptionEnabled) {
+
+      if (isGiftCard) {
+        console.log('Gift card added to cart successfully');
+      } else if (subscriptionEnabled) {
         console.log(`Added to cart with ${subscriptionFrequency}-month subscription`);
       } else {
         console.log('Added to cart successfully');
@@ -1244,44 +1307,58 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Subscription Widget or Upsell Button */}
-            {upcomingOrder ? (
-              /* Show upsell button for existing subscription customers */
-              <div className="my-6">
-                <Card className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-300 dark:border-green-700 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 transition-colors">
-                        Add to Your Auto Delivery Order
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
-                        Next delivery: {upcomingOrder.nextDeliveryDateFormatted}
-                      </p>
-                    </div>
-                    <Button
-                      variant="primary"
-                      onClick={() => setShowUpsellModal(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <Package className="w-4 h-4" />
-                      Add to Order
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-            ) : (
-              /* Show regular subscription widget for non-subscribers */
-              <div className="my-6">
-                <SubscriptionWidget
-                  productId={(product.productId || product.id).toString()}
-                  productName={product.name}
-                  productPrice={product.price}
-                  isPrivateLabel={isPrivateLabel}
-                  defaultFrequency={6}
-                  onSubscriptionChange={handleSubscriptionChange}
-                  style="pdp"
+            {isGiftCard && (
+              <div className="my-6 space-y-3">
+                <GiftCardPurchaseForm
+                  details={giftCardDetails}
+                  onChange={setGiftCardDetails}
                 />
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                  Digital gift cards are delivered by email and never expire. You can schedule delivery or send it instantly.
+                </p>
               </div>
+            )}
+
+            {/* Subscription Widget or Upsell Button */}
+            {!isGiftCard && (
+              upcomingOrder ? (
+                /* Show upsell button for existing subscription customers */
+                <div className="my-6">
+                  <Card className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-300 dark:border-green-700 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 transition-colors">
+                          Add to Your Auto Delivery Order
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                          Next delivery: {upcomingOrder.nextDeliveryDateFormatted}
+                        </p>
+                      </div>
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowUpsellModal(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Package className="w-4 h-4" />
+                        Add to Order
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                /* Show regular subscription widget for non-subscribers */
+                <div className="my-6">
+                  <SubscriptionWidget
+                    productId={(product.productId || product.id).toString()}
+                    productName={product.name}
+                    productPrice={product.price}
+                    isPrivateLabel={isPrivateLabel}
+                    defaultFrequency={6}
+                    onSubscriptionChange={handleSubscriptionChange}
+                    style="pdp"
+                  />
+                </div>
+              )
             )}
 
             {/* Add to Cart */}

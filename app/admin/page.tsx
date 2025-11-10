@@ -188,6 +188,14 @@ export default function AdminDashboard() {
       color: 'orange'
     },
     {
+      title: 'Gift Cards',
+      description: 'Issue, adjust, and report on digital gift cards',
+      icon: Gift,
+      href: '/admin/gift-cards',
+      color: 'pink',
+      badge: 'NEW'
+    },
+    {
       title: 'Payment Gateways',
       description: 'Configure Stripe, PayPal, and Authorize.Net',
       icon: CreditCard,

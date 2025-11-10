@@ -81,6 +81,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    if (formData.type === 'gift-card') {
+      setFormData(prev => ({
+        ...prev,
+        trackInventory: false,
+        allowBackorder: false,
+        subscriptionEligible: false,
+        weight: 0,
+      }));
+    }
+  }, [formData.type]);
+
   const loadProduct = async () => {
     try {
       setLoading(true);
@@ -721,6 +733,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                       <option value="refrigerator-filter">Refrigerator Filter</option>
                       <option value="humidifier-filter">Humidifier Filter</option>
                       <option value="pool-filter">Pool Filter</option>
+                      <option value="gift-card">Gift Card</option>
                       <option value="custom">Custom</option>
                       <option value="accessory">Accessory</option>
                       <option value="other">Other</option>

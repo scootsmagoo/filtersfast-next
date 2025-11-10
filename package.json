@@ -23,6 +23,7 @@
     "init:i18n": "tsx scripts/init-i18n.ts",
     "init:orders": "tsx scripts/init-orders.ts",
     "init:order-credits": "tsx scripts/init-order-credits.ts",
+    "init:gift-cards": "tsx scripts/init-gift-cards.ts",
     "init:products": "tsx scripts/init-products.ts",
     "init:product-options": "tsx scripts/init-product-options-schema.ts",
     "init:images-schema": "tsx scripts/init-images-schema.ts",

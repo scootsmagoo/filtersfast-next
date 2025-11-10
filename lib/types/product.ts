@@ -15,6 +15,7 @@ export type ProductType =
   | 'refrigerator-filter'  // Fridge filters
   | 'humidifier-filter'    // Humidifier pads
   | 'pool-filter'          // Pool and spa filters
+  | 'gift-card'            // Digital gift cards
   | 'custom'               // Custom products
   | 'accessory'            // Tools, accessories
   | 'other'                // Miscellaneous

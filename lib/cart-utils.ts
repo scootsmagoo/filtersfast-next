@@ -7,13 +7,16 @@
 import type { VerificationCheckResult } from './types/idme';
 
 export interface CartItem {
-  id: string;
+  id: string | number;
   name: string;
   price: number;
   quantity: number;
   image: string;
   brand: string;
   sku: string;
+  productType?: string;
+  giftCardDetails?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CartTotals {

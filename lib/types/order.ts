@@ -39,6 +39,16 @@ export type PaymentMethod =
   | 'net-terms'         // Net payment terms (B2B)
   | 'store-credit'      // Store credit
 
+export interface AppliedGiftCard {
+  code: string
+  amount: number
+  currency?: string
+  gift_card_id?: string | null
+  balance_before?: number | null
+  balance_after?: number | null
+  redeemed_at?: number | null
+}
+
 export interface Order {
   id: string
   order_number: string  // Human-readable order number (e.g., "FF-2025-00123")
@@ -110,6 +120,7 @@ export interface Order {
   updated_at: number
   cancelled_at: number | null
   refunded_at: number | null
+  applied_gift_cards?: AppliedGiftCard[]
 }
 
 export interface OrderItem {
@@ -135,6 +146,9 @@ export interface OrderItem {
   // Fulfillment
   is_shipped: boolean
   shipped_quantity: number
+
+  // Metadata
+  metadata?: Record<string, unknown> | null
   
   // Metadata
   created_at: number
@@ -233,6 +247,7 @@ export interface CreateOrderRequest {
     variant_name?: string
     quantity: number
     unit_price: number
+    metadata?: Record<string, unknown>
   }>
   
   // Addresses
@@ -242,6 +257,9 @@ export interface CreateOrderRequest {
   // Payment
   payment_method: PaymentMethod
   payment_intent_id?: string
+  transaction_id?: string
+  payment_status?: PaymentStatus
+  shipping_status?: ShippingStatus
   
   // Pricing
   subtotal: number
@@ -272,6 +290,7 @@ export interface CreateOrderRequest {
   user_agent?: string
   referrer?: string
   source?: string
+  applied_gift_cards?: AppliedGiftCard[]
 }
 
 export interface UpdateOrderRequest {

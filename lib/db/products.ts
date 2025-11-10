@@ -337,6 +337,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
     const now = Date.now();
     const id = `prod-${now}-${Math.random().toString(36).substring(7)}`;
     const slug = generateSlug(data.name);
+    const isGiftCard = data.type === 'gift-card';
 
     const stmt = db.prepare(`
       INSERT INTO products (
@@ -379,7 +380,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
     const compatModels = data.compatibleModels ? JSON.stringify(
       data.compatibleModels.split('\n').filter(m => m.trim())
     ) : '[]';
-    const dimensions = (data.height || data.width || data.depth) ? JSON.stringify({
+    const dimensions = isGiftCard ? null : (data.height || data.width || data.depth) ? JSON.stringify({
       height: data.height,
       width: data.width,
       depth: data.depth,
@@ -393,16 +394,22 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       id, data.name, slug, data.sku, data.brand, data.description, data.shortDescription,
       data.type, data.status,
       data.price, data.compareAtPrice, data.costPrice,
-      data.trackInventory ? 1 : 0, data.inventoryQuantity, data.lowStockThreshold, data.allowBackorder ? 1 : 0,
+      isGiftCard ? 0 : (data.trackInventory ? 1 : 0),
+      isGiftCard ? 0 : data.inventoryQuantity,
+      isGiftCard ? 0 : data.lowStockThreshold,
+      isGiftCard ? 0 : (data.allowBackorder ? 1 : 0),
       dimensions, data.mervRating, features, specs, compatModels,
       images, data.primaryImage, 0, '[]',
       JSON.stringify(data.categoryIds), JSON.stringify(data.tags),
       data.metaTitle, data.metaDescription, data.metaKeywords,
       data.isFeatured ? 1 : 0, data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, 
-      data.madeInUSA ? 1 : 0, data.freeShipping ? 1 : 0, '[]',
-      data.subscriptionEligible ? 1 : 0, data.subscriptionDiscount,
+      data.madeInUSA ? 1 : 0, isGiftCard ? 1 : (data.freeShipping ? 1 : 0), '[]',
+      isGiftCard ? 0 : (data.subscriptionEligible ? 1 : 0),
+      isGiftCard ? 0 : data.subscriptionDiscount,
       '[]', '[]',
-      data.weight, 1, null,
+      isGiftCard ? 0 : data.weight,
+      isGiftCard ? 0 : 1,
+      null,
       now, now, userId, userId, data.status === 'active' ? now : null
     );
 
@@ -466,6 +473,64 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     if (data.isBestSeller !== undefined) addUpdate('isBestSeller', data.isBestSeller ? 1 : 0, 'is_best_seller', existing.isBestSeller);
     if (data.madeInUSA !== undefined) addUpdate('madeInUSA', data.madeInUSA ? 1 : 0, 'made_in_usa', existing.madeInUSA);
     if (data.freeShipping !== undefined) addUpdate('freeShipping', data.freeShipping ? 1 : 0, 'free_shipping', existing.freeShipping);
+
+    const nextType = data.type ?? existing.type;
+    const enforceGiftCardDefaults = nextType === 'gift-card';
+    const hasUpdateFor = (column: string) => updates.some(update => update.startsWith(`${column} =`));
+
+    if (enforceGiftCardDefaults) {
+      const enforceBooleanField = (
+        fieldKey: keyof typeof changes,
+        column: string,
+        desired: number,
+        current: boolean
+      ) => {
+        if (!hasUpdateFor(column) && Number(current) !== desired) {
+          updates.push(`${column} = ?`);
+          params.push(desired);
+          changes[fieldKey as string] = { old: current, new: Boolean(desired) };
+        }
+      };
+
+      const enforceNumericField = (
+        fieldKey: keyof typeof changes,
+        column: string,
+        desired: number,
+        current: number
+      ) => {
+        if (!hasUpdateFor(column) && current !== desired) {
+          updates.push(`${column} = ?`);
+          params.push(desired);
+          changes[fieldKey as string] = { old: current, new: desired };
+        }
+      };
+
+      if (!hasUpdateFor('dimensions') && existing.dimensions !== null) {
+        updates.push('dimensions = ?');
+        params.push(null);
+        changes.dimensions = { old: existing.dimensions, new: null };
+      }
+
+      enforceBooleanField('trackInventory', 'track_inventory', 0, existing.trackInventory);
+      enforceNumericField('inventoryQuantity', 'inventory_quantity', 0, existing.inventoryQuantity);
+      enforceNumericField('lowStockThreshold', 'low_stock_threshold', 0, existing.lowStockThreshold);
+      enforceBooleanField('allowBackorder', 'allow_backorder', 0, existing.allowBackorder);
+      enforceBooleanField('subscriptionEligible', 'subscription_eligible', 0, existing.subscriptionEligible);
+      enforceNumericField('subscriptionDiscount', 'subscription_discount', 0, existing.subscriptionDiscount);
+      enforceBooleanField('freeShipping', 'free_shipping', 1, existing.freeShipping);
+
+      if (!hasUpdateFor('weight') && existing.weight !== 0) {
+        updates.push('weight = ?');
+        params.push(0);
+        changes.weight = { old: existing.weight, new: 0 };
+      }
+
+      if (!hasUpdateFor('requires_shipping') && existing.requiresShipping) {
+        updates.push('requires_shipping = ?');
+        params.push(0);
+        changes.requiresShipping = { old: existing.requiresShipping, new: false };
+      }
+    }
 
     // Always update timestamps and user
     updates.push('updated_at = ?', 'updated_by = ?');

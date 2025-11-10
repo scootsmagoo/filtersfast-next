@@ -124,7 +124,7 @@ export async function PATCH(
       name: z.string().min(1).max(500).optional(),
       sku: z.string().min(1).max(100).optional(),
       brand: z.string().min(1).max(100).optional(),
-      type: z.enum(['air-filter', 'water-filter', 'refrigerator-filter', 'humidifier-filter', 'pool-filter', 'custom', 'accessory', 'other']).optional(),
+      type: z.enum(['air-filter', 'water-filter', 'refrigerator-filter', 'humidifier-filter', 'pool-filter', 'gift-card', 'custom', 'accessory', 'other']).optional(),
       status: z.enum(['active', 'draft', 'archived', 'out-of-stock']).optional(),
       price: z.number().min(0).max(999999.99).finite().optional(),
       description: z.string().max(10000).optional(),

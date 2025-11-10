@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
@@ -30,6 +30,7 @@ import {
   Lock,
   Heart,
   Shield,
+  Gift,
   Plus
 } from 'lucide-react';
 import { useCurrency } from '@/lib/currency-context';
@@ -51,7 +52,16 @@ interface ShippingAddress {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total, itemCount, clearCart } = useCart();
+  const { 
+    items, 
+    total, 
+    itemCount, 
+    appliedGiftCards, 
+    applyGiftCard, 
+    removeGiftCard, 
+    clearGiftCards,
+    clearCart 
+  } = useCart();
   const { data: session } = useSession();
   const { executeRecaptcha, isReady: recaptchaReady } = useRecaptcha();
   const { convertPrice, formatPrice: formatPriceCurrency, currency } = useCurrency();
@@ -68,6 +78,22 @@ export default function CheckoutPage() {
   const [calculatedTax, setCalculatedTax] = useState<number>(0);
   const [taxCalculating, setTaxCalculating] = useState(false);
   const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null);
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardError, setGiftCardError] = useState('');
+  const [giftCardLoading, setGiftCardLoading] = useState(false);
+
+  const hasShippableItems = useMemo(
+    () => items.some(item => (item.productType ?? '').toLowerCase() !== 'gift-card'),
+    [items]
+  );
+
+  const digitalShippingRate = useMemo<ShippingRate>(() => ({
+    carrier: 'usps',
+    service_name: 'Digital Delivery',
+    service_code: 'DIGITAL',
+    rate: 0,
+    currency: 'USD',
+  }), []);
   
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: '',
@@ -89,9 +115,13 @@ export default function CheckoutPage() {
         ...prev,
         email: session.user.email,
       }));
-      setCurrentStep('shipping'); // Skip account step if logged in
+      setCurrentStep(prev =>
+        prev === 'account'
+          ? (hasShippableItems ? 'shipping' : 'payment')
+          : prev
+      );
     }
-  }, [session]);
+  }, [session, hasShippableItems]);
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -105,12 +135,48 @@ export default function CheckoutPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
+  useEffect(() => {
+    if (!hasShippableItems) {
+      setSelectedShippingRate(prev => prev ?? digitalShippingRate);
+    }
+  }, [hasShippableItems, digitalShippingRate]);
+
+  useEffect(() => {
+    if (!hasShippableItems && !shippingAddress.address1) {
+      setShippingAddress(prev => {
+        const [first = 'Digital', ...rest] = (session?.user?.name || '').trim().split(' ').filter(Boolean);
+        const fallbackLast = rest.join(' ') || 'Recipient';
+
+        return {
+          ...prev,
+          firstName: prev.firstName || first,
+          lastName: prev.lastName || fallbackLast,
+          email: prev.email || session?.user?.email || '',
+          address1: 'Digital Delivery',
+          city: prev.city || 'Online',
+          state: prev.state || 'NC',
+          zipCode: prev.zipCode || '00000',
+          country: prev.country || 'US',
+        };
+      });
+    }
+  }, [hasShippableItems, shippingAddress.address1, session?.user?.name, session?.user?.email]);
+
+  useEffect(() => {
+    if (!hasShippableItems) {
+      setCurrentStep(prev => (prev === 'shipping' ? 'payment' : prev));
+    }
+  }, [hasShippableItems]);
+
   // Use selected shipping rate or default to free shipping if over $50
-  const shippingCost = selectedShippingRate?.rate || (total >= 50 ? 0 : 9.99);
+  const shippingCost = hasShippableItems
+    ? selectedShippingRate?.rate || (total >= 50 ? 0 : 9.99)
+    : 0;
   const tax = calculatedTax; // Real-time tax from TaxJar
   const donationAmount = donation?.amount || 0;
   const insuranceCost = insurance?.cost || 0;
-  const orderTotal = total + shippingCost + tax + donationAmount + insuranceCost;
+  const giftCardDeduction = appliedGiftCards.reduce((sum, card) => sum + (card.amountApplied || 0), 0);
+  const orderTotal = Math.max(0, total + shippingCost + tax + donationAmount + insuranceCost - giftCardDeduction);
   
   // Convert totals to selected currency for display
   const displayTotal = convertPrice(total);
@@ -118,12 +184,13 @@ export default function CheckoutPage() {
   const displayTax = convertPrice(tax);
   const displayInsurance = convertPrice(insuranceCost);
   const displayDonation = convertPrice(donationAmount);
+  const displayGiftCardDeduction = convertPrice(giftCardDeduction);
   const displayOrderTotal = convertPrice(orderTotal);
 
   // Step navigation
   const handleContinueAsGuest = () => {
     setIsGuest(true);
-    setCurrentStep('shipping');
+    setCurrentStep(hasShippableItems ? 'shipping' : 'payment');
   };
 
   const handleLoginRedirect = () => {
@@ -175,6 +242,78 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleApplyGiftCard = async () => {
+    if (giftCardLoading) return;
+
+    const code = giftCardCode.trim();
+    if (!code) {
+      setGiftCardError('Please enter a gift card code.');
+      return;
+    }
+
+    if (appliedGiftCards.some(card => card.code.toLowerCase() === code.toLowerCase())) {
+      setGiftCardError('This gift card has already been applied.');
+      return;
+    }
+
+    const currentTotalBeforeGiftCards = total + shippingCost + tax + donationAmount + insuranceCost;
+    const remainingDue = Math.max(0, currentTotalBeforeGiftCards - giftCardDeduction);
+
+    if (remainingDue <= 0) {
+      setGiftCardError('Your order total is already covered.');
+      return;
+    }
+
+    setGiftCardLoading(true);
+    setGiftCardError('');
+
+    try {
+      const response = await fetch('/api/gift-cards/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          orderTotal: remainingDue,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setGiftCardError(data.error || 'Unable to apply gift card.');
+        return;
+      }
+
+      const amountToApply = Math.min(data.giftCard.amountApplicable || 0, remainingDue);
+
+      if (amountToApply <= 0) {
+        setGiftCardError('This gift card has no remaining balance for this order.');
+        return;
+      }
+
+      applyGiftCard({
+        code: data.giftCard.code,
+        amountApplied: amountToApply,
+        balanceRemaining: Math.max(0, data.giftCard.balance - amountToApply),
+        currency: data.giftCard.currency || 'USD',
+        originalBalance: data.giftCard.balance,
+      });
+      setGiftCardCode('');
+    } catch (error) {
+      console.error('Error applying gift card:', error);
+      setGiftCardError('Unable to validate gift card. Please try again.');
+    } finally {
+      setGiftCardLoading(false);
+    }
+  };
+
+  const handleRemoveGiftCard = (code: string) => {
+    removeGiftCard(code);
+  };
+
+  const handleClearGiftCards = () => {
+    clearGiftCards();
+  };
+
 
   const handlePlaceOrder = async () => {
     setIsProcessing(true);
@@ -224,16 +363,24 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           items: items.map(item => ({
-            id: item.id,
+            id: (item.productId || item.id).toString(),
+            cartItemId: item.id,
             name: item.name,
             brand: item.brand,
             sku: item.sku,
             price: item.price,
             quantity: item.quantity,
             image: item.image,
+            productType: item.productType,
+            giftCardDetails: item.giftCardDetails,
+            metadata: item.metadata,
           })),
           donation: donation || null,
           insurance: insurance || null,
+          gift_cards: appliedGiftCards.map(card => ({
+            code: card.code,
+            amount: card.amountApplied,
+          })),
         }),
       });
       
@@ -249,6 +396,7 @@ export default function CheckoutPage() {
       
       // Clear cart
       clearCart();
+      handleClearGiftCards();
       
       // Redirect to success page
       router.push('/checkout/success?session_id=' + sessionId);
@@ -708,6 +856,7 @@ export default function CheckoutPage() {
                             onSuccess={(data) => {
                               // Clear cart
                               clearCart();
+                              handleClearGiftCards();
                               // Redirect to success page
                               router.push(`/checkout/success?orderId=${data.orderId}&orderNumber=${data.orderNumber}&payment=paypal&source=${data.paymentSource}`);
                             }}
@@ -731,7 +880,7 @@ export default function CheckoutPage() {
                         <Button
                           type="button"
                           variant="secondary"
-                          onClick={() => setCurrentStep('shipping')}
+                          onClick={() => setCurrentStep(hasShippableItems ? 'shipping' : 'payment')}
                           className="flex items-center gap-2"
                         >
                           <ArrowLeft className="w-4 h-4" />
@@ -772,7 +921,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">Shipping Address</h3>
                       <button
-                        onClick={() => setCurrentStep('shipping')}
+                        onClick={() => setCurrentStep(hasShippableItems ? 'shipping' : 'payment')}
                         className="text-sm text-brand-orange hover:underline"
                       >
                         Edit
@@ -959,8 +1108,90 @@ export default function CheckoutPage() {
                       <span className="font-medium text-green-600 dark:text-green-400 transition-colors">{formatPriceCurrency(displayDonation)}</span>
                     </div>
                   )}
+                  {giftCardDeduction > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors">
+                        <Gift className="w-3 h-3 text-green-600" />
+                        Gift Card
+                      </span>
+                      <span className="font-medium text-green-600 dark:text-green-400 transition-colors">
+                        -{formatPriceCurrency(displayGiftCardDeduction)}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
+                <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                      Gift Card Code
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={giftCardCode}
+                        onChange={(event) => setGiftCardCode(event.target.value.toUpperCase())}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            handleApplyGiftCard();
+                          }
+                        }}
+                        placeholder="XXXX-XXXX-XXXX"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors uppercase"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleApplyGiftCard}
+                        disabled={giftCardLoading}
+                        className="px-4"
+                      >
+                        {giftCardLoading ? 'Applying...' : 'Apply'}
+                      </Button>
+                    </div>
+                    {giftCardError && (
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400 transition-colors">{giftCardError}</p>
+                    )}
+                  </div>
+
+                  {appliedGiftCards.length > 0 && (
+                    <div className="space-y-2">
+                      {appliedGiftCards.map((card) => (
+                        <div
+                          key={card.code}
+                          className="flex items-center justify-between text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 transition-colors"
+                        >
+                          <div>
+                            <p className="font-medium text-green-700 dark:text-green-300 uppercase tracking-wide">
+                              {card.code}
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              Applied {formatPriceCurrency(convertPrice(card.amountApplied))}
+                              {card.balanceRemaining > 0 && ` • Remaining ${formatPriceCurrency(convertPrice(card.balanceRemaining))}`}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveGiftCard(card.code)}
+                            className="text-xs font-medium text-green-700 dark:text-green-300 hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      {appliedGiftCards.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={handleClearGiftCards}
+                          className="text-xs font-medium text-green-700 dark:text-green-300 hover:underline"
+                        >
+                          Remove all gift cards
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between text-lg font-bold mb-4">
                   <span className="text-gray-900 dark:text-gray-100 transition-colors">Total</span>
                   <span className="text-brand-orange">{formatPriceCurrency(displayOrderTotal)}</span>

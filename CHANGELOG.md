@@ -24,6 +24,12 @@ All notable changes to this project will be documented in this file.
   - Sellbrite-powered sync orchestrator with manual sync API (`POST /api/admin/marketplaces/sync`) and CLI (`npm run sync:marketplaces`).
   - Channel configuration APIs, facilitator state management, and paginated order drill-down endpoints.
   - New `Marketplaces` permission seed plus CLI seeding via `npm run init:marketplaces`.
+- **Digital Gift Card System** 🎁
+  - Dedicated `gift-card` product type with enforced digital defaults (no shipping, no inventory) and storefront PDP form for recipient details.
+  - Checkout support for applying multiple cards, balance-aware validation, and zero-shipping handling for gift-card-only carts.
+  - Issuance pipeline issues cards per order item, records redemptions, and dispatches branded recipient/sender emails with direct balance links.
+  - Admin reporting table at `/admin/gift-cards` with status filters, manual adjustments, void/reactivate controls, and transaction history.
+  - Self-service balance pages at `/gift-cards` and `/gift-cards/[code]`, plus new `order_gift_cards` ledger for audit-ready reporting.
 
 ### Added - 2025-11-05
 - **System Configuration / Settings** ⚙️

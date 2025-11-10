@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPaymentGatewayManager } from '@/lib/payment-gateway';
 import { createOrder } from '@/lib/db/orders';
 import { rateLimit } from '@/lib/rate-limit';
+import { getGiftCardByCode, redeemGiftCard } from '@/lib/db/gift-cards';
 import type { CreatePaymentRequest, PaymentGatewayType } from '@/lib/types/payment-gateway';
 import type { CreateOrderRequest } from '@/lib/types/order';
 import DOMPurify from 'isomorphic-dompurify';
@@ -122,9 +123,16 @@ export async function POST(request: NextRequest) {
       (body.donation_amount || 0) +
       (body.insurance_amount || 0);
 
+    const requestedGiftCardTotal = Array.isArray(body.gift_cards)
+      ? body.gift_cards.reduce((sum, card) => {
+          const amount = typeof card.amount === 'number' ? card.amount : 0;
+          return sum + Math.max(0, amount);
+        }, 0)
+      : 0;
+
     // OWASP A04: Verify total matches (allow 1 cent difference for rounding)
     // WCAG 3.3.1: Clear error identification with specific values
-    if (Math.abs(calculatedTotal - body.amount) > 0.01) {
+    if (Math.abs(calculatedTotal - requestedGiftCardTotal - body.amount) > 0.01) {
       return NextResponse.json(
         { 
           error: 'Order total verification failed',
@@ -132,6 +140,7 @@ export async function POST(request: NextRequest) {
           suggestion: 'Please refresh the page and review your cart before trying again.',
           details: {
             expected_total: calculatedTotal.toFixed(2),
+            gift_card_total: requestedGiftCardTotal.toFixed(2),
             provided_total: body.amount.toFixed(2)
           }
         },
@@ -139,12 +148,133 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const giftCardRedemptions: Array<{
+      code: string
+      amount: number
+      currency: string
+      giftCardId: string | null
+      balanceBefore: number
+      balanceAfter: number
+      redeemedAt: number
+    }> = []
+    if (Array.isArray(body.gift_cards) && body.gift_cards.length > 0) {
+      let remainingDueForGiftCards = calculatedTotal
+      const seenCodes = new Set<string>()
+
+      for (const rawGiftCard of body.gift_cards) {
+        if (!rawGiftCard || typeof rawGiftCard.code !== 'string') continue
+
+        const code = rawGiftCard.code.trim()
+        if (!code) continue
+        const normalizedCode = code.toUpperCase()
+
+        if (seenCodes.has(normalizedCode)) {
+          return NextResponse.json(
+            {
+              error: `Gift card ${normalizedCode} was provided multiple times.`,
+              error_code: 'DUPLICATE_GIFT_CARD',
+            },
+            { status: 400 }
+          )
+        }
+
+        const giftCard = getGiftCardByCode(normalizedCode)
+        if (!giftCard) {
+          return NextResponse.json(
+            {
+              error: `Gift card ${normalizedCode} was not found.`,
+              error_code: 'GIFT_CARD_NOT_FOUND',
+            },
+            { status: 404 }
+          )
+        }
+
+        if (giftCard.status === 'void') {
+          return NextResponse.json(
+            {
+              error: `Gift card ${normalizedCode} has been voided.`,
+              error_code: 'GIFT_CARD_VOID',
+            },
+            { status: 410 }
+          )
+        }
+
+        if (giftCard.status === 'pending') {
+          return NextResponse.json(
+            {
+              error: `Gift card ${normalizedCode} is scheduled for future delivery.`,
+              error_code: 'GIFT_CARD_PENDING',
+            },
+            { status: 409 }
+          )
+        }
+
+        if (giftCard.balance <= 0) {
+          return NextResponse.json(
+            {
+              error: `Gift card ${normalizedCode} has no remaining balance.`,
+              error_code: 'GIFT_CARD_EMPTY',
+            },
+            { status: 410 }
+          )
+        }
+
+        const requestedAmount =
+          typeof rawGiftCard.amount === 'number' && rawGiftCard.amount > 0
+            ? rawGiftCard.amount
+            : giftCard.balance
+
+        const maxApplicable = Math.min(giftCard.balance, remainingDueForGiftCards)
+        const amountToApply = Math.min(requestedAmount, maxApplicable)
+
+        if (amountToApply <= 0) {
+          continue
+        }
+
+        const redemptionTimestamp = Date.now()
+
+        giftCardRedemptions.push({
+          code: giftCard.code,
+          amount: amountToApply,
+          currency: giftCard.currency || 'USD',
+          giftCardId: giftCard.id || null,
+          balanceBefore: giftCard.balance,
+          balanceAfter: giftCard.balance - amountToApply,
+          redeemedAt: redemptionTimestamp,
+        })
+
+        remainingDueForGiftCards = Math.max(0, remainingDueForGiftCards - amountToApply)
+        seenCodes.add(normalizedCode)
+      }
+    }
+
+    const totalGiftCardAmount = giftCardRedemptions.reduce((sum, gc) => sum + gc.amount, 0)
+    const expectedChargeAmount = Math.max(0, calculatedTotal - totalGiftCardAmount)
+
+    if (Math.abs(expectedChargeAmount - body.amount) > 0.01) {
+      return NextResponse.json(
+        {
+          error: 'Gift card totals did not match the expected order amount.',
+          error_code: 'GIFT_CARD_TOTAL_MISMATCH',
+          details: {
+            expected_charge: expectedChargeAmount.toFixed(2),
+            provided_amount: body.amount.toFixed(2),
+            gift_card_total: totalGiftCardAmount.toFixed(2),
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    const amountToCharge = expectedChargeAmount
+    body.amount = amountToCharge
+
     // Get payment gateway manager
     const gatewayManager = getPaymentGatewayManager();
 
     // Prepare payment request
     const paymentRequest = {
-      amount: body.amount,
+      amount: amountToCharge,
       currency: body.currency || 'USD',
       customer_email: DOMPurify.sanitize(body.customer_email).substring(0, 255),
       customer_name: body.customer_name ? DOMPurify.sanitize(body.customer_name).substring(0, 255) : undefined,
@@ -189,6 +319,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         source: body.source || 'web',
         promo_code: body.promo_code || '',
+        gift_card_total: totalGiftCardAmount.toFixed(2),
       },
     };
 
@@ -240,14 +371,24 @@ export async function POST(request: NextRequest) {
         customer_name: body.customer_name || '',
         is_guest: body.is_guest !== false,
         user_id: body.user_id || null,
-        items: body.order_items.map(item => ({
-          product_id: DOMPurify.sanitize(item.id).substring(0, 255),
-          product_name: DOMPurify.sanitize(item.name).substring(0, 500),
-          product_sku: DOMPurify.sanitize(item.sku).substring(0, 255),
-          product_image: item.image ? DOMPurify.sanitize(item.image).substring(0, 1000) : null,
-          quantity: Math.max(1, Math.min(1000, item.quantity)),
+      items: body.order_items.map(item => {
+        const productId = DOMPurify.sanitize((item.id || item.product_id || '').toString()).substring(0, 255)
+        const sanitizedName = DOMPurify.sanitize(item.name || '').substring(0, 500)
+        const sanitizedSku = DOMPurify.sanitize(item.sku || '').substring(0, 255)
+        const sanitizedImage = item.image ? DOMPurify.sanitize(item.image).substring(0, 1000) : null
+        const quantity = Math.max(1, Math.min(1000, item.quantity))
+        const metadata = item.metadata || (item.giftCardDetails ? { giftCard: item.giftCardDetails } : undefined)
+
+        return {
+          product_id: productId,
+          product_name: sanitizedName,
+          product_sku: sanitizedSku,
+          product_image: sanitizedImage,
+          quantity,
           unit_price: item.unit_price,
-        })),
+          metadata,
+        }
+      }),
         shipping_address: {
           name: body.shipping_address?.name || body.billing_address.name || '',
           address_line1: body.shipping_address?.address_line1 || body.billing_address.address_line1,
@@ -261,6 +402,8 @@ export async function POST(request: NextRequest) {
         billing_address: body.billing_address,
         payment_method: paymentResponse.gateway,
         payment_intent_id: paymentResponse.transaction_id,
+      payment_status: 'paid',
+      shipping_status: body.shipping_status || 'not-shipped',
         transaction_id: paymentResponse.gateway_transaction_id,
         subtotal: body.subtotal,
         discount_amount: body.discount_amount || 0,
@@ -275,9 +418,35 @@ export async function POST(request: NextRequest) {
         ip_address: paymentRequest.ip_address || null,
         user_agent: paymentRequest.user_agent || null,
         source: body.source || 'web',
+      applied_gift_cards: giftCardRedemptions.map(gc => ({
+        code: gc.code,
+        amount: gc.amount,
+        currency: gc.currency,
+        gift_card_id: gc.giftCardId,
+        balance_before: gc.balanceBefore,
+        balance_after: gc.balanceAfter,
+        redeemed_at: gc.redeemedAt,
+      })),
       };
 
       order = createOrder(orderRequest);
+
+      if (order && giftCardRedemptions.length > 0) {
+        for (const redemption of giftCardRedemptions) {
+          try {
+            const updated = redeemGiftCard({
+              code: redemption.code,
+              amount: redemption.amount,
+              orderId: order.id,
+              orderNumber: order.order_number,
+            });
+
+            redemption.balanceAfter = updated.balance;
+          } catch (error) {
+            console.error(`Failed to redeem gift card ${redemption.code} for order ${order.order_number}:`, error);
+          }
+        }
+      }
     } catch (orderError) {
       console.error('Error creating order:', orderError);
       // Payment succeeded but order creation failed
@@ -301,6 +470,7 @@ export async function POST(request: NextRequest) {
       payment_method_type: paymentResponse.payment_method_type,
       card_last4: paymentResponse.card_last4,
       card_brand: paymentResponse.card_brand,
+      gift_card_total: totalGiftCardAmount,
     });
 
     // OWASP A05: Security Headers

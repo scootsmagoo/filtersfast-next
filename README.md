@@ -192,6 +192,40 @@ npm run sync:marketplaces
 
 ---
 
+### 🎁 DIGITAL GIFT CARD SYSTEM - NEW!
+
+**Complete digital gift card experience spanning storefront purchase, email delivery, balance lookup, checkout redemption, and admin oversight.**
+
+- ✅ **Storefront Purchase Flow**: `gift-card` product type with recipient details, optional scheduling, and personal messages captured at add-to-cart.
+- ✅ **Balance Tools**: Public lookup at `/gift-cards` plus shareable balance detail pages at `/gift-cards/[code]` with masked contact info.
+- ✅ **Checkout Integration**: Redeem multiple codes, auto-calculate applicable amounts, and log detailed adjustments during payment processing.
+- ✅ **Email Delivery**: Branded recipient and sender receipt emails (HTML + text) with secure links and scheduling support.
+- ✅ **Admin Reporting**: `/admin/gift-cards` dashboard for search/filter, balance adjustments, void/reactivate operations, and transaction visibility.
+- ✅ **Audit Trail**: `order_gift_cards` ledger table links redemptions to orders, enabling finance reporting and reconciliation.
+
+**Security & Accessibility:**
+- **OWASP Top 10 2021:** ✅ Rate-limited APIs, strict validation, secure balance exposure, and transactional logging for issuance/redemption.
+- **WCAG 2.1 Level AA:** ✅ Labeled inputs, ARIA live regions, semantic alerts/status, and accessible tables/forms across public and admin experiences.
+
+**Quick Start:**
+```bash
+# Initialize order tables (adds gift card ledger if needed)
+npm run init:orders
+
+# Seed a sample gift card (optional helper script)
+npm run init:gift-cards
+
+# Try the customer flow
+npm run dev
+# http://localhost:3000/gift-cards
+```
+
+**Based on Legacy Features:**
+- ✅ Legacy promos with bundled gift cards (limited references in classic ASP stack)
+- ✅ Reimagined with modern SQLite schema, typed APIs, admin tooling, and accessibility-first UI
+
+---
+
 ### 🔗 SKU COMPATIBILITY MANAGER - NEW!
 
 **Complete SKU compatibility management system - Product compatibility feature complete!**

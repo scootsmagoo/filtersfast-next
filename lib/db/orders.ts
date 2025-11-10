@@ -4,6 +4,12 @@
  */
 
 import Database from 'better-sqlite3'
+import { issueGiftCard, GiftCard, markGiftCardDelivered } from '@/lib/db/gift-cards'
+import { sendEmail } from '@/lib/email'
+import {
+  buildGiftCardIssuedEmail,
+  buildGiftCardSenderReceiptEmail,
+} from '@/lib/email-templates/gift-card'
 import type {
   Order,
   OrderItem,
@@ -15,9 +21,30 @@ import type {
   OrderFilters,
   OrderStats,
   ShippingAddress,
+  AppliedGiftCard,
 } from '@/lib/types/order'
 
 const db = new Database('filtersfast.db')
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS order_gift_cards (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    gift_card_id TEXT,
+    code TEXT NOT NULL,
+    amount REAL NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'USD',
+    balance_before REAL,
+    balance_after REAL,
+    redeemed_at INTEGER,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (gift_card_id) REFERENCES gift_cards(id) ON DELETE SET NULL
+  )
+`)
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_order_gift_cards_order ON order_gift_cards(order_id)`)
+db.exec(`CREATE INDEX IF NOT EXISTS idx_order_gift_cards_code ON order_gift_cards(code)`)
 
 // ==================== Order CRUD ====================
 
@@ -41,7 +68,7 @@ export function createOrder(data: CreateOrderRequest): Order {
       created_at, updated_at
     ) VALUES (
       ?, ?, ?, ?, ?, ?,
-      'pending', 'pending', 'not-shipped',
+      'pending', ?, ?,
       ?, ?, ?, ?, ?,
       ?, ?,
       ?, ?, ?,
@@ -61,6 +88,8 @@ export function createOrder(data: CreateOrderRequest): Order {
     data.customer_email,
     data.customer_name,
     data.is_guest ? 1 : 0,
+    data.payment_status || 'pending',
+    data.shipping_status || 'not-shipped',
     data.subtotal,
     data.discount_amount || 0,
     data.shipping_cost,
@@ -70,7 +99,7 @@ export function createOrder(data: CreateOrderRequest): Order {
     data.billing_address ? JSON.stringify(data.billing_address) : null,
     data.payment_method,
     data.payment_intent_id || null,
-    null, // transaction_id set later
+    data.transaction_id || null,
     data.promo_code || null,
     data.promo_discount || 0,
     data.donation_amount || 0,
@@ -94,13 +123,17 @@ export function createOrder(data: CreateOrderRequest): Order {
     INSERT INTO order_items (
       id, order_id, product_id, product_name, product_sku, product_image,
       variant_id, variant_name, quantity, unit_price, total_price, discount,
-      is_shipped, shipped_quantity, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
+      is_shipped, shipped_quantity, metadata, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
   `)
+
+  const productTypeStmt = db.prepare('SELECT type FROM products WHERE id = ?')
+  const issuedGiftCards: GiftCard[] = []
 
   for (const item of data.items) {
     const item_id = `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const total_price = item.quantity * item.unit_price
+    const metadataJson = item.metadata ? JSON.stringify(item.metadata) : null
 
     itemStmt.run(
       item_id,
@@ -115,8 +148,61 @@ export function createOrder(data: CreateOrderRequest): Order {
       item.unit_price,
       total_price,
       0, // discount calculated separately
+      metadataJson,
       now
     )
+
+    const productTypeRow = productTypeStmt.get(item.product_id) as { type: string } | undefined
+    if (productTypeRow?.type === 'gift-card') {
+      const giftCardMeta = (item.metadata as any)?.giftCard || {}
+      const recipientEmail = giftCardMeta.recipientEmail || data.customer_email
+
+      if (!recipientEmail) {
+        console.warn(`Gift card item ${item.product_id} missing recipient email; skipping issuance.`)
+        continue
+      }
+
+      const purchaserName = giftCardMeta.purchaserName || data.customer_name
+      const purchaserEmail = giftCardMeta.purchaserEmail || data.customer_email
+      const recipientName = giftCardMeta.recipientName || null
+      const sendAt = typeof giftCardMeta.sendAt === 'number' ? giftCardMeta.sendAt : null
+
+      for (let i = 0; i < item.quantity; i += 1) {
+        const giftCard = issueGiftCard({
+          amount: item.unit_price,
+          currency: giftCardMeta.currency || 'USD',
+          orderId: order_id,
+          orderItemId: item_id,
+          purchaserName,
+          purchaserEmail,
+          recipientName,
+          recipientEmail,
+          message: giftCardMeta.message || null,
+          sendAt,
+          externalReference: giftCardMeta.externalReference || null,
+          metadata: {
+            ...giftCardMeta,
+            product_id: item.product_id,
+            product_name: item.product_name,
+            variant_id: item.variant_id || null,
+            variant_name: item.variant_name || null,
+          },
+        })
+
+        issuedGiftCards.push(giftCard)
+      }
+    }
+  }
+
+  if (issuedGiftCards.length > 0) {
+    queueMicrotask(() => dispatchGiftCardEmails(issuedGiftCards, {
+      purchaserName: data.customer_name,
+      purchaserEmail: data.customer_email,
+    }))
+  }
+
+  if (Array.isArray(data.applied_gift_cards) && data.applied_gift_cards.length > 0) {
+    insertOrderGiftCards(order_id, data.applied_gift_cards)
   }
 
   // Create history entry
@@ -352,6 +438,7 @@ export function getOrderItems(order_id: string): OrderItem[] {
     discount: row.discount,
     is_shipped: Boolean(row.is_shipped),
     shipped_quantity: row.shipped_quantity,
+    metadata: row.metadata ? JSON.parse(row.metadata) : null,
     created_at: row.created_at,
   }))
 }
@@ -762,6 +849,168 @@ function formatOrderRow(row: any): Order {
     updated_at: row.updated_at,
     cancelled_at: row.cancelled_at,
     refunded_at: row.refunded_at,
+    applied_gift_cards: getOrderGiftCards(row.id),
+  }
+}
+
+function insertOrderGiftCards(orderId: string, giftCards: AppliedGiftCard[]) {
+  if (!giftCards.length) {
+    return
+  }
+
+  const insertStmt = db.prepare(`
+    INSERT INTO order_gift_cards (
+      id,
+      order_id,
+      gift_card_id,
+      code,
+      amount,
+      currency,
+      balance_before,
+      balance_after,
+      redeemed_at,
+      created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  const insertMany = db.transaction((cards: AppliedGiftCard[]) => {
+    for (const card of cards) {
+      const timestamp = Date.now()
+      const recordId = `ogc_${timestamp}_${Math.random().toString(36).slice(2, 10)}`
+      insertStmt.run(
+        recordId,
+        orderId,
+        card.gift_card_id || null,
+        card.code,
+        card.amount,
+        card.currency || 'USD',
+        card.balance_before ?? null,
+        card.balance_after ?? null,
+        card.redeemed_at ?? timestamp,
+        timestamp
+      )
+    }
+  })
+
+  insertMany(giftCards)
+}
+
+function getOrderGiftCards(orderId: string): AppliedGiftCard[] {
+  const rows = db.prepare(`
+    SELECT
+      gift_card_id,
+      code,
+      amount,
+      currency,
+      balance_before,
+      balance_after,
+      redeemed_at
+    FROM order_gift_cards
+    WHERE order_id = ?
+    ORDER BY created_at ASC
+  `).all(orderId) as Array<{
+    gift_card_id: string | null
+    code: string
+    amount: number
+    currency: string
+    balance_before: number | null
+    balance_after: number | null
+    redeemed_at: number | null
+  }>
+
+  return rows.map(row => ({
+    code: row.code,
+    amount: row.amount,
+    currency: row.currency,
+    gift_card_id: row.gift_card_id,
+    balance_before: row.balance_before,
+    balance_after: row.balance_after,
+    redeemed_at: row.redeemed_at,
+  }))
+}
+
+function getBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.BASE_URL ||
+    'http://localhost:3000'
+  )
+}
+
+function dispatchGiftCardEmails(
+  giftCards: GiftCard[],
+  purchaser: { purchaserName: string; purchaserEmail: string }
+) {
+  const baseUrl = getBaseUrl()
+
+  for (const giftCard of giftCards) {
+    const balanceUrl = `${baseUrl}/gift-cards/${encodeURIComponent(giftCard.code)}`
+
+    if (giftCard.recipient_email) {
+      const issuedEmail = buildGiftCardIssuedEmail({
+        giftCardCode: giftCard.code,
+        amount: giftCard.initial_value,
+        currency: giftCard.currency,
+        recipientEmail: giftCard.recipient_email,
+        recipientName: giftCard.recipient_name,
+        purchaserName: purchaser.purchaserName,
+        message: giftCard.message,
+        balanceUrl,
+        scheduledSendDate: giftCard.send_at ? new Date(giftCard.send_at) : null,
+      })
+
+      sendEmail({
+        to: giftCard.recipient_email,
+        subject: issuedEmail.subject,
+        html: issuedEmail.html,
+        text: issuedEmail.text,
+      })
+        .then(result => {
+          if (result.success) {
+            try {
+              markGiftCardDelivered(giftCard.id)
+            } catch (markError) {
+              console.error('Failed to mark gift card delivered', {
+                code: giftCard.code,
+                error: markError,
+              })
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Failed to send gift card email to recipient', {
+            code: giftCard.code,
+            recipient: giftCard.recipient_email,
+            error,
+          })
+        })
+    }
+
+    if (purchaser.purchaserEmail) {
+      const senderReceipt = buildGiftCardSenderReceiptEmail({
+        giftCardCode: giftCard.code,
+        amount: giftCard.initial_value,
+        currency: giftCard.currency,
+        recipientEmail: giftCard.recipient_email || purchaser.purchaserEmail,
+        recipientName: giftCard.recipient_name,
+        purchaserName: purchaser.purchaserName,
+        message: giftCard.message,
+        balanceUrl,
+      })
+
+      sendEmail({
+        to: purchaser.purchaserEmail,
+        subject: senderReceipt.subject,
+        html: senderReceipt.html,
+        text: senderReceipt.text,
+      }).catch(error => {
+        console.error('Failed to send gift card receipt to purchaser', {
+          code: giftCard.code,
+          purchaser: purchaser.purchaserEmail,
+          error,
+        })
+      })
+    }
   }
 }
 
