@@ -646,8 +646,8 @@ If using built-in system, ensure feature parity:
 
 **FiltersFast-Next Status:**
 - ✅ Pool filters page exists
-- ❌ Interactive finder tool
-- ❌ Advanced filtering for pool filters
+- ✅ Interactive finder & compatibility wizard (`components/pool/PoolFilterWizard.tsx`)
+- ✅ Advanced filtering, calculators, and seasonal promos integrated (2025-11-10)
 
 **Files in Legacy:**
 ```
@@ -657,12 +657,12 @@ If using built-in system, ensure feature parity:
 ```
 
 **Recommendation:**
-Build interactive pool filter finder:
-1. **Visual Selector** - Choose by pool type, brand
-2. **Size Calculator** - Help customers find right size
-3. **Compatibility Check** - Match filters to pool equipment
-4. **Filter Guide** - Educational content for pool owners
-5. **Seasonal Promotions** - Pool season specials
+Monitor wizard analytics and expand dataset:
+1. **Visual Selector** - ✅ Implemented (environment/system guided steps)
+2. **Size Calculator** - ✅ Turnover & flow-rate calculator shipped
+3. **Compatibility Check** - ✅ Cross-references SKU dimensions & connectors
+4. **Filter Guide** - ✅ Embedded maintenance tips & educational content
+5. **Seasonal Promotions** - ✅ Pool-season promo surfacing
 
 **Business Impact:** MEDIUM - Pool filters are a significant product category.
 

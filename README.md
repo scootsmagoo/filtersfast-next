@@ -4,6 +4,32 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## 🆕 Latest Updates (January 2025)
 
+### 🏊 POOL FILTER FINDER WIZARD - NEW! (NOVEMBER 2025)
+
+**Guided tool for matching pool & spa filters with compatibility logic, calculators, and seasonal promos.**
+
+- ✅ **Wizard Flow**: Step-by-step selector for environment, system type, brand/series, dimensions, and flow targets
+- ✅ **Compatibility Engine**: Scores matches with dimensional tolerance, connector styles, and OEM cross-references
+- ✅ **Calculators**: Turnover and flow-rate guidance with maintenance reminders and seasonal promo surfacing
+- ✅ **Product Integration**: Wizard-highlighted matches feed directly into the `/pool-filters` product grid
+
+**Security & Accessibility:**
+- **OWASP Top 10 2021:** ✅ Client-side wizard with validated data sources; no injection or unsafe HTML entry points
+- **WCAG 2.1 Level AA:** ✅ Fully keyboard operable buttons/cards, associated labels for every control, focus-visible states, and screen-reader friendly badges
+
+**Quick Start:**
+```bash
+# Visit the guided wizard
+npm run dev
+# http://localhost:3000/pool-filters
+```
+
+**Based on Legacy Features:**
+- ✅ Classic pool finder tool (`/pool/index.html` and related assets)
+- ✅ Rebuilt as a modern React wizard leveraging typed catalog data and accessibility-first UI patterns
+
+---
+
 ### 📧 EMAIL CAMPAIGN MANAGER - NEW!
 
 **Full lifecycle marketing campaign management inside the admin portal.**

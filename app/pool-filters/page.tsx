@@ -1,208 +1,204 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FilterSidebar from '@/components/products/FilterSidebar';
 import ProductGrid from '@/components/products/ProductGrid';
+import PoolFilterWizard from '@/components/pool/PoolFilterWizard';
+import { POOL_FILTER_CATALOG } from '@/lib/data/pool-filter-wizard';
+import { PoolWizardResult } from '@/lib/types/pool-filter';
 
-// Mock pool & spa filter products
-const poolFilterProducts = [
-  {
-    id: 401,
-    name: 'Pool Filter Cartridge - Hayward C-225',
-    brand: 'Filters Fast',
-    sku: 'FF-HC225',
-    price: 39.99,
-    rating: 4.7,
-    reviewCount: 567,
-    image: '/images/pool-filter-1.jpg',
-    inStock: true,
-    badge: 'Best Seller',
-  },
-  {
-    id: 402,
-    name: 'Spa Filter - Unicel 6CH-940',
-    brand: 'Unicel',
-    sku: 'UC-6CH940',
-    price: 29.99,
-    rating: 4.8,
-    reviewCount: 423,
-    image: '/images/pool-filter-2.jpg',
-    inStock: true,
-    badge: null,
-  },
-  {
-    id: 403,
-    name: 'Pool Filter Sand - 50 lbs',
-    brand: 'HTH',
-    sku: 'HTH-SAND50',
-    price: 24.99,
-    rating: 4.6,
-    reviewCount: 289,
-    image: '/images/pool-filter-3.jpg',
-    inStock: true,
-    badge: null,
-  },
-  {
-    id: 404,
-    name: 'DE Filter Grid Assembly',
-    brand: 'Pentair',
-    sku: 'PEN-GRID48',
-    price: 89.99,
-    rating: 4.9,
-    reviewCount: 178,
-    image: '/images/pool-filter-4.jpg',
-    inStock: true,
-    badge: 'Top Rated',
-  },
-  {
-    id: 405,
-    name: 'Hot Tub Filter - Pleatco PRB50-IN',
-    brand: 'Pleatco',
-    sku: 'PLT-PRB50',
-    price: 34.99,
-    rating: 4.8,
-    reviewCount: 512,
-    image: '/images/pool-filter-5.jpg',
-    inStock: true,
-    badge: null,
-  },
-  {
-    id: 406,
-    name: 'Intex Pool Filter Cartridge (2-Pack)',
-    brand: 'Intex',
-    sku: 'INT-29007-2PK',
-    price: 19.99,
-    rating: 4.5,
-    reviewCount: 891,
-    image: '/images/pool-filter-6.jpg',
-    inStock: true,
-    badge: 'Save 15%',
-  },
-  {
-    id: 407,
-    name: 'Pool Skimmer Sock (25-Pack)',
-    brand: 'Filters Fast',
-    sku: 'FF-SOCK25',
-    price: 12.99,
-    rating: 4.4,
-    reviewCount: 234,
-    image: '/images/pool-filter-7.jpg',
-    inStock: false,
-    badge: null,
-  },
-  {
-    id: 408,
-    name: 'Jandy CS Pool Filter Cartridge',
-    brand: 'Jandy',
-    sku: 'JAN-CS100',
-    price: 54.99,
-    rating: 4.7,
-    reviewCount: 345,
-    image: '/images/pool-filter-8.jpg',
-    inStock: true,
-    badge: null,
-  },
-];
+interface ActiveFilters {
+  brands?: string[];
+  price?: string;
+  rating?: number | null;
+  mervRatings?: number[];
+}
+
+interface GridProduct {
+  id: number;
+  name: string;
+  brand: string;
+  sku: string;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  reviewCount: number;
+  image: string;
+  inStock: boolean;
+  badges?: string[];
+}
+
+const priceRangeFromFilter = (price?: string): [number, number] | null => {
+  if (!price) return null;
+  const [low, high] = price.split('-').map(Number);
+  if (Number.isNaN(low) || Number.isNaN(high)) return null;
+  return [low, high];
+};
 
 export default function PoolFiltersPage() {
-  const [activeFilters, setActiveFilters] = useState<any>({});
-  const [filteredProducts, setFilteredProducts] = useState(poolFilterProducts);
+  const catalog = POOL_FILTER_CATALOG;
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({});
+  const [wizardResult, setWizardResult] = useState<PoolWizardResult | null>(null);
+  const [wizardMatches, setWizardMatches] = useState<number[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<GridProduct[]>([]);
 
-  const handleFilterChange = (filters: any) => {
-    setActiveFilters(filters);
-    
-    // Apply filters
-    let filtered = [...poolFilterProducts];
-    
-    // Brand filter
-    if (filters.brands?.length > 0) {
-      filtered = filtered.filter(product => 
-        filters.brands.includes(product.brand)
-      );
-    }
-    
-    // Price filter
-    if (filters.priceRange) {
-      filtered = filtered.filter(product => 
-        product.price >= filters.priceRange[0] && 
-        product.price <= filters.priceRange[1]
-      );
-    }
-    
-    // Rating filter
-    if (filters.minRating) {
-      filtered = filtered.filter(product => 
-        product.rating >= filters.minRating
-      );
-    }
-    
-    // In stock filter
-    if (filters.inStock) {
-      filtered = filtered.filter(product => product.inStock);
-    }
-    
+  const brandOptions = useMemo(
+    () => [...new Set(catalog.map((item) => item.brand))].sort(),
+    [catalog]
+  );
+
+  const baseProducts = useMemo<GridProduct[]>(
+    () =>
+      catalog.map((item) => ({
+        id: item.id,
+        name: item.name,
+        brand: item.brand,
+        sku: item.sku,
+        price: item.price,
+        originalPrice: item.originalPrice,
+        rating: item.rating,
+        reviewCount: item.reviewCount,
+        image: item.image,
+        inStock: item.inStock,
+        badges: item.defaultBadges,
+      })),
+    [catalog]
+  );
+
+  const applyFilters = (filters: ActiveFilters, wizardIds: number[]) => {
+    const matchSet = new Set(wizardIds);
+    const priceRange = priceRangeFromFilter(filters.price);
+
+    let filtered = baseProducts.filter((product) => {
+      if (filters.brands && filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
+        return false;
+      }
+
+      if (priceRange) {
+        const [min, max] = priceRange;
+        if (product.price < min || product.price > max) {
+          return false;
+        }
+      }
+
+      if (filters.rating && product.rating < filters.rating) {
+        return false;
+      }
+
+      return true;
+    });
+
+    filtered = filtered
+      .map((product) => ({
+        ...product,
+        badges: [
+          ...(product.badges ?? []),
+          ...(matchSet.has(product.id) ? ['Wizard Match'] : []),
+        ],
+      }))
+      .sort((a, b) => {
+        const aMatch = matchSet.has(a.id);
+        const bMatch = matchSet.has(b.id);
+        if (aMatch && !bMatch) return -1;
+        if (!aMatch && bMatch) return 1;
+        return b.rating - a.rating;
+      });
+
     setFilteredProducts(filtered);
   };
+
+  const handleFilterChange = (filters: ActiveFilters) => {
+    setActiveFilters(filters);
+    applyFilters(filters, wizardMatches);
+  };
+
+  const handleWizardResult = (result: PoolWizardResult) => {
+    setWizardResult(result);
+    const matchIds = result.matches.map((match) => match.productId);
+    setWizardMatches(matchIds);
+    applyFilters(activeFilters, matchIds);
+  };
+
+  // Initialize filtered products on first render
+  useEffect(() => {
+    setFilteredProducts(baseProducts);
+  }, [baseProducts]);
 
   return (
     <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Page Header */}
       <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 transition-colors">
         <div className="container-custom py-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Pool & Spa Filters</h1>
-              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Keep your pool crystal clear with quality replacement filters</p>
+              <h1 className="text-3xl font-bold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">
+                Pool & Spa Filters
+              </h1>
+              <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">
+                Guided wizard, compatibility data, and seasonal promos to keep water perfectly clear.
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">{filteredProducts.length} products</p>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
+                {filteredProducts.length} products
+              </p>
+              {wizardResult && wizardResult.matches.length > 0 && (
+                <p className="text-xs text-brand-orange mt-1">
+                  Wizard highlighted {wizardResult.matches.length}{' '}
+                  {wizardResult.matches.length === 1 ? 'match' : 'matches'} tailored to your pool.
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container-custom py-8">
+      <div className="container-custom py-8 space-y-8">
+        <PoolFilterWizard onResult={handleWizardResult} />
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
           <aside className="lg:w-64 flex-shrink-0">
             <FilterSidebar
               onFilterChange={handleFilterChange}
-              availableBrands={['Filters Fast', 'Unicel', 'HTH', 'Pentair', 'Pleatco', 'Intex', 'Jandy']}
-              priceRange={[0, 100]}
+              availableBrands={brandOptions}
+              priceRange={[0, 150]}
             />
           </aside>
 
-          {/* Product Grid */}
           <main className="flex-1">
-            <ProductGrid
-              products={filteredProducts}
-              title="Pool & Spa Filters"
-            />
+            <ProductGrid products={filteredProducts} title="Pool & Spa Filters" />
           </main>
         </div>
       </div>
 
-      {/* Info Section */}
       <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-12 transition-colors">
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Pool Cartridge Filters</h3>
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">
+                Cartridge Filters
+              </h3>
               <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
-                Easy to clean and maintain. Perfect for in-ground and above-ground pools. Replace annually for best performance.
+                Match measurements and connector styles for guaranteed fit. Our wizard cross-references
+                OEM part numbers and FiltersFast replacements automatically.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Hot Tub & Spa Filters</h3>
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">
+                Sand & DE Systems
+              </h3>
               <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
-                Keep your spa water clean and clear. Compatible with major brands including Sundance, Jacuzzi, and more.
+                Size media by tank diameter and pump flow rates. Seasonal promos help you restock opening,
+                mid-season, and closing supplies.
               </p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">Sand & DE Filters</h3>
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-3 transition-colors">
+                Spa & Hot Tub Care
+              </h3>
               <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
-                Premium filter media and DE grids for optimal filtration. Professional-grade quality at affordable prices.
+                Quick-turnover spas need antimicrobial media and frequent rotations. Use the wizard to plan
+                alternating cartridges and reminder schedules.
               </p>
             </div>
           </div>

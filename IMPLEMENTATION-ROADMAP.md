@@ -476,13 +476,13 @@ Interactive educational section:
 ### Sprint 23: Pool Filter Finder (Weeks 45-46)
 
 Interactive tool for pool filters:
-- [ ] Visual selector interface
-- [ ] Size calculator
-- [ ] Compatibility checker
-- [ ] Pool equipment matcher
-- [ ] Filter guide content
+- [x] Visual selector interface
+- [x] Size calculator (turnover & flow wizard)
+- [x] Compatibility checker
+- [x] Pool equipment matcher
+- [x] Filter guide content & seasonal promos
 
-**Deliverable:** Pool filter finder tool
+**Deliverable:** Pool filter finder tool (launched via `components/pool/PoolFilterWizard.tsx`, `app/pool-filters/page.tsx`)
 
 ---
 
