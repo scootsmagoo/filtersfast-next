@@ -310,6 +310,13 @@ export default function AdminDashboard() {
       color: 'green'
     },
     {
+      title: 'Backorder Requests',
+      description: 'Track notify-me when available submissions',
+      icon: Mail,
+      href: '/admin/backorder-notifications',
+      color: 'orange'
+    },
+    {
       title: 'Support Articles',
       description: 'Knowledge base analytics',
       icon: HelpCircle,

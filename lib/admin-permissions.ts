@@ -40,6 +40,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
       Sales: 0,
     },
   },
+  BackorderNotifications: {
+    description: 'View and manage backorder notification requests',
+    group: 'Products & Catalog',
+    sortOrder: 35,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: -1,
+    },
+  },
 }
 
 // ============================================================================

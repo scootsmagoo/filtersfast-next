@@ -370,10 +370,10 @@
 
 ---
 
-### 22. Backorder Management
+### 22. ✅ Backorder Management (COMPLETED)
 Track and notify customers
 
-**Legacy Files:** `Manager/SA_backorder_notifications.asp`
+**Implementation:** `/admin/backorder-notifications` with `backorder_notifications` table and public notify-me capture (`/api/backorder-notifications`)
 
 ---
 

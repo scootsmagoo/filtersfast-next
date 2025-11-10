@@ -1142,6 +1142,14 @@ npx tsx scripts/seed-inventory.ts      # Sample data
 - ✅ Stock tracking in products
 - ✅ Enhanced with modern workflow and automation
 
+#### 🔔 Backorder Notifications — NEW
+
+- Capture customer notify-me requests directly from the product detail page when items are out of stock or specific variants are unavailable.
+- Automatic rate limiting, duplicate suppression and per-email daily request caps to keep the queue clean.
+- Admin console at `/admin/backorder-notifications` with real-time queue, inventory readiness indicators, and one-click completion workflow.
+- Stored in SQLite table `backorder_notifications` with full product/variant context for reporting.
+- Permission-protected via `BackorderNotifications` RBAC gate (view by default for Support, manage for Admin & Manager roles).
+
 ---
 
 ### 🔐 ADMIN ROLE-BASED PERMISSIONS SYSTEM - NEW!

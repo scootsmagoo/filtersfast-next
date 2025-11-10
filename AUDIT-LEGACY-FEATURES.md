@@ -1063,7 +1063,7 @@ Build marketplace channel management:
 
 **Files:** `/Manager/SA_backorder_notifications.asp`
 
-**Recommendation:** Add backorder management and auto-notifications.
+**Next Implementation:** `/admin/backorder-notifications`, `/api/backorder-notifications`, `lib/db/backorder-notifications.ts`
 
 ---
 

@@ -2142,7 +2142,7 @@ Navigate to `/admin/orders` (requires admin authentication)
 - [ ] Order templates for common configurations
 - [ ] Quick order entry for phone/email orders
 - [ ] Order splitting (partial shipments)
-- [ ] Backorder management
+- [x] Backorder management
 - [ ] Order holds and fraud review
 
 **Phase 3 - Integrations:**

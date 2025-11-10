@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, ShoppingCart, Check, ArrowLeft, Package } from 'lucide-react';
+import { Star, ShoppingCart, Check, ArrowLeft, Package, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useCart } from '@/lib/cart-context';
@@ -16,6 +16,7 @@ import { useSession } from '@/lib/auth-client';
 import ProductReviewSectionClient from '@/components/reviews/ProductReviewSectionClient';
 import ProductOptions from '@/components/products/ProductOptions';
 import type { ProductOptionGroupWithOptions, ProductOptionWithInventory } from '@/lib/types/product';
+import BackorderNotify from '@/components/products/BackorderNotify';
 
 // Mock product data (in production, this would come from an API)
 const mockProducts: SearchableProduct[] = [
@@ -822,6 +823,13 @@ export default function ProductDetailPage() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [priceAdjustment, setPriceAdjustment] = useState(0);
   const [optionImageUrl, setOptionImageUrl] = useState<string | null>(null);
+  const [primaryOptionDetails, setPrimaryOptionDetails] = useState<{
+    id: string | null;
+    label: string | null;
+    available: boolean;
+    blocked?: boolean;
+    unavailable?: boolean;
+  } | null>(null);
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -830,6 +838,31 @@ export default function ProductDetailPage() {
       loadProductOptions(productId);
     }
   }, [productId]);
+
+  useEffect(() => {
+    let matched = false;
+    for (const [groupId, optionId] of Object.entries(selectedOptions)) {
+      const optionList = optionsWithInventory[groupId];
+      if (optionList) {
+        const option = optionList.find((opt) => opt.idOption === optionId);
+        if (option) {
+          setPrimaryOptionDetails({
+            id: option.idOption,
+            label: option.optionDescrip,
+            available: option.available,
+            blocked: option.blocked,
+            unavailable: option.unavailable,
+          });
+          matched = true;
+          break;
+        }
+      }
+    }
+
+    if (!matched) {
+      setPrimaryOptionDetails(null);
+    }
+  }, [selectedOptions, optionsWithInventory]);
 
   const loadProduct = async (id: string) => {
     try {
@@ -1051,6 +1084,13 @@ export default function ProductDetailPage() {
     );
   }
 
+  const primaryOptionOutOfStock = Boolean(primaryOptionDetails && !primaryOptionDetails.available);
+  const backorderProductId = (product.productId || product.id)?.toString();
+  const showBackorderCta = Boolean(
+    backorderProductId && (!product.inStock || primaryOptionOutOfStock)
+  );
+  const backorderReason: 'product' | 'option' = primaryOptionOutOfStock ? 'option' : 'product';
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container-custom py-6">
@@ -1172,11 +1212,23 @@ export default function ProductDetailPage() {
 
             {/* Stock Status */}
             <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-green-600" />
-              <span className="text-green-600 font-semibold">
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
-              </span>
+              {product.inStock ? (
+                <>
+                  <Check className="w-5 h-5 text-green-600" />
+                  <span className="text-green-600 font-semibold">In Stock</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <span className="text-red-600 font-semibold">Out of Stock</span>
+                </>
+              )}
             </div>
+            {primaryOptionOutOfStock && primaryOptionDetails?.label && (
+              <p className="text-sm text-red-600 dark:text-red-400 transition-colors">
+                Selected option “{primaryOptionDetails.label}” is currently unavailable.
+              </p>
+            )}
 
             {/* Product Options */}
             {optionGroups.length > 0 && (
@@ -1265,6 +1317,18 @@ export default function ProductDetailPage() {
                     : 'Add to Cart'}
               </Button>
             </div>
+
+            {showBackorderCta && backorderProductId && (
+              <BackorderNotify
+                productId={backorderProductId}
+                productName={product.name}
+                productSku={product.sku}
+                optionId={primaryOptionDetails?.id ?? null}
+                optionLabel={primaryOptionDetails?.label ?? null}
+                prefillEmail={session?.user?.email ?? null}
+                reason={backorderReason}
+              />
+            )}
 
             {/* Social Sharing */}
             <Card className="p-4">

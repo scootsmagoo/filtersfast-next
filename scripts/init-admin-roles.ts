@@ -197,6 +197,7 @@ try {
   insertPermission.run('ProductImages', 'Manage product images and media files', 'Products & Catalog', 32)
   insertPermission.run('PromoCodes', 'Manage promo codes', 'Products & Catalog', 33)
   insertPermission.run('Inventory', 'Manage inventory and stock levels', 'Products & Catalog', 34)
+  insertPermission.run('BackorderNotifications', 'Manage backorder notification requests', 'Products & Catalog', 35)
 
   // Marketing
   insertPermission.run('Affiliates', 'Manage affiliate program', 'Marketing', 40)
@@ -271,7 +272,7 @@ try {
     if (['Orders', 'Customers', 'B2B', 'PromoCodes'].includes(perm.name)) {
       level = 2 // Restricted control
     }
-    if (['Admins', 'Inventory', 'ProductImages', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency', 'Translations'].includes(perm.name)) {
+    if (['Admins', 'Inventory', 'ProductImages', 'Settings', 'Payments', 'Shipping', 'TaxJar', 'Currency', 'Translations', 'BackorderNotifications'].includes(perm.name)) {
       level = -1 // No access
     }
     insertRolePermission.run(roleMap.Sales.id, perm.id, level)
