@@ -277,6 +277,14 @@ export default function Header() {
               <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
             </Link>
             <Link 
+              href="/store-locator" 
+              className={`${pathname === '/store-locator' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              aria-label="Find nearby retail locations and dealer partners"
+              aria-current={pathname === '/store-locator' ? 'page' : undefined}
+            >
+              <span role="img" aria-label="Map icon">🗺️</span> Store Locator
+            </Link>
+            <Link 
               href="/refrigerator-filters" 
               className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
               aria-current={pathname === '/refrigerator-filters' ? 'page' : undefined}
@@ -351,6 +359,13 @@ export default function Header() {
               aria-label="Home Filter Club - Subscribe and save with interactive wizard"
             >
               <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
+            </Link>
+            <Link 
+              href="/store-locator" 
+              className="block py-3 px-4 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-700 dark:text-green-300 font-bold hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+              aria-label="Find nearby stores and dealer locations"
+            >
+              <span role="img" aria-label="Map icon">🗺️</span> Store Locator
             </Link>
             <hr />
             <Link href="/refrigerator-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">

@@ -316,7 +316,7 @@
 5. **Business Decisions:**
    - Keep OrderGroove or use built-in subscriptions?
    - Which marketplace channels are priority? (Amazon, eBay, Shopify)
-   - Do we need store locator? (physical locations?)
+   - Store locator is live—confirm physical locations/dealers for launch content?
    - Are gift cards actively used?
    - Still need Authorize.Net and CyberSource, or Stripe + PayPal sufficient?
 

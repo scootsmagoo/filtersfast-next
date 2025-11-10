@@ -33,7 +33,8 @@ import {
   FolderTree,
   Image,
   FileText,
-  Mail
+  Mail,
+  MapPin
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -366,6 +367,13 @@ export default function AdminDashboard() {
       icon: Search,
       href: '/admin/search-analytics',
       color: 'purple'
+    },
+    {
+      title: 'Store Locator',
+      description: 'Manage physical stores, dealers, and pickup locations',
+      icon: MapPin,
+      href: '/admin/store-locations',
+      color: 'orange'
     },
     {
       title: 'B2B Portal',

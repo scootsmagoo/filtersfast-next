@@ -541,7 +541,7 @@ Search insights:
 - [ ] Email campaign manager
 - [ ] Deals & special offers system
 - [ ] Blog admin interface
-- [ ] Store locator (if needed)
+- [x] Store locator (public map + admin CRUD) (Nov 2025)
 - [ ] Credits/gift card system
 - [ ] Backorder management
 - [ ] SKU compatibility manager

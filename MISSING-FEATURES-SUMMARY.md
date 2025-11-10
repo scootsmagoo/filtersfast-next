@@ -343,16 +343,18 @@
 ---
 
 ### 20. Store Locator (if needed)
-**Status:** ❌ Not implemented  
-**Priority:** 🟡 MEDIUM (depends on business model)  
+**Status:** ✅ Implemented (Nov 2025)  
+**Priority:** ✅ DONE  
 
-**Features:**
-- Location search
-- Map integration
-- Store details
-- Hours/directions
+**Highlights:**
+- Store / dealer location data model with shipping-zone + tax-region links
+- Admin CRUD at `/admin/store-locations` with filtering and bulk delete
+- Public `/store-locator` page with Google Maps, distance sorting, type/state filters
+- Geolocation support + graceful fallback when no API key configured
 
-**Legacy Files:** `Manager/SA_loc*.asp`
+**Key Files:** `lib/db/store-locations.ts`, `app/api/admin/store-locations/*`, `app/api/store-locator/route.ts`, `app/store-locator/page.tsx`, `components/store-locator/StoreLocatorMap.tsx`, `scripts/init-store-locations.ts`
+
+**Legacy Reference:** `Manager/SA_loc*.asp`
 
 ---
 

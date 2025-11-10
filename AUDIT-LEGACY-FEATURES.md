@@ -716,8 +716,8 @@ Create engaging educational section:
 - ✅ Location search functionality
 
 **FiltersFast-Next Status:**
-- ❌ Store locator feature
-- ❌ Dealer network
+- ✅ Store locator with Google Maps (`/store-locator`)
+- ✅ Location/dealer admin CRUD (`/admin/store-locations`)
 
 **Files in Legacy:**
 ```
@@ -728,11 +728,9 @@ Create engaging educational section:
 ```
 
 **Recommendation:**
-If FiltersFast has physical locations or dealer network:
-1. **Store Locator** - Search by ZIP/city
-2. **Map Integration** - Google Maps with pins
-3. **Store Details** - Hours, phone, directions
-4. **Dealer Network** - If products sold through dealers
+- Maintain location data via new module (`lib/db/store-locations.ts`) seeded by `scripts/init-store-locations.ts`
+- Keep Google Maps API key active (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`)
+- Expand dealer attributes (service coverage, appointment scheduling) if business needs evolve
 
 **Business Impact:** LOW-MEDIUM - Depends on business model (online-only vs omnichannel).
 
@@ -1200,7 +1198,7 @@ Add search analytics for insights:
 **STATUS: All optional enhancements for post-launch!**
 
 ### Phase 4: Enhancements - **Optional Future Features**
-17. 🔄 **Store Locator** (if needed for business model)
+17. ✅ **Store Locator** (implemented Nov 2025)
 18. 🔄 **Credits/Gift Cards System** (enhancement)
 19. 🔄 **Backorder Management** (enhancement)
 20. 🔄 **SKU Compatibility Manager** (enhancement)
