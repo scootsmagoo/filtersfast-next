@@ -20,7 +20,8 @@ import {
   Box,
   Archive,
   PackageOpen,
-  Edit3
+  Edit3,
+  Wrench
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product, ProductStats, ProductFilters as ProductFiltersType } from '@/lib/types/product';
@@ -165,6 +166,12 @@ export default function AdminProductsPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link href="/admin/products/bulk">
+                <Button variant="secondary" className="flex items-center gap-2">
+                  <Wrench className="w-5 h-5" />
+                  Bulk Tools
+                </Button>
+              </Link>
               <Link href="/admin/products/shipments">
                 <Button variant="secondary" className="flex items-center gap-2">
                   <PackageOpen className="w-5 h-5" />

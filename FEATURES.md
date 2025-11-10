@@ -3340,6 +3340,38 @@ Enterprise-grade product management with full CRUD operations, inventory trackin
   - Preview product
   - Cancel with confirmation
 
+### ⚙️ Bulk Tooling & CSV Workflows (`/admin/products/bulk`)
+
+- ✅ **Bulk Status Editor** – search products by SKU/name, queue large-scale status transitions, and add audit notes. Mirrors legacy `Manager/sa_prod_bulk.asp` functionality while leveraging the modern audit trail (`product_history`).
+- ✅ **Bulk Pricing Editor** – queue simultaneous price/compare-at/cost adjustments across many products with safety validation.
+- ✅ **CSV Importer** – upload spreadsheet updates for pricing, inventory, and status changes. Provides row-level validation, failure reporting, and prevents partial updates with transactional processing.
+- ✅ **CSV Exporter** – generate filtered product snapshots (status + brand filters) with downloadable background jobs for large datasets.
+- ✅ **Background Job Monitor** – real-time queue viewer showing status/progress for imports, exports, and bulk edits; provides export download links when complete.
+- ✅ **Auditing & Logging** – every job writes to `product_history` and centralized job tables for forensic review.
+
+**New API Endpoints:**
+- `POST /api/admin/products/bulk/status` – schedule status transitions (single status per batch).
+- `POST /api/admin/products/bulk/price` – schedule pricing updates with price/compare-at/cost adjustments.
+- `POST /api/admin/products/bulk/import` – upload CSV payloads for price/inventory/status updates.
+- `POST /api/admin/products/bulk/export` – enqueue CSV exports with optional filters & column overrides.
+- `GET /api/admin/products/bulk/jobs` – paginated job history.
+- `GET /api/admin/products/bulk/jobs/[id]` – job detail with itemized failures.
+- `GET /api/admin/products/bulk/jobs/[id]/download` – retrieve generated CSV artifacts.
+
+**Database Enhancements:**
+- `product_bulk_jobs` – job metadata (type, status, timestamps, summary, parameters).
+- `product_bulk_job_items` – per-record outcomes (failures, notes, references).
+- `product_bulk_job_results` – binary blobs for generated files (CSV exports, reports).
+
+**Background Processing:**
+- Lightweight in-process job queue (`lib/background-jobs.ts`) serializes work to avoid server overload.
+- Jobs record progress (`processedItems`, `failedItems`) for job monitor display.
+- Each successful update funnels through the existing `product_history` audit log for field-level before/after insight.
+
+**Legacy Parity:**
+- Replaces manual SQL builders like `sa_prod_bulk.asp` with safe, auditable workflows.
+- Export/import flows supersede `sa_prod_export.asp` while adding filters, background processing, and downloadable archives.
+
 ### API Endpoints
 
 **Product Management:**

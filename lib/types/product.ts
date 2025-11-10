@@ -271,11 +271,17 @@ export interface BulkProductAction {
 
 export interface ProductImportRow {
   sku: string
-  name: string
-  brand: string
-  type: ProductType
-  price: number
-  inventoryQuantity: number
+  name?: string
+  brand?: string
+  type?: ProductType
+  status?: ProductStatus
+  price?: number | null
+  compareAtPrice?: number | null
+  costPrice?: number | null
+  inventoryQuantity?: number
+  lowStockThreshold?: number
+  allowBackorder?: boolean
+  trackInventory?: boolean
   description?: string
   [key: string]: any
 }
@@ -285,6 +291,121 @@ export interface ProductExport {
   totalOrders: number
   totalRevenue: number
   lastOrderDate: number | null
+}
+
+export type ProductBulkJobType =
+  | 'status-update'
+  | 'price-update'
+  | 'inventory-update'
+  | 'import-csv'
+  | 'export-csv'
+
+export type ProductBulkJobStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+
+export interface ProductBulkJobSummary {
+  [key: string]: string | number | boolean | null | ProductBulkJobSummary | ProductBulkJobSummary[]
+}
+
+export interface ProductBulkJob {
+  id: string
+  type: ProductBulkJobType
+  status: ProductBulkJobStatus
+  createdBy: string
+  createdByName: string | null
+  createdAt: number
+  startedAt: number | null
+  completedAt: number | null
+  totalItems: number
+  processedItems: number
+  failedItems: number
+  parameters: Record<string, any>
+  summary: ProductBulkJobSummary | null
+  error: string | null
+}
+
+export interface ProductBulkJobItem {
+  id: string
+  jobId: string
+  reference?: string
+  action?: string
+  status: 'pending' | 'processed' | 'failed' | 'skipped'
+  payload?: Record<string, any> | null
+  result?: Record<string, any> | null
+  error?: string | null
+  createdAt: number
+  processedAt: number | null
+}
+
+export interface BulkStatusUpdateInput {
+  productId: string
+  newStatus: ProductStatus
+}
+
+export interface BulkStatusUpdateResult {
+  updated: number
+  skipped: number
+  notFound: string[]
+  errors: Array<{ productId: string; error: string }>
+}
+
+export interface BulkPriceUpdateInput {
+  productId: string
+  price?: number
+  compareAtPrice?: number | null
+  costPrice?: number | null
+}
+
+export interface BulkPriceUpdateResult {
+  updated: number
+  skipped: number
+  notFound: string[]
+  errors: Array<{ productId: string; error: string }>
+}
+
+export interface BulkInventoryUpdateInput {
+  productId: string
+  inventoryQuantity?: number
+  lowStockThreshold?: number
+  allowBackorder?: boolean
+  trackInventory?: boolean
+}
+
+export interface BulkInventoryUpdateResult {
+  updated: number
+  skipped: number
+  notFound: string[]
+  errors: Array<{ productId: string; error: string }>
+}
+
+export interface ProductImportOptions {
+  allowCreate?: boolean
+  defaultStatus?: ProductStatus
+  updateInventory?: boolean
+  updatePricing?: boolean
+  updateStatus?: boolean
+}
+
+export interface ProductImportFailure {
+  rowNumber: number
+  sku: string
+  error: string
+}
+
+export interface ProductImportResult {
+  totalRows: number
+  processedRows: number
+  created: number
+  updated: number
+  skipped: number
+  statusUpdates: number
+  priceUpdates: number
+  inventoryUpdates: number
+  failures: ProductImportFailure[]
 }
 
 // ========================================

@@ -5,6 +5,7 @@
 
 import Database from 'better-sqlite3';
 import { join } from 'path';
+import { stringifyCsv } from '../utils/csv';
 import type { 
   Product, 
   ProductFilters, 
@@ -12,7 +13,17 @@ import type {
   ProductStats, 
   ProductHistoryEntry,
   ProductCategory,
-  ProductFormData
+  ProductFormData,
+  ProductStatus,
+  ProductImportRow,
+  BulkStatusUpdateInput,
+  BulkStatusUpdateResult,
+  BulkPriceUpdateInput,
+  BulkPriceUpdateResult,
+  BulkInventoryUpdateInput,
+  BulkInventoryUpdateResult,
+  ProductImportOptions,
+  ProductImportResult
 } from '../types/product';
 
 const dbPath = join(process.cwd(), 'filtersfast.db');
@@ -722,5 +733,760 @@ export function incrementProductViews(productId: string, userId?: string, sessio
   } finally {
     db.close();
   }
+}
+
+// ============================================================================
+// BULK OPERATIONS
+// ============================================================================
+
+function normalizeProductIdMap<T extends { productId: string }>(entries: T[]): Map<string, T> {
+  const map = new Map<string, T>();
+  entries.forEach((entry) => {
+    const id = entry.productId?.trim();
+    if (!id) return;
+    map.set(id, { ...map.get(id), ...entry });
+  });
+  return map;
+}
+
+function createChangeRecord(oldValue: any, newValue: any) {
+  return { old: oldValue, new: newValue };
+}
+
+export function bulkUpdateProductStatus(
+  updates: BulkStatusUpdateInput[],
+  userId: string,
+  userName: string,
+  note?: string
+): BulkStatusUpdateResult {
+  const aggregated = normalizeProductIdMap(updates);
+  const productIds = Array.from(aggregated.keys());
+
+  if (productIds.length === 0) {
+    return { updated: 0, skipped: 0, notFound: [], errors: [] };
+  }
+
+  const db = getDb();
+
+  try {
+    const placeholders = productIds.map(() => '?').join(',');
+    const existingRows = db
+      .prepare(`SELECT id, status FROM products WHERE id IN (${placeholders})`)
+      .all(...productIds) as Array<{ id: string; status: string }>;
+    const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+
+    const notFound: string[] = [];
+    const errors: Array<{ productId: string; error: string }> = [];
+    const changes: Array<{ productId: string; change: { status: { old: string; new: string } } }> = [];
+    let updated = 0;
+    let skipped = 0;
+    const now = Date.now();
+
+    const transaction = db.transaction(() => {
+      productIds.forEach((productId) => {
+        const update = aggregated.get(productId);
+        const existing = existingMap.get(productId);
+
+        if (!update || !existing) {
+          notFound.push(productId);
+          return;
+        }
+
+        const targetStatus = update.newStatus;
+        if (existing.status === targetStatus) {
+          skipped++;
+          return;
+        }
+
+        try {
+          db.prepare(
+            `
+            UPDATE products
+            SET status = ?, updated_at = ?, updated_by = ?, published_at = CASE WHEN ? = 'active' THEN COALESCE(published_at, ?) ELSE NULL END
+            WHERE id = ?
+          `
+          ).run(targetStatus, now, userId, targetStatus, now, productId);
+
+          updated++;
+          changes.push({
+            productId,
+            change: {
+              status: {
+                old: existing.status,
+                new: targetStatus
+              }
+            }
+          });
+        } catch (error) {
+          errors.push({
+            productId,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      });
+    });
+
+    transaction();
+
+    changes.forEach(({ productId, change }) => {
+      logProductHistory(
+        productId,
+        'status-changed',
+        change,
+        userId,
+        userName,
+        note || 'Bulk status update'
+      );
+    });
+
+    return {
+      updated,
+      skipped,
+      notFound,
+      errors
+    };
+  } finally {
+    db.close();
+  }
+}
+
+export function bulkUpdateProductPrices(
+  updates: BulkPriceUpdateInput[],
+  userId: string,
+  userName: string,
+  note?: string
+): BulkPriceUpdateResult {
+  const aggregated = normalizeProductIdMap(updates);
+  const productIds = Array.from(aggregated.keys());
+
+  if (productIds.length === 0) {
+    return { updated: 0, skipped: 0, notFound: [], errors: [] };
+  }
+
+  const db = getDb();
+
+  try {
+    const placeholders = productIds.map(() => '?').join(',');
+    const existingRows = db
+      .prepare(
+        `SELECT id, price, compare_at_price, cost_price FROM products WHERE id IN (${placeholders})`
+      )
+      .all(...productIds) as Array<{
+        id: string
+        price: number
+        compare_at_price: number | null
+        cost_price: number | null
+      }>;
+
+    const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+
+    const notFound: string[] = [];
+    const errors: Array<{ productId: string; error: string }> = [];
+    const changes: Array<{ productId: string; change: Record<string, { old: any; new: any }> }> =
+      [];
+    let updated = 0;
+    let skipped = 0;
+    const now = Date.now();
+
+    const transaction = db.transaction(() => {
+      productIds.forEach((productId) => {
+        const update = aggregated.get(productId);
+        const existing = existingMap.get(productId);
+
+        if (!update || !existing) {
+          notFound.push(productId);
+          return;
+        }
+
+        const setClauses: string[] = [];
+        const params: any[] = [];
+        const changeRecord: Record<string, { old: any; new: any }> = {};
+
+        if (update.price !== undefined && update.price !== existing.price) {
+          setClauses.push('price = ?');
+          params.push(update.price);
+          changeRecord.price = createChangeRecord(existing.price, update.price);
+        }
+
+        if (update.compareAtPrice !== undefined && update.compareAtPrice !== existing.compare_at_price) {
+          setClauses.push('compare_at_price = ?');
+          params.push(update.compareAtPrice);
+          changeRecord.compareAtPrice = createChangeRecord(existing.compare_at_price, update.compareAtPrice);
+        }
+
+        if (update.costPrice !== undefined && update.costPrice !== existing.cost_price) {
+          setClauses.push('cost_price = ?');
+          params.push(update.costPrice);
+          changeRecord.costPrice = createChangeRecord(existing.cost_price, update.costPrice);
+        }
+
+        if (setClauses.length === 0) {
+          skipped++;
+          return;
+        }
+
+        setClauses.push('updated_at = ?');
+        setClauses.push('updated_by = ?');
+        params.push(now, userId, productId);
+
+        try {
+          const query = `UPDATE products SET ${setClauses.join(', ')} WHERE id = ?`;
+          db.prepare(query).run(...params);
+          updated++;
+          changes.push({ productId, change: changeRecord });
+        } catch (error) {
+          errors.push({
+            productId,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      });
+    });
+
+    transaction();
+
+    changes.forEach(({ productId, change }) => {
+      logProductHistory(
+        productId,
+        'price-changed',
+        change,
+        userId,
+        userName,
+        note || 'Bulk price update'
+      );
+    });
+
+    return {
+      updated,
+      skipped,
+      notFound,
+      errors
+    };
+  } finally {
+    db.close();
+  }
+}
+
+export function bulkUpdateProductInventory(
+  updates: BulkInventoryUpdateInput[],
+  userId: string,
+  userName: string,
+  note?: string
+): BulkInventoryUpdateResult {
+  const aggregated = normalizeProductIdMap(updates);
+  const productIds = Array.from(aggregated.keys());
+
+  if (productIds.length === 0) {
+    return { updated: 0, skipped: 0, notFound: [], errors: [] };
+  }
+
+  const db = getDb();
+
+  try {
+    const placeholders = productIds.map(() => '?').join(',');
+    const existingRows = db
+      .prepare(
+        `SELECT id, inventory_quantity, low_stock_threshold, allow_backorder, track_inventory FROM products WHERE id IN (${placeholders})`
+      )
+      .all(...productIds) as Array<{
+        id: string
+        inventory_quantity: number
+        low_stock_threshold: number
+        allow_backorder: number
+        track_inventory: number
+      }>;
+
+    const existingMap = new Map(existingRows.map((row) => [row.id, row]));
+
+    const notFound: string[] = [];
+    const errors: Array<{ productId: string; error: string }> = [];
+    const changes: Array<{ productId: string; change: Record<string, { old: any; new: any }> }> =
+      [];
+    let updated = 0;
+    let skipped = 0;
+    const now = Date.now();
+
+    const transaction = db.transaction(() => {
+      productIds.forEach((productId) => {
+        const update = aggregated.get(productId);
+        const existing = existingMap.get(productId);
+
+        if (!update || !existing) {
+          notFound.push(productId);
+          return;
+        }
+
+        const setClauses: string[] = [];
+        const params: any[] = [];
+        const changeRecord: Record<string, { old: any; new: any }> = {};
+
+        if (
+          update.inventoryQuantity !== undefined &&
+          update.inventoryQuantity !== existing.inventory_quantity
+        ) {
+          setClauses.push('inventory_quantity = ?');
+          params.push(update.inventoryQuantity);
+          changeRecord.inventoryQuantity = createChangeRecord(
+            existing.inventory_quantity,
+            update.inventoryQuantity
+          );
+        }
+
+        if (
+          update.lowStockThreshold !== undefined &&
+          update.lowStockThreshold !== existing.low_stock_threshold
+        ) {
+          setClauses.push('low_stock_threshold = ?');
+          params.push(update.lowStockThreshold);
+          changeRecord.lowStockThreshold = createChangeRecord(
+            existing.low_stock_threshold,
+            update.lowStockThreshold
+          );
+        }
+
+        if (update.allowBackorder !== undefined) {
+          const allowBackorderInt = update.allowBackorder ? 1 : 0;
+          if (allowBackorderInt !== existing.allow_backorder) {
+            setClauses.push('allow_backorder = ?');
+            params.push(allowBackorderInt);
+            changeRecord.allowBackorder = createChangeRecord(
+              existing.allow_backorder === 1,
+              update.allowBackorder
+            );
+          }
+        }
+
+        if (update.trackInventory !== undefined) {
+          const trackInventoryInt = update.trackInventory ? 1 : 0;
+          if (trackInventoryInt !== existing.track_inventory) {
+            setClauses.push('track_inventory = ?');
+            params.push(trackInventoryInt);
+            changeRecord.trackInventory = createChangeRecord(
+              existing.track_inventory === 1,
+              update.trackInventory
+            );
+          }
+        }
+
+        if (setClauses.length === 0) {
+          skipped++;
+          return;
+        }
+
+        setClauses.push('updated_at = ?');
+        setClauses.push('updated_by = ?');
+        params.push(now, userId, productId);
+
+        try {
+          const query = `UPDATE products SET ${setClauses.join(', ')} WHERE id = ?`;
+          db.prepare(query).run(...params);
+          updated++;
+          changes.push({ productId, change: changeRecord });
+        } catch (error) {
+          errors.push({
+            productId,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      });
+    });
+
+    transaction();
+
+    changes.forEach(({ productId, change }) => {
+      logProductHistory(
+        productId,
+        'inventory-adjusted',
+        change,
+        userId,
+        userName,
+        note || 'Bulk inventory update'
+      );
+    });
+
+    return {
+      updated,
+      skipped,
+      notFound,
+      errors
+    };
+  } finally {
+    db.close();
+  }
+}
+
+export function processProductImportRows(
+  rows: ProductImportRow[],
+  options: ProductImportOptions = {},
+  userId: string,
+  userName: string
+): ProductImportResult {
+  const config: Required<Omit<ProductImportOptions, 'defaultStatus'>> & Pick<ProductImportOptions, 'defaultStatus'> = {
+    allowCreate: false,
+    updateInventory: true,
+    updatePricing: true,
+    updateStatus: true,
+    ...options
+  };
+
+  type AggregatedImportRecord = {
+    sku: string
+    rowNumbers: number[]
+    status?: string
+    price?: number
+    compareAtPrice?: number | null
+    costPrice?: number | null
+    inventoryQuantity?: number
+    lowStockThreshold?: number
+    allowBackorder?: boolean
+    trackInventory?: boolean
+  };
+
+  const failures: ProductImportResult['failures'] = [];
+  const updateMap = new Map<string, AggregatedImportRecord>();
+
+  const uniqueSkus = Array.from(
+    new Set(
+      rows
+        .map((row) => row.sku?.trim())
+        .filter((sku): sku is string => !!sku)
+    )
+  );
+
+  const db = getDb();
+  let skuLookup = new Map<string, { id: string; sku: string }>();
+
+  if (uniqueSkus.length > 0) {
+    try {
+      const placeholders = uniqueSkus.map(() => '?').join(',');
+      const existingRows = db
+        .prepare(`SELECT id, sku FROM products WHERE sku IN (${placeholders})`)
+        .all(...uniqueSkus) as Array<{ id: string; sku: string }>;
+      skuLookup = new Map(existingRows.map((row) => [row.sku, row]));
+    } finally {
+      db.close();
+    }
+  } else {
+    db.close();
+  }
+
+  rows.forEach((row, index) => {
+    const rowNumber = index + 1;
+    const sku = row.sku?.trim();
+
+    if (!sku) {
+      failures.push({ rowNumber, sku: '', error: 'Missing SKU' });
+      return;
+    }
+
+    const productRef = skuLookup.get(sku);
+    if (!productRef) {
+      if (config.allowCreate) {
+        failures.push({
+          rowNumber,
+          sku,
+          error: 'Creating new products via CSV import is not supported yet.'
+        });
+      } else {
+        failures.push({ rowNumber, sku, error: 'Product not found' });
+      }
+      return;
+    }
+
+    let record = updateMap.get(productRef.id);
+    if (!record) {
+      record = {
+        sku,
+        rowNumbers: []
+      };
+      updateMap.set(productRef.id, record);
+    }
+
+    record.rowNumbers.push(rowNumber);
+
+    if (config.updateStatus && row.status) {
+      const normalizedStatus = row.status.toString().toLowerCase() as ProductStatus;
+      const allowedStatuses: ProductStatus[] = ['active', 'draft', 'archived', 'out-of-stock'];
+      if (allowedStatuses.includes(normalizedStatus)) {
+        record.status = normalizedStatus;
+      } else {
+        failures.push({ rowNumber, sku, error: `Invalid status value "${row.status}"` });
+      }
+    }
+
+    if (config.updatePricing) {
+      if (row.price !== undefined && row.price !== null && row.price !== '') {
+        const priceValue = typeof row.price === 'string' ? parseFloat(row.price) : row.price;
+        if (!Number.isFinite(priceValue)) {
+          failures.push({ rowNumber, sku, error: 'Invalid price value' });
+        } else {
+          record.price = priceValue;
+        }
+      }
+
+      if (row.compareAtPrice !== undefined) {
+        const compareValue =
+          row.compareAtPrice === null || row.compareAtPrice === ''
+            ? null
+            : typeof row.compareAtPrice === 'string'
+            ? parseFloat(row.compareAtPrice)
+            : row.compareAtPrice;
+
+        if (compareValue !== null && !Number.isFinite(compareValue)) {
+          failures.push({ rowNumber, sku, error: 'Invalid compare_at_price value' });
+        } else {
+          record.compareAtPrice = compareValue;
+        }
+      }
+
+      if (row.costPrice !== undefined) {
+        const costValue =
+          row.costPrice === null || row.costPrice === ''
+            ? null
+            : typeof row.costPrice === 'string'
+            ? parseFloat(row.costPrice)
+            : row.costPrice;
+
+        if (costValue !== null && !Number.isFinite(costValue)) {
+          failures.push({ rowNumber, sku, error: 'Invalid cost_price value' });
+        } else {
+          record.costPrice = costValue;
+        }
+      }
+    }
+
+    if (config.updateInventory) {
+      if (row.inventoryQuantity !== undefined && row.inventoryQuantity !== null && row.inventoryQuantity !== '') {
+        const inventoryValue =
+          typeof row.inventoryQuantity === 'string'
+            ? parseInt(row.inventoryQuantity, 10)
+            : row.inventoryQuantity;
+        if (!Number.isFinite(inventoryValue)) {
+          failures.push({ rowNumber, sku, error: 'Invalid inventory quantity' });
+        } else {
+          record.inventoryQuantity = inventoryValue;
+        }
+      }
+
+      if (row.lowStockThreshold !== undefined && row.lowStockThreshold !== null && row.lowStockThreshold !== '') {
+        const thresholdValue =
+          typeof row.lowStockThreshold === 'string'
+            ? parseInt(row.lowStockThreshold, 10)
+            : row.lowStockThreshold;
+        if (!Number.isFinite(thresholdValue)) {
+          failures.push({ rowNumber, sku, error: 'Invalid low stock threshold' });
+        } else {
+          record.lowStockThreshold = thresholdValue;
+        }
+      }
+
+      if (row.allowBackorder !== undefined && row.allowBackorder !== null && row.allowBackorder !== '') {
+        const allowBackorder =
+          typeof row.allowBackorder === 'string'
+            ? ['true', '1', 'yes', 'y'].includes(row.allowBackorder.toLowerCase())
+            : Boolean(row.allowBackorder);
+        record.allowBackorder = allowBackorder;
+      }
+
+      if (row.trackInventory !== undefined && row.trackInventory !== null && row.trackInventory !== '') {
+        const trackInventory =
+          typeof row.trackInventory === 'string'
+            ? ['true', '1', 'yes', 'y'].includes(row.trackInventory.toLowerCase())
+            : Boolean(row.trackInventory);
+        record.trackInventory = trackInventory;
+      }
+    }
+
+    updateMap.set(productRef.id, record);
+  });
+
+  const statusUpdates: BulkStatusUpdateInput[] = [];
+  const priceUpdates: BulkPriceUpdateInput[] = [];
+  const inventoryUpdates: BulkInventoryUpdateInput[] = [];
+
+  updateMap.forEach((record, productId) => {
+    if (record.status) {
+      statusUpdates.push({ productId, newStatus: record.status as any });
+    }
+
+    if (
+      record.price !== undefined ||
+      record.compareAtPrice !== undefined ||
+      record.costPrice !== undefined
+    ) {
+      priceUpdates.push({
+        productId,
+        price: record.price,
+        compareAtPrice: record.compareAtPrice,
+        costPrice: record.costPrice
+      });
+    }
+
+    if (
+      record.inventoryQuantity !== undefined ||
+      record.lowStockThreshold !== undefined ||
+      record.allowBackorder !== undefined ||
+      record.trackInventory !== undefined
+    ) {
+      inventoryUpdates.push({
+        productId,
+        inventoryQuantity: record.inventoryQuantity,
+        lowStockThreshold: record.lowStockThreshold,
+        allowBackorder: record.allowBackorder,
+        trackInventory: record.trackInventory
+      });
+    }
+  });
+
+  const statusResult =
+    statusUpdates.length > 0
+      ? bulkUpdateProductStatus(statusUpdates, userId, userName, 'CSV import')
+      : { updated: 0, skipped: 0, notFound: [], errors: [] };
+
+  const priceResult =
+    priceUpdates.length > 0
+      ? bulkUpdateProductPrices(priceUpdates, userId, userName, 'CSV import')
+      : { updated: 0, skipped: 0, notFound: [], errors: [] };
+
+  const inventoryResult =
+    inventoryUpdates.length > 0
+      ? bulkUpdateProductInventory(inventoryUpdates, userId, userName, 'CSV import')
+      : { updated: 0, skipped: 0, notFound: [], errors: [] };
+
+  const uniqueUpdatedProducts = new Set<string>();
+  statusResult.updated && statusUpdates.forEach((u) => uniqueUpdatedProducts.add(u.productId));
+  priceResult.updated && priceUpdates.forEach((u) => uniqueUpdatedProducts.add(u.productId));
+  inventoryResult.updated &&
+    inventoryUpdates.forEach((u) => uniqueUpdatedProducts.add(u.productId));
+
+  const processedRows = rows.length - failures.length;
+
+  statusResult.errors.forEach((err) =>
+    failures.push({ rowNumber: 0, sku: err.productId, error: err.error })
+  );
+  priceResult.errors.forEach((err) =>
+    failures.push({ rowNumber: 0, sku: err.productId, error: err.error })
+  );
+  inventoryResult.errors.forEach((err) =>
+    failures.push({ rowNumber: 0, sku: err.productId, error: err.error })
+  );
+
+  return {
+    totalRows: rows.length,
+    processedRows,
+    created: 0,
+    updated: uniqueUpdatedProducts.size,
+    skipped:
+      statusResult.skipped + priceResult.skipped + inventoryResult.skipped +
+      (updateMap.size - uniqueUpdatedProducts.size),
+    statusUpdates: statusResult.updated,
+    priceUpdates: priceResult.updated,
+    inventoryUpdates: inventoryResult.updated,
+    failures
+  };
+}
+
+export function generateProductExportCsv(options?: {
+  filters?: ProductFilters
+  columns?: string[]
+}): { fileName: string; rowCount: number; csv: string } {
+  const defaultColumns = [
+    'id',
+    'sku',
+    'name',
+    'status',
+    'type',
+    'brand',
+    'price',
+    'compareAtPrice',
+    'costPrice',
+    'inventoryQuantity',
+    'lowStockThreshold',
+    'allowBackorder',
+    'trackInventory',
+    'subscriptionEligible',
+    'subscriptionDiscount',
+    'updatedAt'
+  ];
+
+  const columns = options?.columns && options.columns.length > 0 ? options.columns : defaultColumns;
+  const listResult = listProducts({
+    ...(options?.filters || {}),
+    limit: 100000,
+    offset: 0
+  });
+
+  const rows = listResult.products.map((product) => {
+    const row: Record<string, any> = {};
+    columns.forEach((column) => {
+      switch (column) {
+        case 'id':
+          row[column] = product.id;
+          break;
+        case 'sku':
+          row[column] = product.sku;
+          break;
+        case 'name':
+          row[column] = product.name;
+          break;
+        case 'status':
+          row[column] = product.status;
+          break;
+        case 'type':
+          row[column] = product.type;
+          break;
+        case 'brand':
+          row[column] = product.brand;
+          break;
+        case 'price':
+          row[column] = product.price;
+          break;
+        case 'compareAtPrice':
+          row[column] = product.compareAtPrice ?? '';
+          break;
+        case 'costPrice':
+          row[column] = product.costPrice ?? '';
+          break;
+        case 'inventoryQuantity':
+          row[column] = product.inventoryQuantity;
+          break;
+        case 'lowStockThreshold':
+          row[column] = product.lowStockThreshold;
+          break;
+        case 'allowBackorder':
+          row[column] = product.allowBackorder ? 'TRUE' : 'FALSE';
+          break;
+        case 'trackInventory':
+          row[column] = product.trackInventory ? 'TRUE' : 'FALSE';
+          break;
+        case 'subscriptionEligible':
+          row[column] = product.subscriptionEligible ? 'TRUE' : 'FALSE';
+          break;
+        case 'subscriptionDiscount':
+          row[column] = product.subscriptionDiscount;
+          break;
+        case 'updatedAt':
+          row[column] = new Date(product.updatedAt).toISOString();
+          break;
+        default:
+          row[column] = product[column as keyof typeof product] ?? '';
+      }
+    });
+    return row;
+  });
+
+  const { stringifyCsv } = require('../utils/csv') as {
+    stringifyCsv: (rows: Array<Record<string, any>>, options?: { headers?: string[] }) => string
+  };
+
+  const csv = stringifyCsv(rows, { headers: columns });
+  const timestamp = new Date().toISOString().replace(/[:]/g, '').replace(/\..+$/, '');
+  const fileName = `products-export-${timestamp}.csv`;
+
+  return {
+    fileName,
+    rowCount: rows.length,
+    csv
+  };
 }
 

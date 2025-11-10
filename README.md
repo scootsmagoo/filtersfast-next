@@ -1578,6 +1578,7 @@ Just completed the Admin Product Management system:
 - ✅ **SEO Optimization**: Meta titles, descriptions, keywords, auto-slug generation
 - ✅ **Product Flags**: Featured, new, best seller, made in USA, free shipping
 - ✅ **Audit Trail**: Complete product history with who/what/when
+- ✅ **Bulk Tooling & CSV Workflows**: `/admin/products/bulk` for status/price batches, CSV import/export with background jobs, download queue, and per-admin scoping
 - ✅ **Category Management**: 6 default categories, multi-category assignment
 - ✅ **3 Sample Products**: Pre-loaded FiltersFast, Whirlpool, Aprilaire products
 
