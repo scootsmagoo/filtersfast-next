@@ -356,6 +356,13 @@ export default function AdminDashboard() {
       color: 'purple'
     },
     {
+      title: 'Key Vault Monitor',
+      description: 'Monitor Azure Key Vault API health and secret expirations',
+      icon: Shield,
+      href: '/admin/utilities/key-vault',
+      color: 'green'
+    },
+    {
       title: 'Admin Users & Roles',
       description: 'Manage admin users, roles, and permissions',
       icon: Shield,

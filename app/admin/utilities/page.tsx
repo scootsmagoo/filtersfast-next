@@ -5,16 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
-import {
-  Settings,
-  Database,
-  Mail,
-  Server,
-  Wrench,
-  CheckCircle,
-  AlertCircle,
-  Info,
-} from 'lucide-react'
+import { Settings, Database, Mail, Server, Wrench, CheckCircle, AlertCircle, Info, Shield } from 'lucide-react'
 import Link from 'next/link'
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb'
 
@@ -90,6 +81,13 @@ export default function AdminUtilitiesPage() {
   ]
 
   const general: UtilitySection[] = [
+    {
+      title: 'Key Vault Monitor',
+      description: 'Monitor Azure Key Vault secret status, expirations, and API health',
+      icon: Shield,
+      href: '/admin/utilities/key-vault',
+      color: 'green',
+    },
     {
       title: 'Display Server Variables',
       description: 'Display your web server\'s environment variables. Useful for debugging and configuration verification.',

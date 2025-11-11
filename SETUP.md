@@ -318,6 +318,39 @@ Admins can monitor MFA adoption at `/admin/mfa`:
 
 ---
 
+## 🛡️ Azure Key Vault Monitoring
+
+Keep the Azure Key Vault integration healthy so expiring secrets never catch you off guard.
+
+### Required Environment Variables
+
+Add the following to your `.env.local` (or production secrets) to enable the admin Key Vault monitor:
+
+```env
+# Azure Key Vault legacy KVM API bridge
+KEY_VAULT_API_BASE_URL=https://www.filtersfast.com/kvmapi/api
+KEY_VAULT_API_BEARER=your-shared-bearer-token-here
+
+# Optional configuration
+KEY_VAULT_ENVIRONMENT=Production          # Prefix used for default secret names (Test in non-prod)
+KEY_VAULT_SECRET_SUFFIXES=CyberSourceUSKey,CyberSourceINTKey,PayPalSecret,SiteConfigEncryptionKey
+# Or provide explicit names (takes precedence over suffix list)
+# KEY_VAULT_SECRET_NAMES=ProductionCyberSourceUSKey,ProductionCyberSourceINTKey
+```
+
+- `KEY_VAULT_API_BEARER` must match the token provisioned for the legacy `kvmapi` bridge.
+- By default the monitor assumes `"Production"` prefixes; override `KEY_VAULT_ENVIRONMENT` to track staging/test vaults.
+- Use `KEY_VAULT_SECRET_SUFFIXES` to append to the environment prefix, or supply a comma-separated `KEY_VAULT_SECRET_NAMES` list for full control.
+
+### Operations Checklist
+
+- Visit `/admin/utilities/key-vault` to verify API connectivity, secret expirations, and rotation timelines.
+- Secrets flagged as **Expiring Soon** have 30 days or fewer remaining; schedule rotation before their deadline.
+- Secrets marked **Expired** require immediate rotation in Azure and dependent systems.
+- Jump directly to Azure management via the built-in portal link.
+
+---
+
 ## ⭐ Trustpilot Reviews Setup (Optional)
 
 To enable product reviews from Trustpilot:
