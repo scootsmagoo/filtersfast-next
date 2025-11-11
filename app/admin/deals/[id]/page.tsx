@@ -23,7 +23,9 @@ export default function EditDealPage({ params }: { params: { id: string } }) {
     units: 0,
     active: 1,
     validFrom: null,
-    validTo: null
+    validTo: null,
+    rewardSkus: '',
+    rewardAutoAdd: 1
   });
 
   useEffect(() => {
@@ -39,14 +41,26 @@ export default function EditDealPage({ params }: { params: { id: string } }) {
       const data = await response.json();
       if (data.success && data.deal) {
         setDeal(data.deal);
-        setFormData({
+      const rewardSkusString = (data.deal.rewardSkus || [])
+        .map(reward => {
+          const qty = reward.quantity ?? 1;
+          const price = reward.priceOverride !== undefined && reward.priceOverride !== null
+            ? `@${reward.priceOverride}`
+            : '';
+          return `${reward.sku}${qty !== 1 ? `*${qty}` : ''}${price}`;
+        })
+        .join('\n');
+
+      setFormData({
           dealdiscription: data.deal.dealdiscription,
           startprice: data.deal.startprice,
           endprice: data.deal.endprice,
           units: data.deal.units,
           active: data.deal.active,
           validFrom: data.deal.validFrom ? new Date(data.deal.validFrom).toISOString().slice(0, 16) : null,
-          validTo: data.deal.validTo ? new Date(data.deal.validTo).toISOString().slice(0, 16) : null
+        validTo: data.deal.validTo ? new Date(data.deal.validTo).toISOString().slice(0, 16) : null,
+        rewardSkus: rewardSkusString,
+        rewardAutoAdd: data.deal.rewardAutoAdd ?? 1
         });
       }
     } catch (error) {
@@ -330,6 +344,39 @@ export default function EditDealPage({ params }: { params: { id: string } }) {
                         </p>
                       )}
                     </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="rewardSkus"
+                      className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100 transition-colors"
+                    >
+                      Reward SKUs
+                    </label>
+                    <textarea
+                      id="rewardSkus"
+                      value={formData.rewardSkus || ''}
+                      onChange={(e) => setFormData({ ...formData, rewardSkus: e.target.value })}
+                      rows={4}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors font-mono text-sm"
+                      placeholder="SKU123*1&#10;SKU456*2@0"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      One reward per line. Use <code className="font-mono">SKU*quantity</code> with optional <code className="font-mono">@price</code>.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="rewardAutoAdd"
+                      type="checkbox"
+                      checked={formData.rewardAutoAdd === 1}
+                      onChange={(e) => setFormData({ ...formData, rewardAutoAdd: e.target.checked ? 1 : 0 })}
+                      className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                    />
+                    <label htmlFor="rewardAutoAdd" className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                      Automatically add rewards to qualifying carts
+                    </label>
                   </div>
                 </div>
               </Card>

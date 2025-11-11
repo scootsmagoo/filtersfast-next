@@ -3,6 +3,12 @@
  * For special offers and deals system
  */
 
+export interface DealRewardSku {
+  sku: string
+  quantity: number
+  priceOverride?: number | null
+}
+
 export interface Deal {
   iddeal: number
   dealdiscription: string
@@ -14,6 +20,8 @@ export interface Deal {
   validTo: number | null    // Unix timestamp
   createdAt: number
   updatedAt: number
+  rewardSkus: DealRewardSku[]
+  rewardAutoAdd: number
 }
 
 export interface DealFormData {
@@ -24,6 +32,8 @@ export interface DealFormData {
   active?: number
   validFrom?: string | null  // ISO date string
   validTo?: string | null    // ISO date string
+  rewardSkus?: string
+  rewardAutoAdd?: number
 }
 
 export interface DealListResponse {

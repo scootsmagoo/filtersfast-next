@@ -62,7 +62,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     madeInUSA: false,
     freeShipping: false,
     subscriptionEligible: true,
-    subscriptionDiscount: 5
+    subscriptionDiscount: 5,
+    giftWithPurchaseProductId: null,
+    giftWithPurchaseQuantity: 1,
+    giftWithPurchaseAutoAdd: true
   });
 
   // Unwrap params
@@ -89,6 +92,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         allowBackorder: false,
         subscriptionEligible: false,
         weight: 0,
+        giftWithPurchaseProductId: null,
+        giftWithPurchaseQuantity: 1,
+        giftWithPurchaseAutoAdd: false,
       }));
     }
   }, [formData.type]);
@@ -144,7 +150,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         madeInUSA: p.madeInUSA,
         freeShipping: p.freeShipping,
         subscriptionEligible: p.subscriptionEligible,
-        subscriptionDiscount: p.subscriptionDiscount
+        subscriptionDiscount: p.subscriptionDiscount,
+        giftWithPurchaseProductId: p.giftWithPurchaseProductId,
+        giftWithPurchaseQuantity: p.giftWithPurchaseQuantity,
+        giftWithPurchaseAutoAdd: p.giftWithPurchaseAutoAdd
       });
 
     } catch (error) {
@@ -604,6 +613,80 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         </label>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Gift With Purchase */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
+                  Gift With Purchase
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="edit-gift-with-purchase-id"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors"
+                    >
+                      Reward Product ID
+                    </label>
+                    <input
+                      id="edit-gift-with-purchase-id"
+                      type="text"
+                      value={formData.giftWithPurchaseProductId ?? ''}
+                      onChange={(e) =>
+                        updateField(
+                          'giftWithPurchaseProductId',
+                          e.target.value.trim().length > 0 ? e.target.value.trim() : null
+                        )
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                      placeholder="prod-2025-abcdef"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Link a reward SKU that should be added for free when this product is purchased.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                        Reward Quantity
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={formData.giftWithPurchaseQuantity}
+                        onChange={(e) =>
+                          updateField(
+                            'giftWithPurchaseQuantity',
+                            Math.max(1, parseInt(e.target.value) || 1)
+                          )
+                        }
+                        disabled={!formData.giftWithPurchaseProductId}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors disabled:opacity-60"
+                      />
+                    </div>
+
+                    <div className="flex items-end">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.giftWithPurchaseAutoAdd}
+                          onChange={(e) => updateField('giftWithPurchaseAutoAdd', e.target.checked)}
+                          disabled={!formData.giftWithPurchaseProductId}
+                          className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange disabled:opacity-60"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                          Auto-add reward to cart
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-3 text-xs text-blue-700 dark:text-blue-300">
+                    Reward items are priced at $0 and inherit removal logic when the parent item is removed.
                   </div>
                 </div>
               </Card>

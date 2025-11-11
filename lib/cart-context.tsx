@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { useSession } from '@/lib/auth-client';
 
 export type CartItemId = string | number;
@@ -12,6 +12,26 @@ export interface GiftCardCartDetails {
   sendAt?: number | null;
   purchaserName?: string;
   purchaserEmail?: string;
+}
+
+export interface CartRewardSource {
+  type: 'product' | 'deal';
+  id: string | number;
+  description?: string;
+  parentProductId?: string;
+}
+
+interface RewardSyncItem {
+  id: string;
+  productId: string;
+  sku: string;
+  name: string;
+  brand: string;
+  image: string | null;
+  quantity: number;
+  price: number;
+  productType?: string;
+  rewardSource: CartRewardSource;
 }
 
 export interface CartItem {
@@ -31,6 +51,9 @@ export interface CartItem {
     enabled: boolean;
     frequency: number; // In months (1-12)
   };
+  isReward?: boolean;
+  rewardSource?: CartRewardSource;
+  parentProductId?: string;
 }
 
 export interface AppliedGiftCardState {
@@ -46,6 +69,7 @@ interface CartState {
   total: number;
   itemCount: number;
   appliedGiftCards: AppliedGiftCardState[];
+  appliedDeals: Array<{ id: number; description: string }>;
 }
 
 type CartAction =
@@ -58,27 +82,37 @@ type CartAction =
   | { type: 'LOAD_STATE'; payload: CartState }
   | { type: 'APPLY_GIFT_CARD'; payload: AppliedGiftCardState }
   | { type: 'REMOVE_GIFT_CARD'; payload: string }
-  | { type: 'CLEAR_GIFT_CARDS' };
+  | { type: 'CLEAR_GIFT_CARDS' }
+  | { type: 'SYNC_REWARDS'; payload: { rewards: RewardSyncItem[]; appliedDeals: Array<{ id: number; description: string }> } };
 
 const initialState: CartState = {
   items: [],
   total: 0,
   itemCount: 0,
   appliedGiftCards: [],
+  appliedDeals: [],
 };
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const quantityToAdd = action.payload.quantity || 1;
+      const payload: CartItem = {
+        ...action.payload,
+        quantity: quantityToAdd,
+        isReward: false,
+        rewardSource: undefined,
+        parentProductId: undefined,
+      };
       
       // Check if item with same ID and options already exists
       const existingItem = state.items.find(item => {
-        if (item.id !== action.payload.id) return false;
+        if (item.isReward) return false;
+        if (item.id !== payload.id) return false;
         
         // Compare options (if both have options or both don't)
         const itemOptions = JSON.stringify(item.options || {});
-        const payloadOptions = JSON.stringify(action.payload.options || {});
+        const payloadOptions = JSON.stringify(payload.options || {});
         return itemOptions === payloadOptions;
       });
       
@@ -99,14 +133,19 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       } else {
         // New item or different options, add as separate item
         const newItem = { ...action.payload, quantity: quantityToAdd };
+        newItem.isReward = false;
+        newItem.rewardSource = undefined;
+        newItem.parentProductId = undefined;
         const updatedItems = [...state.items, newItem];
         return {
           ...state,
           items: updatedItems,
           total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
           itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+          appliedDeals: state.appliedDeals,
         };
       }
+      return state;
     }
     
     case 'ADD_ITEMS_BATCH': {
@@ -114,6 +153,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       let updatedItems = [...state.items];
       
       action.payload.forEach(newItem => {
+        if (newItem.isReward) {
+          return;
+        }
         const existingIndex = updatedItems.findIndex(item => item.id === newItem.id);
         
         if (existingIndex >= 0) {
@@ -124,7 +166,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           };
         } else {
           // New item, add to cart
-          updatedItems.push(newItem);
+          updatedItems.push({
+            ...newItem,
+            isReward: false,
+            rewardSource: undefined,
+            parentProductId: undefined,
+          });
         }
       });
       
@@ -133,16 +180,30 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         items: updatedItems,
         total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+        appliedDeals: state.appliedDeals,
       };
     }
     
     case 'REMOVE_ITEM': {
-      const updatedItems = state.items.filter(item => item.id !== action.payload);
+      const targetId = String(action.payload);
+      const updatedItems = state.items.filter(item => {
+        if (item.id === action.payload) {
+          return false;
+        }
+        if (item.isReward) {
+          const parentId = item.parentProductId ?? item.rewardSource?.parentProductId;
+          if (parentId && String(parentId) === targetId) {
+            return false;
+          }
+        }
+        return true;
+      });
       return {
         ...state,
         items: updatedItems,
         total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+        appliedDeals: state.appliedDeals,
       };
     }
     
@@ -161,17 +222,39 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
     
     case 'UPDATE_QUANTITY': {
-      const updatedItems = state.items.map(item =>
-        item.id === action.payload.id
-          ? { ...item, quantity: Math.max(0, action.payload.quantity) }
-          : item
-      ).filter(item => item.quantity > 0);
+      const mappedItems = state.items.map(item => {
+        if (item.id === action.payload.id) {
+          if (item.isReward) {
+            return item;
+          }
+          return { ...item, quantity: Math.max(0, action.payload.quantity) };
+        }
+        return item;
+      });
+
+      const activeBaseIds = new Set(
+        mappedItems
+          .filter(item => !item.isReward && item.quantity > 0)
+          .map(item => String(item.id))
+      );
+
+      const updatedItems = mappedItems.filter(item => {
+        if (item.isReward) {
+          const parentId = item.parentProductId ?? item.rewardSource?.parentProductId;
+          if (parentId) {
+            return activeBaseIds.has(String(parentId));
+          }
+          return false;
+        }
+        return item.quantity > 0;
+      });
       
       return {
         ...state,
         items: updatedItems,
         total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+        appliedDeals: state.appliedDeals,
       };
     }
     
@@ -184,6 +267,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         total: action.payload.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         itemCount: action.payload.items.reduce((sum, item) => sum + item.quantity, 0),
         appliedGiftCards: action.payload.appliedGiftCards,
+        appliedDeals: action.payload.appliedDeals ?? [],
       };
 
     case 'APPLY_GIFT_CARD': {
@@ -217,6 +301,37 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ...state,
         appliedGiftCards: [],
       };
+    
+    case 'SYNC_REWARDS': {
+      const nonRewardItems = state.items.filter(item => !item.isReward);
+      const rewardItems: CartItem[] = action.payload.rewards.map(reward => ({
+        id: reward.id,
+        name: reward.name,
+        brand: reward.brand,
+        sku: reward.sku,
+        price: reward.price,
+        image: reward.image || '',
+        quantity: reward.quantity,
+        productType: reward.productType,
+        metadata: undefined,
+        giftCardDetails: undefined,
+        options: undefined,
+        subscription: undefined,
+        isReward: true,
+        rewardSource: reward.rewardSource,
+        parentProductId: reward.rewardSource.parentProductId,
+      }));
+
+      const updatedItems = [...nonRewardItems, ...rewardItems];
+
+      return {
+        ...state,
+        items: updatedItems,
+        total: updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: updatedItems.reduce((sum, item) => sum + item.quantity, 0),
+        appliedDeals: action.payload.appliedDeals,
+      };
+    }
     
     default:
       return state;
@@ -262,12 +377,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               total: 0,
               itemCount: 0,
               appliedGiftCards: [],
+              appliedDeals: [],
             },
           });
         } else if (parsed && typeof parsed === 'object') {
           const items = Array.isArray(parsed.items) ? parsed.items : [];
           const appliedGiftCards = Array.isArray(parsed.appliedGiftCards)
             ? parsed.appliedGiftCards
+            : [];
+          const appliedDeals = Array.isArray(parsed.appliedDeals)
+            ? parsed.appliedDeals
             : [];
 
           dispatch({
@@ -277,6 +396,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               total: 0,
               itemCount: 0,
               appliedGiftCards,
+              appliedDeals,
             },
           });
         }
@@ -299,9 +419,102 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const serializedState = JSON.stringify({
       items: state.items,
       appliedGiftCards: state.appliedGiftCards,
+      appliedDeals: state.appliedDeals,
     });
     localStorage.setItem(cartKey, serializedState);
   }, [state.items, state.appliedGiftCards, session?.user?.id, isPending]);
+
+  const rewardSyncSignatureRef = useRef<string>('');
+
+  useEffect(() => {
+    if (isPending) return;
+
+    const baseItems = state.items.filter(item => !item.isReward);
+    const signature = JSON.stringify(
+      baseItems.map(item => ({
+        id: item.id,
+        sku: item.sku,
+        quantity: item.quantity,
+        price: item.price,
+      }))
+    );
+
+    if (signature === rewardSyncSignatureRef.current) {
+      return;
+    }
+    rewardSyncSignatureRef.current = signature;
+
+    if (baseItems.length === 0) {
+      dispatch({
+        type: 'SYNC_REWARDS',
+        payload: {
+          rewards: [],
+          appliedDeals: [],
+        },
+      });
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const payload = {
+      items: baseItems.map(item => ({
+        productId: item.id,
+        sku: item.sku,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      subtotal: baseItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    };
+
+    (async () => {
+      try {
+        const response = await fetch('/api/cart/rewards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to sync rewards');
+        }
+
+        const data = await response.json();
+        if (data?.success) {
+          dispatch({
+            type: 'SYNC_REWARDS',
+            payload: {
+              rewards: data.rewards || [],
+              appliedDeals: data.appliedDeals || [],
+            },
+          });
+        } else {
+          dispatch({
+            type: 'SYNC_REWARDS',
+            payload: {
+              rewards: [],
+              appliedDeals: [],
+            },
+          });
+        }
+      } catch (error) {
+        if ((error as any)?.name === 'AbortError') {
+          return;
+        }
+        console.error('Cart reward sync failed:', error);
+        dispatch({
+          type: 'SYNC_REWARDS',
+          payload: {
+            rewards: [],
+            appliedDeals: [],
+          },
+        });
+      }
+    })();
+
+    return () => controller.abort();
+  }, [state.items, isPending, dispatch]);
 
   return (
     <CartContext.Provider value={{ state, dispatch }}>

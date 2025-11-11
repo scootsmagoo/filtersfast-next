@@ -60,7 +60,7 @@ export function createOrder(data: CreateOrderRequest): Order {
       subtotal, discount_amount, shipping_cost, tax_amount, total,
       shipping_address, billing_address,
       payment_method, payment_intent_id, transaction_id,
-      promo_code, promo_discount,
+      promo_code, promo_discount, applied_deals,
       donation_amount, donation_charity_id,
       is_subscription, subscription_id,
       is_b2b, b2b_account_id, purchase_order_number,
@@ -70,7 +70,7 @@ export function createOrder(data: CreateOrderRequest): Order {
       ?, ?, ?, ?, ?, ?,
       'pending', ?, ?,
       ?, ?, ?, ?, ?,
-      ?, ?,
+      ?, ?, ?,
       ?, ?, ?,
       ?, ?,
       ?, ?,
@@ -102,6 +102,7 @@ export function createOrder(data: CreateOrderRequest): Order {
     data.transaction_id || null,
     data.promo_code || null,
     data.promo_discount || 0,
+    JSON.stringify(data.applied_deals ?? []),
     data.donation_amount || 0,
     data.donation_charity_id || null,
     data.is_subscription ? 1 : 0,
@@ -311,6 +312,11 @@ export function updateOrder(order_id: string, data: UpdateOrderRequest, admin_id
   if (data.internal_notes !== undefined) {
     updates.push('internal_notes = ?')
     values.push(data.internal_notes)
+  }
+
+  if (data.applied_deals !== undefined) {
+    updates.push('applied_deals = ?')
+    values.push(JSON.stringify(data.applied_deals ?? []))
   }
 
   if (data.shipping_address) {
@@ -832,6 +838,7 @@ function formatOrderRow(row: any): Order {
     delivered_at: row.delivered_at,
     promo_code: row.promo_code,
     promo_discount: row.promo_discount,
+    applied_deals: row.applied_deals ? JSON.parse(row.applied_deals) : [],
     donation_amount: row.donation_amount,
     donation_charity_id: row.donation_charity_id,
     is_subscription: Boolean(row.is_subscription),

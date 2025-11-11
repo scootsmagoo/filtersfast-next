@@ -52,6 +52,7 @@ try {
       -- Discount & Promo
       promo_code TEXT,
       promo_discount REAL NOT NULL DEFAULT 0,
+      applied_deals TEXT,
       
       -- Donation
       donation_amount REAL NOT NULL DEFAULT 0,
@@ -100,6 +101,16 @@ try {
     CREATE INDEX IF NOT EXISTS idx_orders_is_subscription ON orders(is_subscription);
   `);
   console.log('✅ Created orders indexes');
+
+  const orderColumns = mainDb.prepare(`PRAGMA table_info(orders)`).all() as Array<{ name: string }>;
+  const orderColumnNames = orderColumns.map(column => column.name);
+
+  if (!orderColumnNames.includes('applied_deals')) {
+    console.log('ℹ️ Adding applied_deals column to orders table...');
+    mainDb.exec(`ALTER TABLE orders ADD COLUMN applied_deals TEXT`);
+  }
+
+  mainDb.exec(`UPDATE orders SET applied_deals = '[]' WHERE applied_deals IS NULL`);
 
   // Order Items Table
   mainDb.exec(`

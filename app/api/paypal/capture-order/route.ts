@@ -179,6 +179,15 @@ export async function POST(request: NextRequest) {
         const sanitizedEmail = DOMPurify.sanitize(orderData.customerEmail || payer?.email_address || '').substring(0, 255);
         const sanitizedName = DOMPurify.sanitize(orderData.customerName || `${payer?.name?.given_name || ''} ${payer?.name?.surname || ''}`.trim()).substring(0, 255);
         
+        const appliedDeals = Array.isArray(orderData.appliedDeals)
+          ? orderData.appliedDeals.slice(0, 20).map((deal: any) => {
+              const id = Number(deal?.id)
+              if (!Number.isFinite(id)) return null
+              const description = DOMPurify.sanitize(String(deal?.description || '')).substring(0, 200)
+              return { id, description }
+            }).filter(Boolean) as Array<{ id: number; description: string }>
+          : []
+
         const orderRequest: CreateOrderRequest = {
           customer_email: sanitizedEmail,
           customer_name: sanitizedName,
@@ -220,6 +229,7 @@ export async function POST(request: NextRequest) {
           ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
           user_agent: request.headers.get('user-agent')?.substring(0, 500) || null,
           source: 'web',
+          applied_deals: appliedDeals,
         };
 
         dbOrder = createOrder(orderRequest);

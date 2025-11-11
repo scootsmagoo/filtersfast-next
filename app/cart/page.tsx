@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -10,14 +10,11 @@ import Card from '@/components/ui/Card';
 import IdMeVerificationButton from '@/components/idme/IdMeVerificationButton';
 import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package, Gift, Tag } from 'lucide-react';
-import type { Deal } from '@/lib/types/deal';
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart } = useCart();
+  const { items, total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart, appliedDeals } = useCart();
   const [removingId, setRemovingId] = useState<number | null>(null);
-  const [applicableDeal, setApplicableDeal] = useState<Deal | null>(null);
-  const [loadingDeal, setLoadingDeal] = useState(false);
 
   const handleRemoveItem = (id: number) => {
     setRemovingId(id);
@@ -58,30 +55,9 @@ export default function CartPage() {
   };
 
   const { subtotal, subscriptionDiscount, total: calculatedTotal } = calculateTotals();
+  const rewardItems = items.filter(item => item.isReward);
+  const activeDeal = appliedDeals[0] ?? null;
 
-  // Check for applicable deals when cart total changes
-  useEffect(() => {
-    const checkDeal = async () => {
-      if (calculatedTotal > 0) {
-        setLoadingDeal(true);
-        try {
-          const response = await fetch(`/api/deals/applicable?total=${calculatedTotal}`);
-          if (response.ok) {
-            const data = await response.json();
-            setApplicableDeal(data.success ? data.deal : null);
-          }
-        } catch (error) {
-          console.error('Error checking deals:', error);
-        } finally {
-          setLoadingDeal(false);
-        }
-      } else {
-        setApplicableDeal(null);
-      }
-    };
-
-    checkDeal();
-  }, [calculatedTotal]);
   const hasSubscriptions = items.some(item => item.subscription?.enabled);
 
   // Empty cart state
@@ -146,7 +122,7 @@ export default function CartPage() {
         </div>
 
         {/* Applicable Deal Banner */}
-        {applicableDeal && (
+        {rewardItems.length > 0 && (
           <Card 
             className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-300 dark:border-orange-700"
             role="alert"
@@ -162,13 +138,19 @@ export default function CartPage() {
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2">
                   <Tag className="w-5 h-5 text-orange-600 dark:text-orange-400" aria-hidden="true" />
-                  Special Offer Applied!
+                  {activeDeal ? 'Special Offer Applied!' : 'Free Gift Added!'}
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 mb-2">
-                  Your cart qualifies for our <strong>{applicableDeal.dealdiscription}</strong> deal!
+                  {activeDeal ? (
+                    <>
+                      Your cart qualifies for <strong>{activeDeal.description}</strong>.
+                    </>
+                  ) : (
+                    <>You've unlocked a complimentary reward with your purchase.</>
+                  )}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  You'll receive <strong>{applicableDeal.units} free {applicableDeal.units === 1 ? 'product' : 'products'}</strong> when you checkout!
+                  {rewardItems.map(item => `${item.name} (x${item.quantity})`).join(', ')}
                 </p>
                 <Link href="/deals">
                   <Button variant="secondary" size="sm" className="flex items-center gap-2">
@@ -182,7 +164,7 @@ export default function CartPage() {
         )}
 
         {/* Deal Notification - Close to qualifying */}
-        {!applicableDeal && calculatedTotal > 0 && (
+        {rewardItems.length === 0 && calculatedTotal > 0 && (
           <Card className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -205,169 +187,210 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card
-                key={item.id}
-                className={`p-6 transition-all duration-300 ${
-                  removingId === item.id ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                }`}
-              >
-                <div className="flex gap-4">
+            {items.map((item) => {
+              const isReward = Boolean(item.isReward);
+              return (
+                <Card
+                  key={item.id}
+                  className={`p-6 transition-all duration-300 ${
+                    removingId === item.id ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                  } ${isReward ? 'border border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20' : ''}`}
+                >
+                  <div className="flex gap-4">
                   {/* Product Image */}
                   <div className="flex-shrink-0">
                     <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden transition-colors">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate transition-colors">
-                          {item.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">{item.brand}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">SKU: {item.sku}</p>
-                        {/* Display selected options */}
-                        {item.options && Object.keys(item.options).length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {Object.entries(item.options).map(([groupId, optionId]) => (
-                              <p key={groupId} className="text-xs text-gray-500 dark:text-gray-400">
-                                Option: {optionId}
-                              </p>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    {/* Quantity and Price */}
-                    <div className="flex items-center justify-between mt-4">
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 dark:text-gray-300 font-medium transition-colors">Qty:</span>
-                        <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg transition-colors">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          
-                          <input
-                            type="number"
-                            min="1"
-                            max="99"
-                            value={item.quantity}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              if (!isNaN(value) && value > 0 && value <= 99) {
-                                updateQuantity(item.id, value);
-                              }
-                            }}
-                            className="w-16 text-center border-x border-gray-300 dark:border-gray-600 py-2 focus:outline-none bg-transparent text-gray-900 dark:text-gray-100"
-                          />
-                          
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= 99}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
-                          ${item.price.toFixed(2)} each
-                        </p>
-                        <p className="text-lg font-bold text-brand-orange">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Subscribe & Save Section */}
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 transition-colors">
-                        Subscribe & Save
-                      </h4>
-                      <div className="flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          id={`subscribe-${item.id}`}
-                          checked={item.subscription?.enabled || false}
-                          onChange={(e) => {
-                            updateSubscription(item.id, e.target.checked ? {
-                              enabled: true,
-                              frequency: item.subscription?.frequency || 6
-                            } : undefined);
-                          }}
-                          className="mt-1 w-4 h-4 text-brand-orange focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 border-gray-300 rounded"
-                          aria-describedby={`subscribe-${item.id}-description`}
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover"
                         />
-                        <label 
-                          htmlFor={`subscribe-${item.id}`}
-                          className="flex-1 text-sm text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+                      ) : (
+                        <div
+                          role="img"
+                          aria-label={`${item.name} product image not available`}
+                          className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500"
                         >
-                          Subscribe to this product and get 5% off, plus FREE Shipping on all orders! (US Only)
-                        </label>
-                        <span id={`subscribe-${item.id}-description`} className="sr-only">
-                          Enable subscription to save 5% and get free shipping on this item
-                        </span>
-                      </div>
-                      
-                      {/* Frequency Selector (shown if subscription enabled) */}
-                      {item.subscription?.enabled && (
-                        <div className="mt-3 flex items-center gap-2">
-                          <label htmlFor={`frequency-${item.id}`} className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
-                            Ship Every
-                          </label>
-                          <select
-                            id={`frequency-${item.id}`}
-                            value={item.subscription.frequency}
-                            onChange={(e) => {
-                              updateSubscription(item.id, {
-                                enabled: true,
-                                frequency: parseInt(e.target.value)
-                              });
-                            }}
-                            className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-orange focus:border-brand-orange transition-colors"
-                            aria-label="Select subscription delivery frequency"
-                          >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(months => (
-                              <option key={months} value={months}>
-                                {months} month{months > 1 ? 's' : ''} {months === 6 ? '(recommended)' : ''}
-                              </option>
-                            ))}
-                          </select>
+                          <Package className="w-8 h-8" aria-hidden="true" />
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+
+                    {/* Product Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate transition-colors">
+                            {item.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">{item.brand}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">SKU: {item.sku}</p>
+                          {isReward && (
+                            <>
+                              <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-300 text-xs font-semibold mt-2">
+                                Free Gift
+                              </span>
+                              <p className="sr-only">
+                                This promotional item is automatically added and will be removed if its qualifying product is removed.
+                              </p>
+                            </>
+                          )}
+                          {/* Display selected options */}
+                          {item.options && Object.keys(item.options).length > 0 && !isReward && (
+                            <div className="mt-2 space-y-1">
+                              {Object.entries(item.options).map(([groupId, optionId]) => (
+                                <p key={groupId} className="text-xs text-gray-500 dark:text-gray-400">
+                                  Option: {optionId}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {!isReward && (
+                          <button
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Quantity and Price */}
+                      <div className="flex items-center justify-between mt-4">
+                        {/* Quantity Controls */}
+                        {isReward ? (
+                          <div className="text-sm font-medium text-green-600 dark:text-green-400">
+                            Quantity: {item.quantity}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-600 dark:text-gray-300 font-medium transition-colors">Qty:</span>
+                            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg transition-colors">
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              
+                              <input
+                                type="number"
+                                min="1"
+                                max="99"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (!isNaN(value) && value > 0 && value <= 99) {
+                                    updateQuantity(item.id, value);
+                                  }
+                                }}
+                                className="w-16 text-center border-x border-gray-300 dark:border-gray-600 py-2 focus:outline-none bg-transparent text-gray-900 dark:text-gray-100"
+                              />
+                              
+                              <button
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                disabled={item.quantity >= 99}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Price */}
+                        <div className="text-right">
+                          {isReward ? (
+                            <p className="text-sm font-semibold text-green-600 dark:text-green-400 transition-colors">
+                              FREE
+                            </p>
+                          ) : (
+                            <>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
+                                ${item.price.toFixed(2)} each
+                              </p>
+                              <p className="text-lg font-bold text-brand-orange">
+                                ${(item.price * item.quantity).toFixed(2)}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Subscribe & Save Section */}
+                      {!isReward && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 transition-colors">
+                            Subscribe & Save
+                          </h4>
+                          <div className="flex items-start gap-2">
+                            <input
+                              type="checkbox"
+                              id={`subscribe-${item.id}`}
+                              checked={item.subscription?.enabled || false}
+                              onChange={(e) => {
+                                updateSubscription(item.id, e.target.checked ? {
+                                  enabled: true,
+                                  frequency: item.subscription?.frequency || 6
+                                } : undefined);
+                              }}
+                              className="mt-1 w-4 h-4 text-brand-orange focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 border-gray-300 rounded"
+                              aria-describedby={`subscribe-${item.id}-description`}
+                            />
+                            <label 
+                              htmlFor={`subscribe-${item.id}`}
+                              className="flex-1 text-sm text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+                            >
+                              Subscribe to this product and get 5% off, plus FREE Shipping on all orders! (US Only)
+                            </label>
+                            <span id={`subscribe-${item.id}-description`} className="sr-only">
+                              Enable subscription to save 5% and get free shipping on this item
+                            </span>
+                          </div>
+                          
+                          {/* Frequency Selector (shown if subscription enabled) */}
+                          {item.subscription?.enabled && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <label htmlFor={`frequency-${item.id}`} className="text-sm text-gray-700 dark:text-gray-300 transition-colors">
+                                Ship Every
+                              </label>
+                              <select
+                                id={`frequency-${item.id}`}
+                                value={item.subscription.frequency}
+                                onChange={(e) => {
+                                  updateSubscription(item.id, {
+                                    enabled: true,
+                                    frequency: parseInt(e.target.value)
+                                  });
+                                }}
+                                className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-orange focus:border-brand-orange transition-colors"
+                                aria-label="Select subscription delivery frequency"
+                              >
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(months => (
+                                  <option key={months} value={months}>
+                                    {months} month{months > 1 ? 's' : ''} {months === 6 ? '(recommended)' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Order Summary */}
@@ -417,6 +440,26 @@ export default function CartPage() {
                   <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors">Calculated at checkout</span>
                 </div>
               </div>
+
+              {rewardItems.length > 0 && (
+                <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg transition-colors">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-300 transition-colors">
+                    Free gifts in your cart:
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-green-700 dark:text-green-200">
+                    {rewardItems.map(item => (
+                      <li key={`summary-${item.id}`}>
+                        {item.name} <span className="text-xs">x{item.quantity}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {appliedDeals.length > 0 && (
+                    <p className="mt-2 text-xs text-green-700 dark:text-green-300 transition-colors">
+                      Triggered by: {appliedDeals.map(deal => deal.description).join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
               
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6 transition-colors">
                 <div className="flex justify-between items-center">

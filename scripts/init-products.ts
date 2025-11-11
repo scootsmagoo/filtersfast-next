@@ -97,6 +97,11 @@ try {
       -- Subscription
       subscription_eligible INTEGER DEFAULT 1,
       subscription_discount REAL DEFAULT 5.0,
+
+      -- Gift With Purchase
+      gift_with_purchase_product_id TEXT,
+      gift_with_purchase_quantity INTEGER NOT NULL DEFAULT 1,
+      gift_with_purchase_auto_add INTEGER NOT NULL DEFAULT 1,
       
       -- Related Products (JSON arrays)
       related_product_ids TEXT,
@@ -120,6 +125,27 @@ try {
       revenue REAL DEFAULT 0
     );
   `);
+
+  const productColumns = db.prepare(`PRAGMA table_info(products)`).all() as Array<{ name: string }>;
+  const productColumnNames = productColumns.map(column => column.name);
+
+  if (!productColumnNames.includes('gift_with_purchase_product_id')) {
+    console.log('Adding gift_with_purchase_product_id column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN gift_with_purchase_product_id TEXT`);
+  }
+
+  if (!productColumnNames.includes('gift_with_purchase_quantity')) {
+    console.log('Adding gift_with_purchase_quantity column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN gift_with_purchase_quantity INTEGER NOT NULL DEFAULT 1`);
+  }
+
+  if (!productColumnNames.includes('gift_with_purchase_auto_add')) {
+    console.log('Adding gift_with_purchase_auto_add column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN gift_with_purchase_auto_add INTEGER NOT NULL DEFAULT 1`);
+  }
+
+  db.exec(`UPDATE products SET gift_with_purchase_quantity = 1 WHERE gift_with_purchase_quantity IS NULL`);
+  db.exec(`UPDATE products SET gift_with_purchase_auto_add = 1 WHERE gift_with_purchase_auto_add IS NULL`);
 
   // ============================================================================
   // PRODUCT CATEGORIES TABLE

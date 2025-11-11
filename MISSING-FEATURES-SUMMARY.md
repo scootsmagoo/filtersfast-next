@@ -6,7 +6,8 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 
 ## Remaining gaps (legacy-only functionality)
 
-- _None outstanding._ The previously missing Azure Key Vault monitoring experience now exists in FiltersFast-Next.
+- Per-product purchase ceilings enforced via `maxCartQty` in legacy carts are absent; the Next.js cart allows 1–99 units universally.
+- Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts are still missing from the modern product model.
 
 ---
 
@@ -18,6 +19,7 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 
 ## Recent parity wins (validated Nov 11, 2025)
 
+- Gift-with-purchase automation with auto-added reward SKUs, product/deal configuration, accessible cart UX, and applied deal tracking.
 - Payment failover across Stripe + PayPal + Authorize.Net + CyberSource with tiered legacy parity fallback.
 - Azure Key Vault secret monitor with expiry dashboards and rotation guidance (`/admin/utilities/key-vault` + `/api/admin/utilities/key-vault`).
 - Multi-carrier shipping admin (`/admin/shipping`) providing UPS/USPS/FedEx/DHL/Canada Post labels and history.
@@ -28,5 +30,5 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 
 ## Feature parity score
 
-- **≈96%** (115 of 120 tracked legacy capabilities). Closing the two items above would bring FiltersFast-Next to complete functional parity with the production ASP site.
+- **≈98%** (118 of 120 tracked legacy capabilities). Closing the two remaining items above would bring FiltersFast-Next to complete functional parity with the production ASP site.
 

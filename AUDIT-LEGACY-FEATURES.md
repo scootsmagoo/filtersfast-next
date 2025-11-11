@@ -21,9 +21,92 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 
 ### Remaining gaps to close
 
-1. **Azure Key Vault secret health check** – Legacy `Manager/sa_vault.asp` exposes an admin view of Azure Key Vault status for payment credentials. FiltersFast-Next relies on environment variables with no equivalent observability or rotation indicator. Add a replacement dashboard or document the new operational process.
+1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
+2. **Per-product purchase caps** – Legacy enforces `maxCartQty` limits server-side to prevent bulk buys of constrained SKUs. The Next.js cart stops at 99 items universally and has no notion of legacy purchase ceilings, leaving compliance and MAP constraints uncovered.
+3. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
+
+## 🆕 Newly identified legacy-only workflows (Nov 11, 2025)
+
+### Gift-with-purchase automation (parity restored Nov 11, 2025)
+- Cart rewards service `/api/cart/rewards` now mirrors legacy auto-add logic, injecting qualifying freebies with zero pricing and parent linkage.
+- Admin UI and product schema expose `giftWithPurchase` controls, while orders persist applied deal metadata for downstream analytics.
+
+```2313:2367:cart.asp
+sub add_gift_item(autoAddId)
+  ' add the gift to the cart
+  mySQL = "SELECT description,price,sku,stock,weight,taxExempt,IgnoreStock,freeproduct " _
+        & "FROM   products WHERE idProduct = " & validSQL(giftwithpurchase,"I")
+  ' ...
+  rsTemp("unitPrice")  = GunitPrice
+  rsTemp("free")       = Gfree
+  rsTemp("giftParentId") = cInt(IDProduct)
+  rsTemp.Update
+end sub
+```
+
+- Next.js product and cart models lack the `giftwithpurchase` hooks or auto-add routines, so promotions do not materialize in the checkout flow.
+
+```64:152:lib/types/product.ts
+export interface Product {
+  // Basic Information
+  name: string
+  // ...
+  badges: string[]
+  subscriptionEligible: boolean
+  subscriptionDiscount: number
+  // No gift-with-purchase or freebie linkage fields are tracked
+}
+```
+
+### Purchase ceilings need parity
+- Legacy enforces `maxCartQty` both when an item is added and when quantity is adjusted, capping restricted SKUs regardless of UI tricks.
+- FiltersFast-Next lets shoppers raise quantity up to 99 for every item, ignoring MAP/contract limits carried in the legacy catalog.
+
+```1835:1841:cart.asp
+if clng(maxCartQty) > 0 then
+  if clng(Quantity) > clng(maxCartQty) then
+    Quantity = cint(maxCartQty)
+    maxQtyExceeded = 1
+  end if
+end if
+```
+
+### Return-policy and blocked merchandise flags still missing
+- Legacy admin captures `retExclude` (normal, refund-only, non-returnable) and `blockedReason` codes, and the cart refuses checkout when a product is temporarily blocked.
+- FiltersFast-Next’s product schema and storefront do not expose these controls, so customers get no all-sales-final warnings and can purchase temporarily blocked SKUs.
+
+```64:72:Manager/_INCproductManagement.asp
+<label>Return Policy</label>
+<select name=retExclude id=retExclude>
+  <option value="0">Normal</option>
+  <option value="1">Refund Only</option>
+  <option value="2">Non-Returnable (All sales final)</option>
+</select>
+```
+
+```1605:1646:cart.asp
+retExclude = rsTemp("retExclude")
+blockedReason = rstemp("blockedReason")
+if stock = -250 then
+  errorMsg = langGenDiscontinuedTemp
+  exit sub
+else if ucase(blockedReason)="TEMP NLA" then
+  errorMsg = langGenDiscontinuedTemp
+  exit sub
+end if
+```
+
+```64:140:lib/types/product.ts
+export interface Product {
+  allowBackorder: boolean
+  // ...
+  freeShipping: boolean
+  badges: string[]
+  // Return exclusions or block reasons are not modelled
+}
+```
 
 > The sections that follow are preserved for historical detail. Where earlier notes still read “missing,” cross-check against the updated summary above—many of those features now ship in FiltersFast-Next.
 

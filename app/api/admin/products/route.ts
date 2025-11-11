@@ -220,14 +220,36 @@ export async function POST(request: NextRequest) {
       madeInUSA: z.boolean().default(false),
       freeShipping: z.boolean().default(false),
       subscriptionEligible: z.boolean().default(true),
-      subscriptionDiscount: z.number().min(0).max(100).default(5)
+      subscriptionDiscount: z.number().min(0).max(100).default(5),
+      giftWithPurchaseProductId: z.string().max(100).nullable().optional(),
+      giftWithPurchaseQuantity: z.number().int().min(1).max(1000).default(1),
+      giftWithPurchaseAutoAdd: z.boolean().default(true)
     });
 
     const validatedData = schema.parse(body);
 
+    const normalizedData: ProductFormData = {
+      ...validatedData,
+      giftWithPurchaseProductId: validatedData.giftWithPurchaseProductId && validatedData.giftWithPurchaseProductId.trim().length > 0
+        ? validatedData.giftWithPurchaseProductId.trim()
+        : null,
+      giftWithPurchaseQuantity: validatedData.giftWithPurchaseProductId
+        ? validatedData.giftWithPurchaseQuantity
+        : 1,
+      giftWithPurchaseAutoAdd: validatedData.giftWithPurchaseProductId
+        ? validatedData.giftWithPurchaseAutoAdd
+        : false
+    };
+
+    if (normalizedData.type === 'gift-card') {
+      normalizedData.giftWithPurchaseProductId = null;
+      normalizedData.giftWithPurchaseQuantity = 1;
+      normalizedData.giftWithPurchaseAutoAdd = false;
+    }
+
     // Create product
     const product = createProduct(
-      validatedData as ProductFormData,
+      normalizedData,
       session.user.id,
       session.user.name || session.user.email
     );

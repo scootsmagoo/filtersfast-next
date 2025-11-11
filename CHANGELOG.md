@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-11-11
+- **Gift-with-Purchase Auto Fulfillment** 🎁
+  - New `/api/cart/rewards` service inspects active cart items and injects promotional reward SKUs with zero pricing, mirroring legacy `cart.asp` behavior.
+  - Cart state tracks `appliedDeals`, persists them in localStorage, and auto-syncs rewards via the cart context; free gifts render with dedicated styling and removal safeguards.
+  - Admin tooling now supports configuring reward SKUs and auto-add flags on both products (`giftWithPurchaseProductId` fields) and cart deals (reward SKU lists with quantity parsing).
+  - Orders persist applied promotions via a new `applied_deals` column, enabling downstream analytics and audit of which deals generated free gifts.
+
 ### Added - 2025-11-10
 - **Automatic Currency Detection & Locale Handoff** 🌍
   - Middleware now seeds a secure `ff_currency` cookie using Cloudflare/Vercel geo headers for hydration-safe defaults.

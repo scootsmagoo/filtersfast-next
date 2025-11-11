@@ -91,6 +91,7 @@ export interface Order {
   // Discount & Promo
   promo_code: string | null
   promo_discount: number
+  applied_deals?: Array<{ id: number; description: string }>
   
   // Donation
   donation_amount: number
@@ -271,6 +272,7 @@ export interface CreateOrderRequest {
   // Optional
   promo_code?: string
   promo_discount?: number
+  applied_deals?: Array<{ id: number; description: string }>
   donation_amount?: number
   donation_charity_id?: string
   customer_notes?: string
@@ -311,6 +313,7 @@ export interface UpdateOrderRequest {
   // Address Updates (only allow before shipping)
   shipping_address?: ShippingAddress
   billing_address?: ShippingAddress
+  applied_deals?: Array<{ id: number; description: string }>
 }
 
 export interface OrderFilters {

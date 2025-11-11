@@ -128,6 +128,11 @@ export interface Product {
   // Subscription
   subscriptionEligible: boolean
   subscriptionDiscount: number  // Percentage off for subscribe & save
+
+  // Gift With Purchase
+  giftWithPurchaseProductId: string | null
+  giftWithPurchaseQuantity: number
+  giftWithPurchaseAutoAdd: boolean
   
   // Related Products
   relatedProductIds: string[]
@@ -207,6 +212,11 @@ export interface ProductFormData {
   freeShipping: boolean
   subscriptionEligible: boolean
   subscriptionDiscount: number
+
+  // Gift With Purchase
+  giftWithPurchaseProductId: string | null
+  giftWithPurchaseQuantity: number
+  giftWithPurchaseAutoAdd: boolean
 }
 
 export interface ProductFilters {

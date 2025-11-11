@@ -7,7 +7,8 @@ import Database from 'better-sqlite3';
 import { join } from 'path';
 import type { 
   Deal, 
-  DealFormData
+  DealFormData,
+  DealRewardSku
 } from '../types/deal';
 
 const dbPath = join(process.cwd(), 'filtersfast.db');
@@ -20,6 +21,86 @@ function getDb() {
   initializeTables(db);
   
   return db;
+}
+
+function parseRewardSkus(input?: string): DealRewardSku[] {
+  if (!input) return [];
+  return input
+    .split(/\r?\n|,/)
+    .map(entry => entry.trim())
+    .filter(Boolean)
+    .map(entry => {
+      let working = entry;
+      let priceOverride: number | null = null;
+      let quantity = 1;
+
+      const atParts = working.split('@').map(part => part.trim());
+      if (atParts.length > 1) {
+        working = atParts[0];
+        const parsedPrice = parseFloat(atParts[1]);
+        if (Number.isFinite(parsedPrice) && parsedPrice >= 0) {
+          priceOverride = Math.min(parsedPrice, 999999.99);
+        }
+      }
+
+      const qtyMatch = working.match(/(.+?)(?:\*|x)(\d+)$/i);
+      if (qtyMatch) {
+        working = qtyMatch[1].trim();
+        const parsedQty = parseInt(qtyMatch[2], 10);
+        if (!isNaN(parsedQty) && parsedQty > 0) {
+          quantity = parsedQty;
+        }
+      }
+
+      const sku = working.trim();
+      if (!sku) {
+        return null;
+      }
+
+      const sanitizedSku = sku.replace(/[^A-Za-z0-9._\-]/g, '').substring(0, 100);
+      if (!sanitizedSku) {
+        return null;
+      }
+
+      return {
+        sku: sanitizedSku,
+        quantity: Math.min(Math.max(quantity, 1), 100),
+        priceOverride,
+      } as DealRewardSku;
+    })
+    .filter((reward): reward is DealRewardSku => Boolean(reward));
+}
+
+function deserializeRewardSkus(raw: string | null): DealRewardSku[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map(item => {
+        if (!item || typeof item !== 'object') return null;
+        const rawSku = typeof item.sku === 'string' ? item.sku.trim() : '';
+        const sanitizedSku = rawSku.replace(/[^A-Za-z0-9._\-]/g, '').substring(0, 100);
+        const quantity = typeof item.quantity === 'number' && item.quantity > 0
+          ? Math.floor(item.quantity)
+          : 1;
+        const priceOverride =
+          typeof item.priceOverride === 'number' && item.priceOverride >= 0
+            ? Math.min(item.priceOverride, 999999.99)
+            : null;
+        if (!sanitizedSku) return null;
+        return {
+          sku: sanitizedSku,
+          quantity: Math.min(Math.max(quantity, 1), 100),
+          priceOverride,
+        } as DealRewardSku;
+      })
+      .filter((reward): reward is DealRewardSku => Boolean(reward));
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -46,7 +127,9 @@ function initializeTables(db: Database.Database) {
           validFrom INTEGER,
           validTo INTEGER,
           createdAt INTEGER NOT NULL,
-          updatedAt INTEGER NOT NULL
+          updatedAt INTEGER NOT NULL,
+          reward_skus TEXT,
+          reward_auto_add INTEGER NOT NULL DEFAULT 1
         );
         
         CREATE INDEX IF NOT EXISTS idx_deal_active ON deal(active);
@@ -54,6 +137,17 @@ function initializeTables(db: Database.Database) {
         CREATE INDEX IF NOT EXISTS idx_deal_validTo ON deal(validTo);
         CREATE INDEX IF NOT EXISTS idx_deal_price_range ON deal(startprice, endprice);
       `);
+    }
+
+    const dealColumns = db.prepare(`PRAGMA table_info(deal)`).all() as Array<{ name: string }>;
+    const columnNames = dealColumns.map(column => column.name);
+
+    if (!columnNames.includes('reward_skus')) {
+      db.exec(`ALTER TABLE deal ADD COLUMN reward_skus TEXT`);
+    }
+
+    if (!columnNames.includes('reward_auto_add')) {
+      db.exec(`ALTER TABLE deal ADD COLUMN reward_auto_add INTEGER NOT NULL DEFAULT 1`);
     }
   } catch (error) {
     console.error('Error initializing deals table:', error);
@@ -85,6 +179,8 @@ function formDataToDeal(data: DealFormData, existingDeal?: Deal): Partial<Deal> 
     units: Math.max(0, Math.min(999, data.units)),
     active: data.active ?? 1,
     updatedAt: now,
+    rewardSkus: parseRewardSkus(data.rewardSkus).slice(0, 20),
+    rewardAutoAdd: data.rewardAutoAdd === 0 ? 0 : 1,
   };
 
   // Convert ISO date strings to timestamps with validation
@@ -131,6 +227,8 @@ function rowToDeal(row: any): Deal {
     validTo: row.validTo,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    rewardSkus: deserializeRewardSkus(row.reward_skus),
+    rewardAutoAdd: row.reward_auto_add ?? 1,
   };
 }
 
@@ -256,8 +354,10 @@ export function createDeal(data: DealFormData): Deal {
         validFrom,
         validTo,
         createdAt,
-        updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        updatedAt,
+        reward_skus,
+        reward_auto_add
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     const result = stmt.run(
@@ -269,7 +369,9 @@ export function createDeal(data: DealFormData): Deal {
       deal.validFrom,
       deal.validTo,
       deal.createdAt,
-      deal.updatedAt
+      deal.updatedAt,
+      JSON.stringify(deal.rewardSkus ?? []),
+      deal.rewardAutoAdd ?? 1
     );
     
     const newDeal = getDealById(result.lastInsertRowid as number);
@@ -308,7 +410,9 @@ export function updateDeal(iddeal: number, data: DealFormData): Deal {
         active = ?,
         validFrom = ?,
         validTo = ?,
-        updatedAt = ?
+        updatedAt = ?,
+        reward_skus = ?,
+        reward_auto_add = ?
       WHERE iddeal = ?
     `);
     
@@ -321,6 +425,8 @@ export function updateDeal(iddeal: number, data: DealFormData): Deal {
       deal.validFrom,
       deal.validTo,
       deal.updatedAt,
+      JSON.stringify(deal.rewardSkus ?? []),
+      deal.rewardAutoAdd ?? existingDeal.rewardAutoAdd ?? 1,
       iddeal
     );
     

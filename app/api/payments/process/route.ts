@@ -366,6 +366,15 @@ export async function POST(request: NextRequest) {
     // Create order in database
     let order = null;
     try {
+      const appliedDeals = Array.isArray(body.applied_deals)
+        ? body.applied_deals.slice(0, 20).map((deal: any) => {
+            const id = Number(deal?.id)
+            if (!Number.isFinite(id)) return null
+            const description = DOMPurify.sanitize(String(deal?.description || '')).substring(0, 200)
+            return { id, description }
+          }).filter(Boolean) as Array<{ id: number; description: string }>
+        : []
+
       const orderRequest: CreateOrderRequest = {
         customer_email: body.customer_email,
         customer_name: body.customer_name || '',
@@ -427,6 +436,7 @@ export async function POST(request: NextRequest) {
         balance_after: gc.balanceAfter,
         redeemed_at: gc.redeemedAt,
       })),
+        applied_deals: appliedDeals,
       };
 
       order = createOrder(orderRequest);

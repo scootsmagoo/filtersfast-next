@@ -174,6 +174,18 @@ export async function POST(request: NextRequest) {
       customer_notes: body.customer_notes ? sanitize(body.customer_notes) : undefined,
     }
 
+  if (Array.isArray(body.applied_deals)) {
+    sanitizedData.applied_deals = body.applied_deals
+      .slice(0, 20)
+      .map((deal: any) => {
+        const id = Number(deal?.id)
+        if (!Number.isFinite(id)) return null
+        const description = sanitize(deal?.description || '').substring(0, 200)
+        return { id, description }
+      })
+      .filter(Boolean)
+  }
+
     // Create order
     const order = createOrder(sanitizedData)
 

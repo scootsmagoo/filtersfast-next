@@ -44,6 +44,8 @@ const dealSchema = z.object({
   active: z.number().int().min(0).max(1).optional(),
   validFrom: z.string().nullable().optional(),
   validTo: z.string().nullable().optional(),
+  rewardSkus: z.string().max(2000).optional(),
+  rewardAutoAdd: z.number().int().min(0).max(1).optional(),
 });
 
 /**

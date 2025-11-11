@@ -226,6 +226,21 @@ npm run dev
 
 ---
 
+### 🎉 GIFT-WITH-PURCHASE AUTO ADD – NEW!
+
+**Modernized free-gift automation that mirrors legacy cart rewards while staying API-first and accessible.**
+
+- ✅ **Auto-Injected Rewards**: `/api/cart/rewards` service evaluates cart SKUs and active deals, injects zero-priced reward items, and eliminates duplicate freebies.
+- ✅ **Product & Deal Controls**: Product editor exposes `giftWithPurchase` target/quantity/auto-toggle, while cart deals accept multi-SKU reward bundles with optional price overrides.
+- ✅ **Cart UX Enhancements**: Reward lines announce “Free Gift”, include non-visual guidance, and remain protected from manual deletion while qualifying items stay in the cart.
+- ✅ **Order Tracking**: Orders now persist `applied_deals` metadata so CX, finance, and analytics teams can trace which promotions fulfilled free goods.
+
+**Security & Accessibility:**
+- **OWASP Top 10 2021:** ✅ SKU sanitization, quantity/price clamping, rate-limited reward endpoint, and defensive JSON parsing.
+- **WCAG 2.1 Level AA:** ✅ Accessible “Free Gift” badges with screen-reader hints, fallback imagery, and preserved keyboard workflows.
+
+---
+
 ### 🔗 SKU COMPATIBILITY MANAGER - NEW!
 
 **Complete SKU compatibility management system - Product compatibility feature complete!**

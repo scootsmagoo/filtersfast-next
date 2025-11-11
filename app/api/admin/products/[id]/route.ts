@@ -156,15 +156,49 @@ export async function PATCH(
       madeInUSA: z.boolean().optional(),
       freeShipping: z.boolean().optional(),
       subscriptionEligible: z.boolean().optional(),
-      subscriptionDiscount: z.number().min(0).max(100).optional()
+      subscriptionDiscount: z.number().min(0).max(100).optional(),
+      giftWithPurchaseProductId: z.string().max(100).nullable().optional(),
+      giftWithPurchaseQuantity: z.number().int().min(1).max(1000).optional(),
+      giftWithPurchaseAutoAdd: z.boolean().optional()
     }).partial();
 
     const validatedData = schema.parse(body);
 
+    const normalizedData: Partial<ProductFormData> = {
+      ...validatedData
+    };
+
+    if (normalizedData.giftWithPurchaseProductId !== undefined) {
+      const raw = normalizedData.giftWithPurchaseProductId;
+      const trimmed = raw && raw.trim().length > 0 ? raw.trim() : null;
+      normalizedData.giftWithPurchaseProductId = trimmed;
+
+      if (!trimmed) {
+        normalizedData.giftWithPurchaseQuantity = 1;
+        normalizedData.giftWithPurchaseAutoAdd = false;
+      }
+    }
+
+    if (normalizedData.giftWithPurchaseQuantity !== undefined) {
+      normalizedData.giftWithPurchaseQuantity = Math.max(1, normalizedData.giftWithPurchaseQuantity);
+    }
+
+    const resultingType = normalizedData.type ?? existing.type;
+    if (resultingType === 'gift-card') {
+      normalizedData.giftWithPurchaseProductId = null;
+      normalizedData.giftWithPurchaseQuantity = 1;
+      normalizedData.giftWithPurchaseAutoAdd = false;
+    } else if (
+      normalizedData.giftWithPurchaseProductId &&
+      normalizedData.giftWithPurchaseAutoAdd === undefined
+    ) {
+      normalizedData.giftWithPurchaseAutoAdd = true;
+    }
+
     // Update product
     const product = updateProduct(
       id,
-      validatedData as Partial<ProductFormData>,
+      normalizedData,
       session.user.id,
       session.user.name || session.user.email
     );

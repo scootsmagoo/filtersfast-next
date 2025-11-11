@@ -95,6 +95,11 @@ function rowToProduct(row: any): Product {
     badges: safeJsonParse(row.badges, []),
     subscriptionEligible: Boolean(row.subscription_eligible),
     subscriptionDiscount: row.subscription_discount,
+    giftWithPurchaseProductId: row.gift_with_purchase_product_id ?? null,
+    giftWithPurchaseQuantity: row.gift_with_purchase_quantity ?? 1,
+    giftWithPurchaseAutoAdd: Boolean(
+      row.gift_with_purchase_auto_add === undefined ? 1 : row.gift_with_purchase_auto_add
+    ),
     relatedProductIds: safeJsonParse(row.related_product_ids, []),
     crossSellProductIds: safeJsonParse(row.cross_sell_product_ids, []),
     weight: row.weight,
@@ -350,6 +355,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         meta_title, meta_description, meta_keywords,
         is_featured, is_new, is_best_seller, made_in_usa, free_shipping, badges,
         subscription_eligible, subscription_discount,
+        gift_with_purchase_product_id, gift_with_purchase_quantity, gift_with_purchase_auto_add,
         related_product_ids, cross_sell_product_ids,
         weight, requires_shipping, shipping_class,
         created_at, updated_at, created_by, updated_by, published_at
@@ -360,6 +366,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?,
+        ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?, ?, ?,
         ?, ?,
@@ -390,6 +397,13 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       { url: data.primaryImage, alt: data.name, isPrimary: true, sortOrder: 0 }
     ]) : '[]';
 
+    const giftWithPurchaseProductIdRaw = data.giftWithPurchaseProductId?.trim() || null;
+    const normalizedGiftProductId = isGiftCard ? null : (giftWithPurchaseProductIdRaw || null);
+    const normalizedGiftQuantity =
+      normalizedGiftProductId ? Math.max(1, data.giftWithPurchaseQuantity ?? 1) : 1;
+    const normalizedGiftAutoAdd =
+      normalizedGiftProductId ? (data.giftWithPurchaseAutoAdd === false ? 0 : 1) : 0;
+
     stmt.run(
       id, data.name, slug, data.sku, data.brand, data.description, data.shortDescription,
       data.type, data.status,
@@ -406,6 +420,9 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       data.madeInUSA ? 1 : 0, isGiftCard ? 1 : (data.freeShipping ? 1 : 0), '[]',
       isGiftCard ? 0 : (data.subscriptionEligible ? 1 : 0),
       isGiftCard ? 0 : data.subscriptionDiscount,
+      normalizedGiftProductId,
+      normalizedGiftQuantity,
+      normalizedGiftAutoAdd,
       '[]', '[]',
       isGiftCard ? 0 : data.weight,
       isGiftCard ? 0 : 1,
@@ -474,6 +491,38 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     if (data.madeInUSA !== undefined) addUpdate('madeInUSA', data.madeInUSA ? 1 : 0, 'made_in_usa', existing.madeInUSA);
     if (data.freeShipping !== undefined) addUpdate('freeShipping', data.freeShipping ? 1 : 0, 'free_shipping', existing.freeShipping);
 
+    if (data.giftWithPurchaseProductId !== undefined) {
+      const raw = data.giftWithPurchaseProductId;
+      const normalized =
+        raw && raw.trim().length > 0 ? raw.trim() : null;
+      addUpdate(
+        'giftWithPurchaseProductId',
+        normalized,
+        'gift_with_purchase_product_id',
+        existing.giftWithPurchaseProductId
+      );
+    }
+
+    if (data.giftWithPurchaseQuantity !== undefined) {
+      const normalizedQuantity = Math.max(1, data.giftWithPurchaseQuantity ?? 1);
+      addUpdate(
+        'giftWithPurchaseQuantity',
+        normalizedQuantity,
+        'gift_with_purchase_quantity',
+        existing.giftWithPurchaseQuantity
+      );
+    }
+
+    if (data.giftWithPurchaseAutoAdd !== undefined) {
+      const normalizedAutoAdd = data.giftWithPurchaseAutoAdd ? 1 : 0;
+      addUpdate(
+        'giftWithPurchaseAutoAdd',
+        normalizedAutoAdd,
+        'gift_with_purchase_auto_add',
+        existing.giftWithPurchaseAutoAdd ? 1 : 0
+      );
+    }
+
     const nextType = data.type ?? existing.type;
     const enforceGiftCardDefaults = nextType === 'gift-card';
     const hasUpdateFor = (column: string) => updates.some(update => update.startsWith(`${column} =`));
@@ -518,6 +567,33 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
       enforceBooleanField('subscriptionEligible', 'subscription_eligible', 0, existing.subscriptionEligible);
       enforceNumericField('subscriptionDiscount', 'subscription_discount', 0, existing.subscriptionDiscount);
       enforceBooleanField('freeShipping', 'free_shipping', 1, existing.freeShipping);
+
+      if (!hasUpdateFor('gift_with_purchase_product_id') && existing.giftWithPurchaseProductId !== null) {
+        updates.push('gift_with_purchase_product_id = ?');
+        params.push(null);
+        changes.giftWithPurchaseProductId = {
+          old: existing.giftWithPurchaseProductId,
+          new: null
+        };
+      }
+
+      if (!hasUpdateFor('gift_with_purchase_quantity') && existing.giftWithPurchaseQuantity !== 1) {
+        updates.push('gift_with_purchase_quantity = ?');
+        params.push(1);
+        changes.giftWithPurchaseQuantity = {
+          old: existing.giftWithPurchaseQuantity,
+          new: 1
+        };
+      }
+
+      if (!hasUpdateFor('gift_with_purchase_auto_add') && existing.giftWithPurchaseAutoAdd) {
+        updates.push('gift_with_purchase_auto_add = ?');
+        params.push(0);
+        changes.giftWithPurchaseAutoAdd = {
+          old: existing.giftWithPurchaseAutoAdd,
+          new: false
+        };
+      }
 
       if (!hasUpdateFor('weight') && existing.weight !== 0) {
         updates.push('weight = ?');
