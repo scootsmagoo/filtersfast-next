@@ -282,7 +282,7 @@ npm run dev
 - ✅ **Order Tracking**: Orders now persist `applied_deals` metadata so CX, finance, and analytics teams can trace which promotions fulfilled free goods.
 
 **Security & Accessibility:**
-- **OWASP Top 10 2021:** ✅ SKU sanitization, quantity/price clamping, rate-limited reward endpoint, and defensive JSON parsing.
+- **OWASP Top 10 2021:** ✅ SKU sanitization, quantity/price clamping, rate-limited reward endpoint, server-enforced qualification totals, and defensive JSON parsing.
 - **WCAG 2.1 Level AA:** ✅ Accessible “Free Gift” badges with screen-reader hints, fallback imagery, and preserved keyboard workflows.
 
 ---

@@ -11,6 +11,7 @@ import { getApplicableDeal } from '@/lib/db/deals';
 const MAX_ITEMS = 100;
 
 const cartItemSchema = z.object({
+  cartItemId: z.union([z.string(), z.number()]).optional(),
   id: z.union([z.string(), z.number()]).optional(),
   productId: z.union([z.string(), z.number()]).optional(),
   sku: z.string().optional(),
@@ -25,19 +26,34 @@ const requestSchema = z.object({
 
 type CartItemInput = z.infer<typeof cartItemSchema>;
 
+function normalizeIdentifier(value: string | number | null | undefined): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+  return normalized.length > 100 ? normalized.slice(0, 100) : normalized;
+}
+
 function normalizeProductId(item: CartItemInput): string | null {
-  if (typeof item.productId === 'string') {
-    return item.productId;
+  const primary = normalizeIdentifier(
+    typeof item.productId === 'number' || typeof item.productId === 'string'
+      ? item.productId
+      : null
+  );
+  if (primary) {
+    return primary;
   }
-  if (typeof item.productId === 'number') {
-    return String(item.productId);
+
+  const fallback = normalizeIdentifier(
+    typeof item.id === 'number' || typeof item.id === 'string' ? item.id : null
+  );
+  if (fallback) {
+    return fallback;
   }
-  if (typeof item.id === 'string') {
-    return item.id;
-  }
-  if (typeof item.id === 'number') {
-    return String(item.id);
-  }
+
   return null;
 }
 
@@ -48,7 +64,7 @@ function buildRewardId(source: string, sourceId: string | number, productId: str
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { items, subtotal } = requestSchema.parse(body);
+    const { items } = requestSchema.parse(body);
 
     if (items.length === 0) {
       return NextResponse.json({
@@ -60,6 +76,7 @@ export async function POST(request: NextRequest) {
 
     const baseItems: Array<{
       id: string;
+      cartItemId: string;
       sku: string;
       name: string;
       brand: string;
@@ -86,32 +103,42 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const linePrice =
-        typeof item.price === 'number'
-          ? Math.min(item.price, 999999.99)
-          : product.price;
+      const resolvedCartItemId =
+        normalizeIdentifier(
+          typeof item.cartItemId === 'number' || typeof item.cartItemId === 'string'
+            ? item.cartItemId
+            : null
+        ) ??
+        normalizeIdentifier(
+          typeof item.id === 'number' || typeof item.id === 'string' ? item.id : null
+        ) ??
+        normalizeIdentifier(product.id) ??
+        product.id;
 
-      const safeUnitPrice = Number.isFinite(linePrice) ? linePrice : product.price;
+      const databaseUnitPrice =
+        Number.isFinite(product.price) && product.price > 0
+          ? Math.min(Math.max(Number(product.price), 0), 999999.99)
+          : 0;
 
-      computedSubtotal += safeUnitPrice * quantity;
+      computedSubtotal += databaseUnitPrice * quantity;
 
       baseItems.push({
         id: product.id,
+        cartItemId: resolvedCartItemId,
         sku: product.sku,
         name: product.name,
         brand: product.brand,
         productType: product.type,
         image: product.primaryImage,
         quantity,
-        price: safeUnitPrice,
+        price: databaseUnitPrice,
         giftWithPurchaseProductId: product.giftWithPurchaseProductId,
         giftWithPurchaseQuantity: product.giftWithPurchaseQuantity || 1,
         giftWithPurchaseAutoAdd: product.giftWithPurchaseAutoAdd,
       });
     }
 
-    const effectiveSubtotal =
-      typeof subtotal === 'number' && subtotal >= 0 ? subtotal : computedSubtotal;
+    const effectiveSubtotal = computedSubtotal;
 
     const rewardMap = new Map<
       string,
@@ -147,7 +174,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const rewardId = buildRewardId('product', item.id, rewardProduct.id);
+      const rewardId = buildRewardId('product', item.cartItemId, rewardProduct.id);
       const existingReward = rewardMap.get(rewardId);
       const rewardQuantity = Math.min(100, Math.max(1, item.giftWithPurchaseQuantity));
 
@@ -167,7 +194,7 @@ export async function POST(request: NextRequest) {
           rewardSource: {
             type: 'product',
             id: item.id,
-            parentProductId: item.id,
+            parentProductId: item.cartItemId,
           },
         });
       }

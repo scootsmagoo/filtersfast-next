@@ -365,6 +365,7 @@ export default function CheckoutPage() {
           items: items.map(item => ({
             id: (item.productId || item.id).toString(),
             cartItemId: item.id,
+            productId: item.productId || item.id,
             name: item.name,
             brand: item.brand,
             sku: item.sku,

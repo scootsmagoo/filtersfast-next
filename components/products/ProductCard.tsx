@@ -66,6 +66,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
     
     addItem({
       id: product.id,
+      productId: product.id,
       name: product.name,
       brand: product.brand,
       sku: product.sku,

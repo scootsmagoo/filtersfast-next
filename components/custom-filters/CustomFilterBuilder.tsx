@@ -81,6 +81,7 @@ export default function CustomFilterBuilder() {
     // Add to cart
     addItem({
       id: pricing.baseProductId,
+      productId: pricing.baseProductId,
       name: pricing.description,
       brand: 'FiltersFast',
       sku: pricing.sku,

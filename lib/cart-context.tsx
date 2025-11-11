@@ -115,10 +115,25 @@ function clampQuantityToLimit(quantity: number, maxCartQty: number | null): numb
   return Math.min(safeQuantity, limit);
 }
 
+function normalizeProductIdentifier(value: unknown): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return undefined;
+  }
+  return normalized.length > 100 ? normalized.slice(0, 100) : normalized;
+}
+
 function sanitizeCartItem(item: CartItem): CartItem {
   const normalizedMaxCartQty = resolveMaxCartQty(item.maxCartQty ?? null);
+  const resolvedProductId =
+    normalizeProductIdentifier(item.productId) ??
+    normalizeProductIdentifier(item.id);
   return {
     ...item,
+    productId: resolvedProductId ?? item.productId,
     maxCartQty: normalizedMaxCartQty,
     quantity: clampQuantityToLimit(item.quantity, normalizedMaxCartQty),
   };
@@ -137,6 +152,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         parentProductId: undefined,
         maxCartQty: payloadMaxCartQty,
       };
+      const normalizedProductId =
+        normalizeProductIdentifier(action.payload.productId) ??
+        normalizeProductIdentifier(action.payload.id);
+      if (normalizedProductId) {
+        payload.productId = normalizedProductId;
+      }
       
       // Check if item with same ID and options already exists
       const existingItem = state.items.find(item => {
@@ -175,7 +196,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         // New item or different options, add as separate item
         const limit = resolveMaxCartQty(action.payload.maxCartQty ?? null);
         const newItem: CartItem = {
-          ...action.payload,
+          ...payload,
           quantity: clampQuantityToLimit(quantityToAdd, limit),
           maxCartQty: limit,
         };
@@ -366,6 +387,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const nonRewardItems = state.items.filter(item => !item.isReward);
       const rewardItems: CartItem[] = action.payload.rewards.map(reward => ({
         id: reward.id,
+        productId: normalizeProductIdentifier(reward.productId) ?? reward.productId,
         name: reward.name,
         brand: reward.brand,
         sku: reward.sku,
@@ -379,7 +401,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         subscription: undefined,
         isReward: true,
         rewardSource: reward.rewardSource,
-        parentProductId: reward.rewardSource.parentProductId,
+        parentProductId: normalizeProductIdentifier(reward.rewardSource.parentProductId),
       }));
 
       const updatedItems = [...nonRewardItems, ...rewardItems];
@@ -492,7 +514,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const baseItems = state.items.filter(item => !item.isReward);
     const signature = JSON.stringify(
       baseItems.map(item => ({
-        id: item.id,
+        id: normalizeProductIdentifier(item.id) ?? item.id,
+        productId: normalizeProductIdentifier(item.productId) ?? item.productId ?? null,
         sku: item.sku,
         quantity: item.quantity,
         price: item.price,
@@ -519,7 +542,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const payload = {
       items: baseItems.map(item => ({
-        productId: item.id,
+        cartItemId: normalizeProductIdentifier(item.id) ?? item.id,
+        productId:
+          normalizeProductIdentifier(item.productId) ??
+          normalizeProductIdentifier(item.id) ??
+          item.productId ??
+          item.id,
         sku: item.sku,
         quantity: item.quantity,
         price: item.price,
