@@ -766,5 +766,124 @@ export function getCampaignSummary(campaignId: number): EmailCampaignSummary {
   }
 }
 
+export function getCampaignsReadyToSend(limit: number = 5): EmailCampaign[] {
+  const db = getDb();
+  try {
+    const stmt = db.prepare(`
+      SELECT *
+      FROM email_campaigns
+      WHERE status IN ('scheduled', 'sending')
+        AND (status = 'sending' OR scheduled_at IS NULL OR scheduled_at <= CURRENT_TIMESTAMP)
+        AND (status != 'scheduled' OR cancelled_at IS NULL)
+      ORDER BY
+        status = 'sending' DESC,
+        scheduled_at IS NULL,
+        scheduled_at ASC,
+        created_at ASC
+      LIMIT ?
+    `);
+
+    const rows = stmt.all(Math.max(1, limit));
+    return rows.map(mapCampaignRow);
+  } finally {
+    db.close();
+  }
+}
+
+export function claimRecipientsForSending(
+  campaignId: number,
+  batchSize: number = 100
+): EmailCampaignRecipient[] {
+  const db = getDb();
+  try {
+    const stmt = db.prepare(`
+      UPDATE email_campaign_recipients
+      SET
+        status = 'sending',
+        error = NULL,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id IN (
+        SELECT id
+        FROM email_campaign_recipients
+        WHERE campaign_id = ?
+          AND status = 'pending'
+        ORDER BY created_at ASC
+        LIMIT ?
+      )
+      RETURNING *
+    `);
+
+    const rows = stmt.all(campaignId, Math.max(1, Math.min(batchSize, 500)));
+    return rows.map(mapRecipientRow);
+  } finally {
+    db.close();
+  }
+}
+
+export function markRecipientSent(recipientId: number): void {
+  const db = getDb();
+  try {
+    db.prepare(`
+      UPDATE email_campaign_recipients
+      SET
+        status = 'sent',
+        error = NULL,
+        sent_at = COALESCE(sent_at, CURRENT_TIMESTAMP),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(recipientId);
+  } finally {
+    db.close();
+  }
+}
+
+export function markRecipientFailed(recipientId: number, error: string): void {
+  const db = getDb();
+  try {
+    db.prepare(`
+      UPDATE email_campaign_recipients
+      SET
+        status = 'failed',
+        error = ?,
+        sent_at = COALESCE(sent_at, CURRENT_TIMESTAMP),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(error.slice(0, 500), recipientId);
+  } finally {
+    db.close();
+  }
+}
+
+export function markRecipientSkipped(recipientId: number, reason?: string): void {
+  const db = getDb();
+  try {
+    db.prepare(`
+      UPDATE email_campaign_recipients
+      SET
+        status = 'skipped',
+        error = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(reason ? reason.slice(0, 500) : null, recipientId);
+  } finally {
+    db.close();
+  }
+}
+
+export function setCampaignLastError(campaignId: number, error: string | null): void {
+  const db = getDb();
+  try {
+    db.prepare(`
+      UPDATE email_campaigns
+      SET
+        last_error = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(error ? error.slice(0, 500) : null, campaignId);
+  } finally {
+    db.close();
+  }
+}
+
 
 

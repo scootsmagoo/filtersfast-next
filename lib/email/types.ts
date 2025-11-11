@@ -18,6 +18,8 @@ export interface SendEmailOptions {
   attachments?: EmailAttachment[]
   tags?: string[]
   meta?: Record<string, string>
+  templateId?: string
+  dynamicTemplateData?: Record<string, any>
 }
 
 export interface SendEmailResult {

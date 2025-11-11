@@ -6,6 +6,7 @@ import {
   updateCampaignStatus,
 } from '@/lib/db/email-campaigns';
 import { requirePermission, PERMISSION_LEVEL } from '@/lib/admin-permissions';
+import { enqueueCampaignDispatch } from '@/lib/email/email-campaign-dispatcher';
 
 const idSchema = z.coerce.number().positive();
 
@@ -68,6 +69,8 @@ export const POST = requirePermission('EmailCampaigns', PERMISSION_LEVEL.FULL_CO
             context.admin.id
           );
 
+          enqueueCampaignDispatch(campaign.id);
+
           return NextResponse.json({
             success: true,
             campaign: updated,
@@ -84,6 +87,7 @@ export const POST = requirePermission('EmailCampaigns', PERMISSION_LEVEL.FULL_CO
           }
 
           const updated = updateCampaignStatus(campaign.id, 'sending', {}, context.admin.id);
+          enqueueCampaignDispatch(campaign.id);
           return NextResponse.json({ success: true, campaign: updated, status: 'sending' });
         }
         case 'pause': {
@@ -105,6 +109,7 @@ export const POST = requirePermission('EmailCampaigns', PERMISSION_LEVEL.FULL_CO
             );
           }
           const updated = updateCampaignStatus(campaign.id, 'sending', {}, context.admin.id);
+          enqueueCampaignDispatch(campaign.id);
           return NextResponse.json({ success: true, campaign: updated, status: 'sending' });
         }
         case 'cancel': {

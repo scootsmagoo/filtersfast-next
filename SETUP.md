@@ -333,6 +333,12 @@ SENDGRID_FROM_EMAIL=noreply@filtersfast.com
 
 # Optional: deliver but keep messages in SendGrid sandbox (great for staging)
 SENDGRID_SANDBOX_MODE=true
+
+# Email campaign dispatcher tuning (optional)
+EMAIL_CAMPAIGN_BATCH_SIZE=100
+EMAIL_CAMPAIGN_MAX_PARALLEL=3
+# Override destination when campaign.test_mode = true
+EMAIL_CAMPAIGN_TEST_RECIPIENT=marketing-team@example.com
 ```
 
 Leave `EMAIL_PROVIDER` unset (or set to `console`) to fall back to the mock logger during development.
@@ -342,6 +348,11 @@ Once configured you can verify the integration from the admin Utilities → Test
 ### Alternative Providers
 
 If you prefer Mailgun, AWS SES, Postmark, etc., add a provider module in `lib/email/` similar to `sendgrid.ts` and point `EMAIL_PROVIDER` to your implementation.
+
+### Cron / Background Processing
+
+- Run `npm run cron:email-campaigns` on a schedule (e.g. every 5 minutes) to process scheduled or in-flight campaigns on servers where the Next.js app alone isn't long-lived.
+- Admin actions (“Send now”, “Schedule”, “Resume”) automatically enqueue in-process background jobs; the cron job serves as a safety net and for worker environments.
 
 ---
 

@@ -35,11 +35,18 @@ export async function sendWithSendGrid(options: SendEmailOptions): Promise<SendE
     to: options.to,
     from: fromAddress,
     subject: options.subject,
-    html: options.html,
   }
 
-  if (options.text) {
-    message.text = options.text
+  if (options.templateId) {
+    message.templateId = options.templateId
+    if (options.dynamicTemplateData) {
+      message.dynamicTemplateData = options.dynamicTemplateData
+    }
+  } else {
+    message.html = options.html
+    if (options.text) {
+      message.text = options.text
+    }
   }
 
   const cc = normalizeAddress(options.cc)
@@ -54,6 +61,10 @@ export async function sendWithSendGrid(options: SendEmailOptions): Promise<SendE
 
   if (options.replyTo) {
     message.replyTo = options.replyTo
+  }
+
+  if (!options.templateId && !options.html) {
+    message.html = '<p></p>'
   }
 
   if (options.attachments?.length) {
