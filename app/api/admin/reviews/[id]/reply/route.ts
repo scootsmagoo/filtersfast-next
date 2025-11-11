@@ -8,6 +8,7 @@ import { headers } from 'next/headers';
 import { hasAdminAccess } from '@/lib/auth-admin';
 import { auth } from '@/lib/auth';
 import { postReviewReply } from '@/lib/trustpilot/client';
+import { recordReviewReply } from '@/lib/db/reviews';
 import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
@@ -104,6 +105,9 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    const replyTimestamp = result.reply?.createdAt || new Date().toISOString();
+    recordReviewReply(reviewId, sanitizedReply, replyTimestamp);
 
     // OWASP A09: Log admin action (without sensitive data)
     console.log(`Admin ${session.user.email} replied to review ${reviewId}`);

@@ -7,8 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { hasAdminAccess } from '@/lib/auth-admin';
 import { auth } from '@/lib/auth';
-import { getBusinessSummary } from '@/lib/trustpilot/client';
 import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
+import { getReviewStats } from '@/lib/db/reviews';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,72 +39,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch business summary from TrustPilot
-    const summary = await getBusinessSummary();
+    const stats = getReviewStats();
 
-    if (!summary) {
-      return NextResponse.json(
-        {
-          totalReviews: 0,
-          averageRating: 0,
-          trustScore: 0,
-          pendingReplies: 0,
-          recentReviews: 0,
-          starDistribution: {
-            1: 0,
-            2: 0,
-            3: 0,
-            4: 0,
-            5: 0,
-          },
-        },
-        { status: 200 }
-      );
-    }
+    const totalReviews = stats.totalReviews;
+    const positive = stats.starDistribution[4] + stats.starDistribution[5];
+    const negative = stats.starDistribution[1] + stats.starDistribution[2];
+    const neutral = stats.starDistribution[3];
 
-    // Calculate stats
-    const totalReviews = summary.numberOfReviews.total;
-    const fourAndFiveStars = summary.numberOfReviews.fourStars + summary.numberOfReviews.fiveStars;
-    const oneAndTwoStars = summary.numberOfReviews.oneStar + summary.numberOfReviews.twoStars;
-    const threeStars = summary.numberOfReviews.threeStars;
-    
-    // Calculate sentiment percentages
-    const sentimentTrend = totalReviews > 0 ? {
-      positive: Math.round((fourAndFiveStars / totalReviews) * 100),
-      neutral: Math.round((threeStars / totalReviews) * 100),
-      negative: Math.round((oneAndTwoStars / totalReviews) * 100),
-    } : {
-      positive: 0,
-      neutral: 0,
-      negative: 0,
-    };
-    
-    // Mock response rate and avg response time (in production, these would come from actual data)
-    // Response rate: Assume 65% of reviews have been replied to
-    const responseRate = 65;
-    
-    // Avg response time: Assume 24 hours average (in production, calculate from actual reply timestamps)
-    const avgResponseTime = 24;
-    
-    const stats = {
-      totalReviews: summary.numberOfReviews.total,
-      averageRating: summary.stars,
-      trustScore: summary.trustScore,
-      pendingReplies: 0, // TODO: Implement from TrustPilot API or database
-      recentReviews: 0, // TODO: Calculate from recent reviews
-      starDistribution: {
-        1: summary.numberOfReviews.oneStar,
-        2: summary.numberOfReviews.twoStars,
-        3: summary.numberOfReviews.threeStars,
-        4: summary.numberOfReviews.fourStars,
-        5: summary.numberOfReviews.fiveStars,
-      },
-      responseRate,
-      avgResponseTime,
+    const sentimentTrend = totalReviews > 0
+      ? {
+          positive: Math.round((positive / totalReviews) * 100),
+          neutral: Math.round((neutral / totalReviews) * 100),
+          negative: Math.round((negative / totalReviews) * 100),
+        }
+      : { positive: 0, neutral: 0, negative: 0 };
+
+    const responsePayload = {
+      totalReviews: stats.totalReviews,
+      averageRating: stats.averageRating || 0,
+      trustScore: Math.round((stats.averageRating || 0) * 20),
+      pendingReplies: stats.pendingReplies,
+      recentReviews: stats.recentReviews,
+      starDistribution: stats.starDistribution,
+      responseRate: stats.responseRate,
+      avgResponseTime: stats.avgResponseHours,
       sentimentTrend,
     };
 
-    return NextResponse.json(stats, {
+    return NextResponse.json(responsePayload, {
       status: 200,
       headers: {
         'Cache-Control': 'private, s-maxage=300', // Cache for 5 minutes

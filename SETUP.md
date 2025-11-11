@@ -319,6 +319,11 @@ NEXT_PUBLIC_TRUSTPILOT_ENABLED=true
 - Rate limiting (30 req/min)
 - Graceful fallback if not configured
 
+**Admin Review Management:**
+- `npm run sync:reviews` – Pull latest Trustpilot company reviews into the admin dashboard
+- Use the “Sync Latest Reviews” button in `/admin/reviews` for on-demand updates
+- Replies posted from the admin panel are written back to Trustpilot and reflected in the local store
+
 ---
 
 ## 📧 Email Service Setup

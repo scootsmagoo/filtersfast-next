@@ -78,6 +78,9 @@ export default function AdminReviewsPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(true);
+  const [syncingReviews, setSyncingReviews] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -162,31 +165,27 @@ export default function AdminReviewsPage() {
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/reviews/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setStats({
-          totalReviews: data.totalReviews || 0,
-          averageRating: data.averageRating || 0,
-          pendingReplies: data.pendingReplies || 0,
-          recentReviews: data.recentReviews || 0,
-          starDistribution: data.starDistribution || {
-            1: 0,
-            2: 0,
-            3: 0,
-            4: 0,
-            5: 0,
-          },
-        });
-      } else {
-        // Fallback to empty stats on error
-        setStats({
-          totalReviews: 0,
-          averageRating: 0,
-          pendingReplies: 0,
-          recentReviews: 0,
-          starDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-        });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch stats (${response.status})`);
       }
+
+      const data = await response.json();
+      setStats({
+        totalReviews: data.totalReviews || 0,
+        averageRating: data.averageRating || 0,
+        pendingReplies: data.pendingReplies || 0,
+        recentReviews: data.recentReviews || 0,
+        starDistribution: data.starDistribution || {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+        },
+        responseRate: data.responseRate || 0,
+        avgResponseTime: data.avgResponseTime || 0,
+        sentimentTrend: data.sentimentTrend || undefined,
+      });
     } catch (error) {
       console.error('Error fetching review stats:', error);
       // Fallback to empty stats on error
@@ -196,6 +195,9 @@ export default function AdminReviewsPage() {
         pendingReplies: 0,
         recentReviews: 0,
         starDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        responseRate: 0,
+        avgResponseTime: 0,
+        sentimentTrend: undefined,
       });
     }
   };
@@ -236,16 +238,23 @@ export default function AdminReviewsPage() {
         return;
       }
 
+      const replyDate = data.reply?.createdAt || new Date().toISOString();
+
       // Update the review in the local state
-      setReviews(reviews.map(r => 
-        r.id === selectedReview.id
-          ? {
-              ...r,
-              hasReply: true,
-              reply: data.reply,
-            }
-          : r
-      ));
+      setReviews(prev =>
+        prev.map(r =>
+          r.id === selectedReview.id
+            ? {
+                ...r,
+                hasReply: true,
+                reply: {
+                  text: replyText,
+                  date: replyDate,
+                },
+              }
+            : r
+        )
+      );
 
       // Close modal and refresh stats
       closeReplyModal();
@@ -319,56 +328,61 @@ export default function AdminReviewsPage() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      // TODO: Create API endpoint for admin reviews list
-      // For now, using mock data
-      setReviews([
-        {
-          id: '1',
-          productSku: 'MWF',
-          productName: 'GE MWF Refrigerator Water Filter',
-          customerName: 'John D.',
-          customerLocation: 'California',
-          rating: 5,
-          title: 'Excellent product!',
-          text: 'Works perfectly, water tastes great. Fast shipping too!',
-          date: '2025-11-04T10:30:00Z',
-          isVerified: true,
-          hasReply: false,
-          source: 'trustpilot',
-        },
-        {
-          id: '2',
-          productSku: 'EDR1RXD1',
-          productName: 'Whirlpool EDR1RXD1 Water Filter',
-          customerName: 'Sarah M.',
-          customerLocation: 'Texas',
-          rating: 4,
-          title: 'Good filter',
-          text: 'Does the job well. Took a bit longer to install than expected.',
-          date: '2025-11-03T14:20:00Z',
-          isVerified: true,
-          hasReply: true,
-          reply: {
-            text: 'Thank you for your feedback! We\'re glad the filter is working well.',
-            date: '2025-11-03T16:00:00Z',
-          },
-          source: 'trustpilot',
-        },
-        {
-          id: '3',
-          productSku: 'LT700P',
-          productName: 'LG LT700P Refrigerator Water Filter',
-          customerName: 'Mike R.',
-          customerLocation: 'Florida',
-          rating: 2,
-          title: 'Not as expected',
-          text: 'The filter doesn\'t fit as well as the original. Concerned about leaks.',
-          date: '2025-11-02T09:15:00Z',
-          isVerified: true,
-          hasReply: false,
-          source: 'trustpilot',
-        },
-      ]);
+
+      const params = new URLSearchParams();
+      params.set('limit', '100');
+
+      const sanitizedSearch = searchQuery.trim();
+      if (sanitizedSearch.length > 0) {
+        params.set('search', sanitizedSearch);
+      }
+
+      if (filterRating !== 'all') {
+        params.set('rating', filterRating);
+      }
+
+      if (filterStatus !== 'all') {
+        params.set('status', filterStatus);
+      }
+
+      const response = await fetch(`/api/admin/reviews?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reviews (${response.status})`);
+      }
+
+      const data = await response.json();
+      const mapped: Review[] = (data.reviews || []).map((review: any) => {
+        const metadata = review.metadata || {};
+        const productName =
+          metadata.productReview?.productName ||
+          metadata.productReview?.name ||
+          metadata.product?.name ||
+          review.product_sku ||
+          'FiltersFast';
+
+        return {
+          id: review.review_id,
+          productSku: review.product_sku || '',
+          productName,
+          customerName: review.consumer_name || 'Anonymous',
+          customerLocation: review.consumer_location || undefined,
+          rating: review.rating,
+          title: review.title || undefined,
+          text: review.text || '',
+          date: review.reviewed_at,
+          isVerified: Boolean(review.is_verified),
+          hasReply: Boolean(review.has_reply),
+          reply: review.reply_text
+            ? {
+                text: review.reply_text,
+                date: review.reply_posted_at || review.reviewed_at,
+              }
+            : undefined,
+          source: review.source === 'imported' ? 'imported' : 'trustpilot',
+        };
+      });
+
+      setReviews(mapped);
     } catch (error) {
       console.error('Error fetching reviews:', error);
     } finally {
@@ -376,7 +390,39 @@ export default function AdminReviewsPage() {
     }
   };
 
-  if (isPending || loading) {
+  const handleSyncReviews = async () => {
+    try {
+      setSyncingReviews(true);
+      setSyncError(null);
+      setSyncMessage(null);
+
+      const response = await fetch('/api/admin/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ run: 'inline', includeImported: true }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to synchronize reviews');
+      }
+
+      const processed = data.result?.processed ?? 0;
+      setSyncMessage(`Synced ${processed} review${processed === 1 ? '' : 's'}.`);
+
+      await fetchStats();
+      await fetchReviews();
+    } catch (error) {
+      console.error('Error syncing reviews:', error);
+      setSyncError(error instanceof Error ? error.message : 'Failed to sync reviews');
+    } finally {
+      setSyncingReviews(false);
+    }
+  };
+
+  if (isPending || (loading && reviews.length === 0)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center" role="status" aria-live="polite" aria-busy="true">
@@ -459,8 +505,36 @@ export default function AdminReviewsPage() {
               <p className="text-gray-600 dark:text-gray-300 mt-1">
                 Manage customer reviews and respond to feedback
               </p>
+              {syncMessage && (
+                <p className="mt-2 text-sm text-green-600 dark:text-green-400" role="status">
+                  {syncMessage}
+                </p>
+              )}
+              {syncError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                  {syncError}
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
+              <Button
+                onClick={handleSyncReviews}
+                variant="outline"
+                className="inline-flex items-center gap-2"
+                disabled={syncingReviews}
+              >
+                {syncingReviews ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                    Syncing…
+                  </>
+                ) : (
+                  <>
+                    <RefreshCcw className="w-4 h-4" aria-hidden="true" />
+                    Sync Latest Reviews
+                  </>
+                )}
+              </Button>
               <Button
                 onClick={openInvitationModal}
                 variant="outline"

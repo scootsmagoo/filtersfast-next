@@ -29,6 +29,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
       Sales: 0,
     },
   },
+  Reviews: {
+    description: 'Manage customer reviews and Trustpilot integration',
+    group: 'Marketing & Sales',
+    sortOrder: 46,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 1,
+      Sales: -1,
+    },
+  },
   Blog: {
     description: 'Manage blog posts and content',
     group: 'Content & Support',
