@@ -16,15 +16,8 @@ import { SubmitEntryRequest } from '@/lib/types/giveaway';
 import { getClientIdentifier, rateLimit } from '@/lib/rate-limit';
 import { verifyRecaptcha } from '@/lib/recaptcha';
 import { sendGiveawayConfirmationEmail } from '@/lib/email-templates/giveaway';
+import { sendEmail } from '@/lib/email';
 import { sanitizeText, sanitizeEmail } from '@/lib/sanitize';
-
-// Mock email sender - replace with actual SendGrid integration in production
-async function sendEmail(emailData: { to: string; subject: string; html: string; text: string }) {
-  // TODO: Integrate with SendGrid or your email service
-  console.log(`[EMAIL] Sending to ${emailData.to}: ${emailData.subject}`);
-  // In production, use SendGrid API
-  return true;
-}
 
 /**
  * Validate email format
@@ -182,10 +175,16 @@ export async function POST(request: NextRequest) {
       endDate: giveaway.end_date
     });
     
-    sendEmail(emailData).catch(error => {
-      console.error('Error sending confirmation email:', error);
-      // Don't fail the entry if email fails
-    });
+    sendEmail(emailData)
+      .then(result => {
+        if (!result.success) {
+          console.error('Giveaway confirmation email reported failure:', result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error sending confirmation email:', error);
+        // Don't fail the entry if email fails
+      });
 
     return NextResponse.json({
       success: true,

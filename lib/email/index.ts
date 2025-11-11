@@ -1,50 +1,21 @@
-/**
- * Email Sending Utilities
- * 
- * Centralized email send helper so features can dispatch transactional emails.
- * Currently this is a lightweight abstraction that logs emails to the console.
- * Integrate your provider (SendGrid, SES, etc.) here when ready.
- */
+import { sendWithSendGrid } from './sendgrid'
+import type { SendEmailOptions, SendEmailResult } from './types'
 
-export interface EmailAttachment {
-  filename: string
-  content: string | Buffer
-  type?: string
-  disposition?: 'attachment' | 'inline'
-  contentId?: string
+export type { EmailAttachment, SendEmailOptions, SendEmailResult } from './types'
+
+const providerOverride = process.env.EMAIL_PROVIDER?.toLowerCase()
+
+function determineProvider(): 'sendgrid' | 'console' {
+  if (providerOverride === 'sendgrid') return 'sendgrid'
+  if (providerOverride === 'console') return 'console'
+  return process.env.SENDGRID_API_KEY ? 'sendgrid' : 'console'
 }
 
-export interface SendEmailOptions {
-  to: string | string[]
-  subject: string
-  html: string
-  text?: string
-  from?: string
-  cc?: string | string[]
-  bcc?: string | string[]
-  replyTo?: string
-  attachments?: EmailAttachment[]
-  tags?: string[]
-  meta?: Record<string, string>
-}
-
-export interface SendEmailResult {
-  success: boolean
-  messageId?: string
-  error?: string
-}
-
-/**
- * Send an email via the configured provider.
- * 
- * In development we output to the console. Swap this implementation with your
- * transactional provider when ready.
- */
-export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+function logEmail(options: SendEmailOptions): SendEmailResult {
   const recipients = Array.isArray(options.to) ? options.to.join(', ') : options.to
 
   // eslint-disable-next-line no-console
-  console.log('📧 [Email] Sending message', {
+  console.log('📧 [Email] (mock) Sending message', {
     to: recipients,
     subject: options.subject,
     hasText: Boolean(options.text),
@@ -53,11 +24,25 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     tags: options.tags,
   })
 
-  // TODO: Integrate real email provider (SendGrid, SES, etc.)
-  // This stub always succeeds to keep flows unblocked in development.
   return {
     success: true,
     messageId: `mock-${Date.now()}`,
   }
 }
 
+export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+  const provider = determineProvider()
+
+  if (provider === 'sendgrid') {
+    const result = await sendWithSendGrid(options)
+
+    if (result.success || providerOverride === 'sendgrid') {
+      return result
+    }
+
+    // eslint-disable-next-line no-console
+    console.error('SendGrid send failed, falling back to console logger:', result.error)
+  }
+
+  return logEmail(options)
+}

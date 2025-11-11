@@ -321,22 +321,27 @@ NEXT_PUBLIC_TRUSTPILOT_ENABLED=true
 
 ---
 
-## 📧 Email Service Setup (Optional)
+## 📧 Email Service Setup
 
-For password reset and email verification to work in production:
-
-### SendGrid (Recommended)
+FiltersFast-Next now ships with a first-class SendGrid integration. Configure these variables to enable real delivery:
 
 ```env
+# Required for SendGrid
+EMAIL_PROVIDER=sendgrid
 SENDGRID_API_KEY=your_sendgrid_api_key
 SENDGRID_FROM_EMAIL=noreply@filtersfast.com
+
+# Optional: deliver but keep messages in SendGrid sandbox (great for staging)
+SENDGRID_SANDBOX_MODE=true
 ```
 
-### Alternative: Mailgun, AWS SES, Postmark
+Leave `EMAIL_PROVIDER` unset (or set to `console`) to fall back to the mock logger during development.
 
-Update the email sending code in:
-- `app/api/auth/forgot-password/route.ts`
-- `app/api/auth/send-verification/route.ts`
+Once configured you can verify the integration from the admin Utilities → Test Email tool (`/api/admin/utilities/test-email`), which now sends through SendGrid and reports any delivery errors.
+
+### Alternative Providers
+
+If you prefer Mailgun, AWS SES, Postmark, etc., add a provider module in `lib/email/` similar to `sendgrid.ts` and point `EMAIL_PROVIDER` to your implementation.
 
 ---
 

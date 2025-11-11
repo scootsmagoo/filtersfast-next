@@ -16,14 +16,7 @@ import { Giveaway, GiveawayEntry } from '@/lib/types/giveaway';
 import { getClientIdentifier, rateLimit } from '@/lib/rate-limit';
 import { auditLog } from '@/lib/audit-log';
 import { sendGiveawayWinnerEmail } from '@/lib/email-templates/giveaway';
-
-// Mock email sender - replace with actual SendGrid integration in production
-async function sendEmail(emailData: { to: string; subject: string; html: string; text: string }) {
-  // TODO: Integrate with SendGrid or your email service
-  console.log(`[EMAIL] Sending to ${emailData.to}: ${emailData.subject}`);
-  // In production, use SendGrid API
-  return true;
-}
+import { sendEmail } from '@/lib/email';
 
 export async function POST(
   request: NextRequest,
@@ -98,8 +91,12 @@ export async function POST(
           prizeDescription: giveaway.prize_description
         });
         
-        await sendEmail(emailData);
-        markWinnerNotified(giveawayId);
+        const result = await sendEmail(emailData);
+        if (result.success) {
+          markWinnerNotified(giveawayId);
+        } else {
+          console.error('SendGrid failed to deliver winner email:', result.error);
+        }
       } catch (emailError) {
         console.error('Error sending winner email:', emailError);
         // Continue anyway - admin can manually notify

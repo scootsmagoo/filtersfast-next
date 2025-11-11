@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdmin, logAdminAction } from '@/lib/admin-permissions'
 import { getSystemConfig } from '@/lib/db/system-config'
+import { sendEmail } from '@/lib/email'
 
 /**
  * POST /api/admin/utilities/test-email
@@ -34,20 +35,28 @@ export async function POST(request: NextRequest) {
     const companyName = config?.pCompany || 'FiltersFast'
 
     try {
-      // TODO: Implement email sending functionality
-      // This requires configuring an email service (Resend, SendGrid, Nodemailer, etc.)
-      // For now, we'll simulate the test and log it
-      console.log('Test email would be sent to:', adminEmail)
-      console.log('Email subject: Email Test - FiltersFast')
-      console.log('Email body: Test email from', companyName)
-      
-      // In production, uncomment and configure:
-      // await sendEmail({
-      //   to: adminEmail,
-      //   subject: 'Email Test - FiltersFast',
-      //   html: `...`,
-      //   text: `...`,
-      // })
+      const subject = 'Email Test - FiltersFast'
+      const plainTextBody = `Hello from ${companyName}!\n\nThis is a test email sent at ${new Date().toISOString()} to confirm that transactional email delivery is configured correctly.\n\nIf you received this message, no further action is required.`
+      const htmlBody = `
+        <p>Hello from <strong>${companyName}</strong>!</p>
+        <p>This is a test message sent at <code>${new Date().toISOString()}</code> to verify that transactional email delivery is configured correctly.</p>
+        <p>If you received this message, no further action is required.</p>
+      `
+
+      const result = await sendEmail({
+        to: adminEmail,
+        subject,
+        html: htmlBody,
+        text: plainTextBody,
+        tags: ['utilities', 'email-test'],
+        meta: {
+          source: 'admin.utilities.test-email',
+        },
+      })
+
+      if (!result.success) {
+        throw new Error(result.error || 'Email provider returned a failure response')
+      }
 
       await logAdminAction({
         action: 'admin.utilities.test-email',

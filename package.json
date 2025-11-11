@@ -53,6 +53,7 @@
     "@googlemaps/js-api-loader": "^1.16.10",
     "@paypal/paypal-js": "^9.0.1",
     "@paypal/react-paypal-js": "^8.9.2",
+    "@sendgrid/mail": "^8.1.6",
     "@stripe/react-stripe-js": "^2.8.0",
     "@stripe/stripe-js": "^4.10.0",
     "@types/qrcode": "^1.5.6",

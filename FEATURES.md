@@ -5759,9 +5759,13 @@ This creates:
 - `payment_processing_logs` table (payment tracking)
 - `merged_orders_tracking` table (merge audit trail)
 
-**2. Configure SendGrid (for email tracking):**
+**2. Configure SendGrid (for email tracking & delivery):**
 ```env
+EMAIL_PROVIDER=sendgrid
 SENDGRID_API_KEY=SG.xxx...  # Your SendGrid API key
+SENDGRID_FROM_EMAIL=noreply@filtersfast.com
+# Optional: keep sandbox mode enabled in staging
+SENDGRID_SANDBOX_MODE=true
 ```
 
 **3. Set Admin Permissions:**
