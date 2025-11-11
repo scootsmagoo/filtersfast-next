@@ -6,7 +6,6 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 
 ## Remaining gaps (legacy-only functionality)
 
-- Per-product purchase ceilings enforced via `maxCartQty` in legacy carts are absent; the Next.js cart allows 1–99 units universally.
 - Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts are still missing from the modern product model.
 
 ---
@@ -20,6 +19,7 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 ## Recent parity wins (validated Nov 11, 2025)
 
 - Gift-with-purchase automation with auto-added reward SKUs, product/deal configuration, accessible cart UX, and applied deal tracking.
+- Per-product purchase ceilings now honor legacy `maxCartQty` caps in cart, admin tooling, and checkout APIs.
 - Payment failover across Stripe + PayPal + Authorize.Net + CyberSource with tiered legacy parity fallback.
 - Azure Key Vault secret monitor with expiry dashboards and rotation guidance (`/admin/utilities/key-vault` + `/api/admin/utilities/key-vault`).
 - Multi-carrier shipping admin (`/admin/shipping`) providing UPS/USPS/FedEx/DHL/Canada Post labels and history.

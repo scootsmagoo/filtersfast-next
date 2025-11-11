@@ -135,6 +135,7 @@ export async function PATCH(
       inventoryQuantity: z.number().int().min(0).max(999999).optional(),
       lowStockThreshold: z.number().int().min(0).max(10000).optional(),
       allowBackorder: z.boolean().optional(),
+      maxCartQty: z.number().int().min(0).max(999).nullable().optional(),
       height: z.number().min(0).max(999).finite().nullable().optional(),
       width: z.number().min(0).max(999).finite().nullable().optional(),
       depth: z.number().min(0).max(999).finite().nullable().optional(),
@@ -168,6 +169,14 @@ export async function PATCH(
       ...validatedData
     };
 
+    if (normalizedData.maxCartQty !== undefined) {
+      const raw = normalizedData.maxCartQty;
+      normalizedData.maxCartQty =
+        raw === null || raw === undefined || raw <= 0
+          ? null
+          : Math.min(raw, 999);
+    }
+
     if (normalizedData.giftWithPurchaseProductId !== undefined) {
       const raw = normalizedData.giftWithPurchaseProductId;
       const trimmed = raw && raw.trim().length > 0 ? raw.trim() : null;
@@ -188,6 +197,7 @@ export async function PATCH(
       normalizedData.giftWithPurchaseProductId = null;
       normalizedData.giftWithPurchaseQuantity = 1;
       normalizedData.giftWithPurchaseAutoAdd = false;
+      normalizedData.maxCartQty = null;
     } else if (
       normalizedData.giftWithPurchaseProductId &&
       normalizedData.giftWithPurchaseAutoAdd === undefined

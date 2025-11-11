@@ -199,6 +199,7 @@ export async function POST(request: NextRequest) {
       inventoryQuantity: z.number().int().min(0).max(999999).default(0),
       lowStockThreshold: z.number().int().min(0).max(10000).default(10),
       allowBackorder: z.boolean().default(false),
+      maxCartQty: z.number().int().min(0).max(999).nullable().optional(),
       height: z.number().min(0).max(999).finite().nullable().optional(),
       width: z.number().min(0).max(999).finite().nullable().optional(),
       depth: z.number().min(0).max(999).finite().nullable().optional(),
@@ -230,6 +231,9 @@ export async function POST(request: NextRequest) {
 
     const normalizedData: ProductFormData = {
       ...validatedData,
+      maxCartQty: validatedData.maxCartQty && validatedData.maxCartQty > 0
+        ? validatedData.maxCartQty
+        : null,
       giftWithPurchaseProductId: validatedData.giftWithPurchaseProductId && validatedData.giftWithPurchaseProductId.trim().length > 0
         ? validatedData.giftWithPurchaseProductId.trim()
         : null,
@@ -245,6 +249,7 @@ export async function POST(request: NextRequest) {
       normalizedData.giftWithPurchaseProductId = null;
       normalizedData.giftWithPurchaseQuantity = 1;
       normalizedData.giftWithPurchaseAutoAdd = false;
+      normalizedData.maxCartQty = null;
     }
 
     // Create product

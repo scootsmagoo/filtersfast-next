@@ -4,6 +4,31 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## 🆕 Latest Updates (January 2025)
 
+### 🛡️ PER-PRODUCT PURCHASE CEILINGS – UPDATED (NOVEMBER 2025)
+
+**Legacy `maxCartQty` limits are now fully enforced across the modern cart, checkout, and admin workflows.**
+
+- ✅ **Admin Controls**: Product create/edit forms expose a “Max Cart Quantity” field that persists to the catalog and supports parity with classic merchandising rules.
+- ✅ **Storefront UX**: PDP quantity selectors and cart inputs clamp values to the configured ceiling, announce limits to assistive tech, and block visual overrides.
+- ✅ **Checkout Guardrails**: The checkout API resolves both numeric and string product identifiers, normalizes input, and rejects payloads that exceed the stored ceiling.
+- ✅ **Database Schema**: `max_cart_qty` column added to `products` table with updated initialization script, keeping SQLite data in sync with the new controls.
+- ♿ **Accessibility**: Live region announcements and `aria-describedby` hints notify screen-reader users when they reach the allowed purchase limit.
+- 🔐 **OWASP Coverage**: Server-side validation closes bypasses where numeric IDs previously skipped the legacy limit checks.
+
+**Quick Start:**
+```bash
+# (optional) initialize products table with latest schema
+npm run init:products
+
+# launch app and test cart ceilings
+npm run dev
+# http://localhost:3000/products/[id]
+```
+
+**Based on Legacy Features:**
+- ✅ Classic `maxCartQty` enforcement in `cart.asp` and related admin tooling
+- ✅ Recreated with modern React UX, defensive APIs, accessibility messaging, and normalized ID handling
+
 ### 🏊 POOL FILTER FINDER WIZARD - NEW! (NOVEMBER 2025)
 
 **Guided tool for matching pool & spa filters with compatibility logic, calculators, and seasonal promos.**

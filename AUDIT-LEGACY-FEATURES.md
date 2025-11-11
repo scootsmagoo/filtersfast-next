@@ -17,13 +17,13 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
   - Customer referral dashboard with sharing widgets, reward tracking, and admin controls.
   - Geo-aware currency detection through middleware + client fallback with automatic rate refresh.
   - CyberSource failover parity layered into the payment gateway manager with HTTP Signature auth.
+  - Legacy `maxCartQty` purchase ceilings enforced end-to-end (admin product editing, cart UX, and checkout API guardrails).
 - ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, and returns management all have working parity implementations.
 
 ### Remaining gaps to close
 
 1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
-2. **Per-product purchase caps** – Legacy enforces `maxCartQty` limits server-side to prevent bulk buys of constrained SKUs. The Next.js cart stops at 99 items universally and has no notion of legacy purchase ceilings, leaving compliance and MAP constraints uncovered.
-3. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
+2. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -60,17 +60,63 @@ export interface Product {
 }
 ```
 
-### Purchase ceilings need parity
-- Legacy enforces `maxCartQty` both when an item is added and when quantity is adjusted, capping restricted SKUs regardless of UI tricks.
-- FiltersFast-Next lets shoppers raise quantity up to 99 for every item, ignoring MAP/contract limits carried in the legacy catalog.
+### Purchase ceilings parity restored (Nov 11, 2025)
+- Cart state now normalizes legacy `maxCartQty` values and clamps add/update flows so the client can’t exceed the ceiling.
+- Storefront quantity controls surface the cap and prevent increments past the limit, matching the legacy UX.
+- Checkout API loads authoritative product data to enforce the limit server-side, rejecting payloads that exceed the ceiling.
 
-```1835:1841:cart.asp
-if clng(maxCartQty) > 0 then
-  if clng(Quantity) > clng(maxCartQty) then
-    Quantity = cint(maxCartQty)
-    maxQtyExceeded = 1
-  end if
-end if
+```118:140:lib/cart-context.tsx
+function sanitizeCartItem(item: CartItem): CartItem {
+  const normalizedMaxCartQty = resolveMaxCartQty(item.maxCartQty ?? null);
+  return {
+    ...item,
+    maxCartQty: normalizedMaxCartQty,
+    quantity: clampQuantityToLimit(item.quantity, normalizedMaxCartQty),
+  };
+}
+```
+
+```288:318:app/cart/page.tsx
+<input
+  type="number"
+  min="1"
+  max={maxCartQty ?? 999}
+  value={item.quantity}
+  onChange={(e) => {
+    const value = parseInt(e.target.value);
+    if (Number.isNaN(value) || value <= 0) return;
+    const clampedValue = maxCartQty
+      ? Math.min(value, maxCartQty)
+      : Math.min(value, 999);
+    updateQuantity(item.id, clampedValue);
+  }}
+/>
+```
+
+```72:84:app/api/checkout/route.ts
+const lookupId =
+  typeof item.productType === 'string' && item.productType.toLowerCase() === 'gift-card'
+    ? null
+    : (typeof item.productId === 'string'
+        ? item.productId
+        : (typeof item.id === 'string' ? item.id : null));
+
+if (lookupId) {
+  let productRecord = productCache.get(lookupId);
+  if (productRecord === undefined) {
+    productRecord = getProductById(lookupId);
+    productCache.set(lookupId, productRecord);
+  }
+  const maxCartQty = productRecord?.maxCartQty && productRecord.maxCartQty > 0
+    ? productRecord.maxCartQty
+    : null;
+  if (maxCartQty && item.quantity > maxCartQty) {
+    return NextResponse.json(
+      { error: `Maximum quantity for ${productRecord?.name ?? 'this product'} is ${maxCartQty}` },
+      { status: 400 }
+    );
+  }
+}
 ```
 
 ### Return-policy and blocked merchandise flags still missing

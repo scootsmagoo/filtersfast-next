@@ -53,6 +53,7 @@ try {
       inventory_quantity INTEGER DEFAULT 0,
       low_stock_threshold INTEGER DEFAULT 10,
       allow_backorder INTEGER DEFAULT 0,
+      max_cart_qty INTEGER,
       
       -- Dimensions (JSON for flexibility)
       dimensions TEXT,  -- JSON: { height, width, depth, weight }
@@ -142,6 +143,11 @@ try {
   if (!productColumnNames.includes('gift_with_purchase_auto_add')) {
     console.log('Adding gift_with_purchase_auto_add column to products table...');
     db.exec(`ALTER TABLE products ADD COLUMN gift_with_purchase_auto_add INTEGER NOT NULL DEFAULT 1`);
+  }
+
+  if (!productColumnNames.includes('max_cart_qty')) {
+    console.log('Adding max_cart_qty column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN max_cart_qty INTEGER`);
   }
 
   db.exec(`UPDATE products SET gift_with_purchase_quantity = 1 WHERE gift_with_purchase_quantity IS NULL`);
@@ -288,6 +294,7 @@ try {
       compare_at_price: 89.99,
       cost_price: 35.00,
       inventory_quantity: 250,
+      max_cart_qty: 6,
       dimensions: JSON.stringify({ height: 16, width: 25, depth: 1, weight: 1.2 }),
       merv_rating: '13',
       features: JSON.stringify([
@@ -342,6 +349,7 @@ try {
       compare_at_price: 59.99,
       cost_price: 22.00,
       inventory_quantity: 180,
+      max_cart_qty: 3,
       dimensions: JSON.stringify({ height: 8.5, width: 2.5, depth: 2.5, weight: 0.5 }),
       merv_rating: null,
       features: JSON.stringify([
@@ -396,6 +404,7 @@ try {
       compare_at_price: 39.99,
       cost_price: 16.00,
       inventory_quantity: 95,
+      max_cart_qty: null,
       dimensions: JSON.stringify({ height: 10, width: 13, depth: 1.75, weight: 0.8 }),
       merv_rating: null,
       features: JSON.stringify([
@@ -441,20 +450,28 @@ try {
   const insertProduct = db.prepare(`
     INSERT OR REPLACE INTO products (
       id, name, slug, sku, brand, description, short_description, type, status,
-      price, compare_at_price, cost_price, track_inventory, inventory_quantity, low_stock_threshold,
+      price, compare_at_price, cost_price, track_inventory, inventory_quantity, low_stock_threshold, allow_backorder, max_cart_qty,
       dimensions, merv_rating, features, specifications, compatible_models,
       images, primary_image, has_variants, category_ids, tags,
       is_featured, is_best_seller, made_in_usa, free_shipping,
       rating, review_count, subscription_eligible, subscription_discount, weight,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?
+    )
   `);
 
   sampleProducts.forEach((product) => {
     insertProduct.run(
       product.id, product.name, product.slug, product.sku, product.brand,
       product.description, product.short_description, product.type, product.status,
-      product.price, product.compare_at_price, product.cost_price, 1, product.inventory_quantity, 10,
+      product.price, product.compare_at_price, product.cost_price, 1, product.inventory_quantity, 10, 0, product.max_cart_qty ?? null,
       product.dimensions, product.merv_rating, product.features, product.specifications, product.compatible_models,
       product.images, product.primary_image, 0, product.category_ids, product.tags,
       product.is_featured, product.is_best_seller, product.made_in_usa, product.free_shipping,

@@ -54,6 +54,7 @@ export interface CartItem {
   isReward?: boolean;
   rewardSource?: CartRewardSource;
   parentProductId?: string;
+  maxCartQty?: number | null;
 }
 
 export interface AppliedGiftCardState {
@@ -93,16 +94,46 @@ const initialState: CartState = {
   appliedDeals: [],
 };
 
+function resolveMaxCartQty(value?: number | null): number | null {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return null;
+  }
+
+  const floored = Math.floor(value);
+  if (floored <= 0) {
+    return null;
+  }
+
+  return Math.min(floored, 999);
+}
+
+function clampQuantityToLimit(quantity: number, maxCartQty: number | null): number {
+  const safeQuantity = Math.max(0, quantity);
+  const limit = maxCartQty ?? 999;
+  return Math.min(safeQuantity, limit);
+}
+
+function sanitizeCartItem(item: CartItem): CartItem {
+  const normalizedMaxCartQty = resolveMaxCartQty(item.maxCartQty ?? null);
+  return {
+    ...item,
+    maxCartQty: normalizedMaxCartQty,
+    quantity: clampQuantityToLimit(item.quantity, normalizedMaxCartQty),
+  };
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const quantityToAdd = action.payload.quantity || 1;
+      const payloadMaxCartQty = resolveMaxCartQty(action.payload.maxCartQty ?? null);
       const payload: CartItem = {
         ...action.payload,
-        quantity: quantityToAdd,
+        quantity: clampQuantityToLimit(quantityToAdd, payloadMaxCartQty),
         isReward: false,
         rewardSource: undefined,
         parentProductId: undefined,
+        maxCartQty: payloadMaxCartQty,
       };
       
       // Check if item with same ID and options already exists
@@ -121,7 +152,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         const updatedItems = state.items.map(item =>
           item.id === action.payload.id && 
           JSON.stringify(item.options || {}) === JSON.stringify(action.payload.options || {})
-            ? { ...item, quantity: item.quantity + quantityToAdd }
+            ? (() => {
+                const limit = resolveMaxCartQty(payload.maxCartQty ?? item.maxCartQty ?? null);
+                const nextQuantity = clampQuantityToLimit(item.quantity + quantityToAdd, limit);
+                return {
+                  ...item,
+                  quantity: nextQuantity,
+                  maxCartQty: limit,
+                };
+              })()
             : item
         );
         return {
@@ -132,7 +171,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         };
       } else {
         // New item or different options, add as separate item
-        const newItem = { ...action.payload, quantity: quantityToAdd };
+        const limit = resolveMaxCartQty(action.payload.maxCartQty ?? null);
+        const newItem: CartItem = {
+          ...action.payload,
+          quantity: clampQuantityToLimit(quantityToAdd, limit),
+          maxCartQty: limit,
+        };
         newItem.isReward = false;
         newItem.rewardSource = undefined;
         newItem.parentProductId = undefined;
@@ -156,22 +200,29 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         if (newItem.isReward) {
           return;
         }
-        const existingIndex = updatedItems.findIndex(item => item.id === newItem.id);
+        const normalizedIncoming = sanitizeCartItem({
+          ...newItem,
+          isReward: false,
+          rewardSource: undefined,
+          parentProductId: undefined,
+        });
+        const existingIndex = updatedItems.findIndex(item =>
+          item.id === normalizedIncoming.id &&
+          JSON.stringify(item.options || {}) === JSON.stringify(normalizedIncoming.options || {})
+        );
         
         if (existingIndex >= 0) {
           // Item exists, add to quantity
+          const existing = updatedItems[existingIndex];
+          const limit = resolveMaxCartQty(normalizedIncoming.maxCartQty ?? existing.maxCartQty ?? null);
           updatedItems[existingIndex] = {
-            ...updatedItems[existingIndex],
-            quantity: updatedItems[existingIndex].quantity + newItem.quantity,
+            ...existing,
+            quantity: clampQuantityToLimit(existing.quantity + normalizedIncoming.quantity, limit),
+            maxCartQty: limit,
           };
         } else {
           // New item, add to cart
-          updatedItems.push({
-            ...newItem,
-            isReward: false,
-            rewardSource: undefined,
-            parentProductId: undefined,
-          });
+          updatedItems.push(normalizedIncoming);
         }
       });
       
@@ -227,7 +278,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           if (item.isReward) {
             return item;
           }
-          return { ...item, quantity: Math.max(0, action.payload.quantity) };
+          const limit = resolveMaxCartQty(item.maxCartQty ?? null);
+          return {
+            ...item,
+            quantity: clampQuantityToLimit(action.payload.quantity, limit),
+            maxCartQty: limit,
+          };
         }
         return item;
       });
@@ -261,14 +317,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case 'CLEAR_CART':
       return { ...initialState };
     
-    case 'LOAD_STATE':
+    case 'LOAD_STATE': {
+      const sanitizedItems = action.payload.items.map(sanitizeCartItem);
       return {
-        items: action.payload.items,
-        total: action.payload.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: action.payload.items.reduce((sum, item) => sum + item.quantity, 0),
+        items: sanitizedItems,
+        total: sanitizedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: sanitizedItems.reduce((sum, item) => sum + item.quantity, 0),
         appliedGiftCards: action.payload.appliedGiftCards,
         appliedDeals: action.payload.appliedDeals ?? [],
       };
+    }
 
     case 'APPLY_GIFT_CARD': {
       const existing = state.appliedGiftCards.find(card => card.code.toLowerCase() === action.payload.code.toLowerCase());

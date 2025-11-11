@@ -16,6 +16,7 @@ interface Product {
   image: string;
   inStock: boolean;
   badges?: string[];
+  maxCartQty?: number | null;
 }
 
 interface ProductGridProps {

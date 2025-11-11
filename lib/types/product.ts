@@ -86,6 +86,7 @@ export interface Product {
   inventoryQuantity: number
   lowStockThreshold: number
   allowBackorder: boolean
+  maxCartQty: number | null
   
   // Dimensions (for filters)
   dimensions: ProductDimensions | null
@@ -178,6 +179,7 @@ export interface ProductFormData {
   inventoryQuantity: number
   lowStockThreshold: number
   allowBackorder: boolean
+  maxCartQty: number | null
   
   // Dimensions
   height: number | null

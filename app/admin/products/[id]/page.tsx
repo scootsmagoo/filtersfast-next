@@ -41,6 +41,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     inventoryQuantity: 0,
     lowStockThreshold: 10,
     allowBackorder: false,
+    maxCartQty: null,
     height: null,
     width: null,
     depth: null,
@@ -95,6 +96,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         giftWithPurchaseProductId: null,
         giftWithPurchaseQuantity: 1,
         giftWithPurchaseAutoAdd: false,
+        maxCartQty: null,
       }));
     }
   }, [formData.type]);
@@ -129,6 +131,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         inventoryQuantity: p.inventoryQuantity,
         lowStockThreshold: p.lowStockThreshold,
         allowBackorder: p.allowBackorder,
+        maxCartQty: p.maxCartQty,
         height: p.dimensions?.height || null,
         width: p.dimensions?.width || null,
         depth: p.dimensions?.depth || null,
@@ -614,6 +617,31 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                    Max Cart Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.maxCartQty ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        updateField('maxCartQty', null);
+                        return;
+                      }
+                      const parsed = Math.max(0, parseInt(raw, 10));
+                      updateField('maxCartQty', Number.isNaN(parsed) || parsed === 0 ? null : parsed);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                    placeholder="e.g., 2 (leave blank for no limit)"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                    Leave blank or 0 to allow unlimited purchases. Customers cannot exceed this cap in cart.
+                  </p>
                 </div>
               </Card>
 

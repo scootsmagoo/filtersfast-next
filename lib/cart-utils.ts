@@ -17,6 +17,7 @@ export interface CartItem {
   productType?: string;
   giftCardDetails?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+  maxCartQty?: number | null;
 }
 
 export interface CartTotals {

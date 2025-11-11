@@ -33,6 +33,7 @@ const mockProducts: SearchableProduct[] = [
     image: '/products/ge-mwf.jpg',
     inStock: true,
     badges: ['bestseller', 'genuine'],
+    maxCartQty: 3,
     category: 'refrigerator',
     description: 'Genuine GE MWF refrigerator water filter replacement. Reduces chlorine taste and odor, lead, and other contaminants.',
     searchKeywords: ['ge', 'mwf', 'refrigerator', 'water', 'filter', 'genuine', 'replacement'],
@@ -55,6 +56,7 @@ const mockProducts: SearchableProduct[] = [
     image: '/products/whirlpool-edr1rxd1.jpg',
     inStock: true,
     badges: ['genuine'],
+    maxCartQty: 2,
     category: 'refrigerator',
     description: 'OEM Whirlpool EDR1RXD1 water filter. Fits most Whirlpool, KitchenAid, and Maytag refrigerators.',
     searchKeywords: ['whirlpool', 'edr1rxd1', 'refrigerator', 'water', 'filter', 'kitchenaid', 'maytag'],
@@ -78,6 +80,7 @@ const mockProducts: SearchableProduct[] = [
     image: '/products/lg-lt700p.jpg',
     inStock: true,
     badges: ['bestseller', 'genuine'],
+    maxCartQty: 4,
     category: 'refrigerator',
     description: 'LG LT700P genuine water filter. NSF certified to reduce chlorine taste and odor.',
     searchKeywords: ['lg', 'lt700p', 'refrigerator', 'water', 'filter', 'nsf', 'certified'],
@@ -841,6 +844,9 @@ export default function ProductDetailPage() {
     purchaserEmail: '',
   });
   const isGiftCard = product?.productType === 'gift-card';
+  const resolvedMaxCartQty = product?.maxCartQty && product.maxCartQty > 0
+    ? Math.min(product.maxCartQty, 999)
+    : null;
 
   useEffect(() => {
     if (productId) {
@@ -983,6 +989,15 @@ export default function ProductDetailPage() {
     }
   }, [isGiftCard, subscriptionEnabled]);
 
+  useEffect(() => {
+    if (!resolvedMaxCartQty) {
+      return;
+    }
+    if (quantity > resolvedMaxCartQty) {
+      setQuantity(resolvedMaxCartQty);
+    }
+  }, [resolvedMaxCartQty, quantity]);
+
   const checkUpcomingOrders = async () => {
     try {
       const response = await fetch('/api/subscriptions/upcoming');
@@ -1036,6 +1051,10 @@ export default function ProductDetailPage() {
           }
         : null;
 
+      const requestedQuantity = resolvedMaxCartQty
+        ? Math.min(quantity, resolvedMaxCartQty)
+        : quantity;
+
       addItem({
         id: cartItemId,
         productId: baseProductId,
@@ -1045,7 +1064,8 @@ export default function ProductDetailPage() {
         sku: product.sku,
         price: finalPrice,
         image: optionImageUrl || product.image,
-        ...(quantity > 1 && { quantity }),
+        ...(requestedQuantity > 1 && { quantity: requestedQuantity }),
+        maxCartQty: resolvedMaxCartQty ?? null,
         ...(Object.keys(selectedOptions).length > 0 && {
           options: selectedOptions,
         }),
@@ -1090,6 +1110,9 @@ export default function ProductDetailPage() {
   // Check if product is FiltersFast branded (private label)
   const isPrivateLabel = product?.brand?.toLowerCase().includes('filtersfast') ||
                         product?.brand?.toLowerCase().includes('filters fast');
+  const quantityOptionCap = resolvedMaxCartQty ? Math.min(resolvedMaxCartQty, 10) : 10;
+  const quantityOptions = Array.from({ length: Math.max(1, quantityOptionCap) }, (_, idx) => idx + 1);
+  const quantityLimitDescriptionId = resolvedMaxCartQty ? 'quantity-limit-hint' : undefined;
 
   const handleAddToUpcomingOrder = async (asSubscription: boolean, frequency: number) => {
     if (!product || !upcomingOrder) return;
@@ -1370,16 +1393,34 @@ export default function ProductDetailPage() {
                 <select
                   id="quantity"
                   value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    if (Number.isNaN(value)) return;
+                    if (resolvedMaxCartQty) {
+                      setQuantity(Math.min(value, resolvedMaxCartQty));
+                    } else {
+                      setQuantity(value);
+                    }
+                  }}
+                  aria-describedby={quantityLimitDescriptionId}
                   className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-20 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                  {quantityOptions.map((num) => (
                     <option key={num} value={num}>
                       {num}
                     </option>
                   ))}
                 </select>
               </div>
+              
+              {resolvedMaxCartQty && (
+                <p
+                  id={quantityLimitDescriptionId}
+                  className="text-xs text-gray-500 dark:text-gray-400"
+                >
+                  Maximum {resolvedMaxCartQty} per order
+                </p>
+              )}
               
               <Button
                 onClick={handleAddToCart}

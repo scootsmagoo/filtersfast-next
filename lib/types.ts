@@ -14,6 +14,7 @@ export interface SearchableProduct {
   badges?: string[];
   productType?: string;
   requiresShipping?: boolean;
+  maxCartQty?: number | null;
   
   // Search-specific fields
   category: 'refrigerator' | 'water' | 'air' | 'pool' | 'humidifier' | 'sale';

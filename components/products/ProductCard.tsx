@@ -22,6 +22,7 @@ interface Product {
   image: string;
   inStock: boolean;
   badges?: string[];
+  maxCartQty?: number | null;
 }
 
 interface ProductCardProps {
@@ -54,6 +55,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       sku: product.sku,
       price: product.price,
       image: product.image,
+      maxCartQty: product.maxCartQty ?? null,
       ...(subscriptionEnabled && {
         subscription: {
           enabled: true,

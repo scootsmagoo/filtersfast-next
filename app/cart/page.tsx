@@ -189,6 +189,9 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
               const isReward = Boolean(item.isReward);
+              const maxCartQty = item.maxCartQty && item.maxCartQty > 0 ? item.maxCartQty : null;
+              const sanitizedItemId = String(item.id ?? item.sku ?? 'item').replace(/[^a-zA-Z0-9_-]/g, '');
+              const quantityLimitMessageId = maxCartQty ? `cart-max-limit-${sanitizedItemId || 'item'}` : undefined;
               return (
                 <Card
                   key={item.id}
@@ -285,26 +288,44 @@ export default function CartPage() {
                               <input
                                 type="number"
                                 min="1"
-                                max="99"
+                                max={maxCartQty ?? 999}
                                 value={item.quantity}
+                                aria-describedby={quantityLimitMessageId}
                                 onChange={(e) => {
                                   const value = parseInt(e.target.value);
-                                  if (!isNaN(value) && value > 0 && value <= 99) {
-                                    updateQuantity(item.id, value);
-                                  }
+                                  if (Number.isNaN(value) || value <= 0) return;
+                                  const clampedValue = maxCartQty
+                                    ? Math.min(value, maxCartQty)
+                                    : Math.min(value, 999);
+                                  updateQuantity(item.id, clampedValue);
                                 }}
                                 className="w-16 text-center border-x border-gray-300 dark:border-gray-600 py-2 focus:outline-none bg-transparent text-gray-900 dark:text-gray-100"
                               />
                               
                               <button
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                disabled={item.quantity >= 99}
+                                onClick={() => {
+                                  const nextValue = maxCartQty
+                                    ? Math.min(item.quantity + 1, maxCartQty)
+                                    : item.quantity + 1;
+                                  updateQuantity(item.id, nextValue);
+                                }}
+                                disabled={Boolean(maxCartQty) && item.quantity >= maxCartQty}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
                                 aria-label="Increase quantity"
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
                             </div>
+                            {maxCartQty && item.quantity >= maxCartQty && (
+                              <p
+                                id={quantityLimitMessageId}
+                                role="status"
+                                aria-live="polite"
+                                className="text-xs text-orange-600 dark:text-orange-400 mt-1"
+                              >
+                                Maximum {maxCartQty} per order for this product.
+                              </p>
+                            )}
                           </div>
                         )}
 

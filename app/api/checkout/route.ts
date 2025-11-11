@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripeOrThrow, formatAmountForStripe } from '@/lib/stripe';
+import { getProductById } from '@/lib/db/products';
 import { DonationSelection } from '@/lib/types/charity';
 import { InsuranceSelection, validateInsurance } from '@/lib/types/insurance';
 
@@ -7,6 +8,7 @@ import { InsuranceSelection, validateInsurance } from '@/lib/types/insurance';
 interface CartItem {
   id: string | number;
   cartItemId?: string | number;
+  productId?: string | number;
   name: string;
   brand: string;
   sku: string;
@@ -16,6 +18,7 @@ interface CartItem {
   productType?: string;
   giftCardDetails?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+  maxCartQty?: number | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -36,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // OWASP: Validate all cart items
+    const productCache = new Map<string, ReturnType<typeof getProductById>>();
     for (const item of items) {
       if (!item.id || !item.name || !item.price || !item.quantity) {
         return NextResponse.json(
@@ -56,6 +60,38 @@ export async function POST(request: NextRequest) {
           { error: 'Invalid item quantity' },
           { status: 400 }
         );
+      }
+
+      const isGiftCard = typeof item.productType === 'string' && item.productType.toLowerCase() === 'gift-card';
+
+      if (!isGiftCard) {
+        const normalizeProductIdentifier = (value: unknown): string | null => {
+          if (value === null || value === undefined) return null;
+          const normalized = String(value).trim();
+          if (!normalized) return null;
+          return normalized.length > 100 ? normalized.substring(0, 100) : normalized;
+        };
+
+        const lookupId =
+          normalizeProductIdentifier(item.productId) ??
+          normalizeProductIdentifier(item.id);
+
+        if (lookupId) {
+          let productRecord = productCache.get(lookupId);
+          if (productRecord === undefined) {
+            productRecord = getProductById(lookupId);
+            productCache.set(lookupId, productRecord);
+          }
+          const maxCartQty = productRecord?.maxCartQty && productRecord.maxCartQty > 0
+            ? productRecord.maxCartQty
+            : null;
+          if (maxCartQty && item.quantity > maxCartQty) {
+            return NextResponse.json(
+              { error: `Maximum quantity for ${productRecord?.name ?? 'this product'} is ${maxCartQty}` },
+              { status: 400 }
+            );
+          }
+        }
       }
     }
 

@@ -71,6 +71,9 @@ function rowToProduct(row: any): Product {
     inventoryQuantity: row.inventory_quantity,
     lowStockThreshold: row.low_stock_threshold,
     allowBackorder: Boolean(row.allow_backorder),
+    maxCartQty: row.max_cart_qty === null || row.max_cart_qty === undefined
+      ? null
+      : Number(row.max_cart_qty),
     dimensions: safeJsonParse(row.dimensions, null),
     mervRating: row.merv_rating,
     features: safeJsonParse(row.features, []),
@@ -349,6 +352,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         id, name, slug, sku, brand, description, short_description, type, status,
         price, compare_at_price, cost_price,
         track_inventory, inventory_quantity, low_stock_threshold, allow_backorder,
+        max_cart_qty,
         dimensions, merv_rating, features, specifications, compatible_models,
         images, primary_image, has_variants, variants,
         category_ids, tags,
@@ -363,6 +367,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?,
+        ?,
         ?, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?,
@@ -404,6 +409,16 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
     const normalizedGiftAutoAdd =
       normalizedGiftProductId ? (data.giftWithPurchaseAutoAdd === false ? 0 : 1) : 0;
 
+    const normalizedMaxCartQty = (() => {
+      const raw = data.maxCartQty;
+      if (isGiftCard) return null;
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw !== 'number' || Number.isNaN(raw)) return null;
+      const floored = Math.floor(raw);
+      if (floored <= 0) return null;
+      return Math.min(floored, 999);
+    })();
+
     stmt.run(
       id, data.name, slug, data.sku, data.brand, data.description, data.shortDescription,
       data.type, data.status,
@@ -412,6 +427,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       isGiftCard ? 0 : data.inventoryQuantity,
       isGiftCard ? 0 : data.lowStockThreshold,
       isGiftCard ? 0 : (data.allowBackorder ? 1 : 0),
+      normalizedMaxCartQty,
       dimensions, data.mervRating, features, specs, compatModels,
       images, data.primaryImage, 0, '[]',
       JSON.stringify(data.categoryIds), JSON.stringify(data.tags),
@@ -483,6 +499,19 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     if (data.inventoryQuantity !== undefined) addUpdate('inventoryQuantity', data.inventoryQuantity, 'inventory_quantity', existing.inventoryQuantity);
     if (data.lowStockThreshold !== undefined) addUpdate('lowStockThreshold', data.lowStockThreshold, 'low_stock_threshold', existing.lowStockThreshold);
     if (data.allowBackorder !== undefined) addUpdate('allowBackorder', data.allowBackorder ? 1 : 0, 'allow_backorder', existing.allowBackorder);
+    if (data.maxCartQty !== undefined) {
+      const raw = data.maxCartQty;
+      let normalized: number | null;
+      if (raw === null || raw === undefined) {
+        normalized = null;
+      } else if (typeof raw === 'number' && Number.isFinite(raw)) {
+        const floored = Math.floor(raw);
+        normalized = floored > 0 ? Math.min(floored, 999) : null;
+      } else {
+        normalized = null;
+      }
+      addUpdate('maxCartQty', normalized, 'max_cart_qty', existing.maxCartQty);
+    }
 
     // Flags
     if (data.isFeatured !== undefined) addUpdate('isFeatured', data.isFeatured ? 1 : 0, 'is_featured', existing.isFeatured);
@@ -566,6 +595,11 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
       enforceBooleanField('allowBackorder', 'allow_backorder', 0, existing.allowBackorder);
       enforceBooleanField('subscriptionEligible', 'subscription_eligible', 0, existing.subscriptionEligible);
       enforceNumericField('subscriptionDiscount', 'subscription_discount', 0, existing.subscriptionDiscount);
+      if (!hasUpdateFor('max_cart_qty') && existing.maxCartQty !== null) {
+        updates.push('max_cart_qty = ?');
+        params.push(null);
+        changes.maxCartQty = { old: existing.maxCartQty, new: null };
+      }
       enforceBooleanField('freeShipping', 'free_shipping', 1, existing.freeShipping);
 
       if (!hasUpdateFor('gift_with_purchase_product_id') && existing.giftWithPurchaseProductId !== null) {
