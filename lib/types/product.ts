@@ -61,6 +61,11 @@ export interface ProductCategory {
   parentId?: string
 }
 
+export type ReturnRestrictionLevel =
+  | 0 // Normal return policy
+  | 1 // Refund only
+  | 2 // Non-returnable (all sales final)
+
 export interface Product {
   id: string
   
@@ -125,6 +130,8 @@ export interface Product {
   madeInUSA: boolean
   freeShipping: boolean
   badges: string[]  // Custom badges like "NSF Certified", "Top Rated"
+  retExclude: ReturnRestrictionLevel
+  blockedReason: string | null
   
   // Subscription
   subscriptionEligible: boolean
@@ -219,6 +226,10 @@ export interface ProductFormData {
   giftWithPurchaseProductId: string | null
   giftWithPurchaseQuantity: number
   giftWithPurchaseAutoAdd: boolean
+
+  // Policies & Restrictions
+  retExclude: ReturnRestrictionLevel
+  blockedReason: string | null
 }
 
 export interface ProductFilters {
@@ -296,6 +307,8 @@ export interface ProductImportRow {
   allowBackorder?: boolean
   trackInventory?: boolean
   description?: string
+  retExclude?: ReturnRestrictionLevel
+  blockedReason?: string | null
   [key: string]: any
 }
 

@@ -40,6 +40,11 @@ function productToSearchable(product: any): SearchableProduct {
     : (typeof originalId === 'number' ? String(originalId) : undefined);
   
   // Build the searchable product - ALWAYS include productId when we have originalId
+  const retExcludeRaw = Number(product.retExclude);
+  const retExclude = [0, 1, 2].includes(retExcludeRaw) ? (retExcludeRaw as 0 | 1 | 2) : 0;
+  const blockedReason = product.blockedReason?.trim() ? product.blockedReason.trim() : null;
+  const isBlocked = Boolean(blockedReason);
+
   const searchable: any = {
     id: numericId, // Keep numeric for backward compatibility with mock data
     name: product.name,
@@ -50,7 +55,7 @@ function productToSearchable(product: any): SearchableProduct {
     rating: product.rating || 0,
     reviewCount: product.reviewCount || 0,
     image: product.primaryImage || '/images/product-placeholder.jpg',
-    inStock: product.inventoryQuantity > 0 || !product.trackInventory,
+    inStock: (product.inventoryQuantity > 0 || !product.trackInventory) && !isBlocked,
     badges: [
       ...(product.isBestSeller ? ['bestseller'] : []),
       ...(product.isFeatured ? ['featured'] : []),
@@ -69,6 +74,10 @@ function productToSearchable(product: any): SearchableProduct {
     partNumbers: [product.sku, ...(product.tags || [])],
     compatibility: product.compatibleModels || [],
     specifications: product.specifications || {},
+    maxCartQty: product.maxCartQty ?? null,
+    retExclude,
+    blockedReason,
+    isBlocked,
   };
   
   // CRITICAL: Explicitly set productId AFTER building the object to ensure it's included
@@ -376,11 +385,13 @@ export async function GET(request: NextRequest) {
     // Validate and sanitize numeric inputs
     const minPriceParam = searchParams.get('minPrice');
     const maxPriceParam = searchParams.get('maxPrice');
-    const minPrice = minPriceParam ? sanitizeNumber(minPriceParam, 0, 100000) : undefined;
-    const maxPrice = maxPriceParam ? sanitizeNumber(maxPriceParam, 0, 100000) : undefined;
+    const rawMinPrice = minPriceParam ? sanitizeNumber(minPriceParam, 0, 100000) : undefined;
+    const rawMaxPrice = maxPriceParam ? sanitizeNumber(maxPriceParam, 0, 100000) : undefined;
+    const minPrice = typeof rawMinPrice === 'number' ? rawMinPrice : undefined;
+    const maxPrice = typeof rawMaxPrice === 'number' ? rawMaxPrice : undefined;
     
     // Validate price range
-    if (minPrice !== null && maxPrice !== null && minPrice !== undefined && maxPrice !== undefined) {
+    if (typeof minPrice === 'number' && typeof maxPrice === 'number') {
       if (minPrice > maxPrice) {
         return NextResponse.json(
           { error: 'Invalid price range. Minimum price cannot be greater than maximum price.' },
@@ -391,7 +402,8 @@ export async function GET(request: NextRequest) {
     
     const inStock = searchParams.get('inStock') === 'true';
     const minRatingParam = searchParams.get('minRating');
-    const minRating = minRatingParam ? sanitizeNumber(minRatingParam, 0, 5) : undefined;
+    const rawMinRating = minRatingParam ? sanitizeNumber(minRatingParam, 0, 5) : undefined;
+    const minRating = typeof rawMinRating === 'number' ? rawMinRating : undefined;
     
     // Validate pagination parameters
     const pageParam = searchParams.get('page');

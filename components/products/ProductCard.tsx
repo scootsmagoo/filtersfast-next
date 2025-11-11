@@ -2,7 +2,7 @@
 
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { ShoppingCart, Check } from 'lucide-react';
+import { ShoppingCart, Check, AlertTriangle } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useStatusAnnouncement } from '@/components/ui/StatusAnnouncementProvider';
 import ReviewStars from './ReviewStars';
@@ -23,6 +23,9 @@ interface Product {
   inStock: boolean;
   badges?: string[];
   maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
+  isBlocked?: boolean;
 }
 
 interface ProductCardProps {
@@ -41,8 +44,21 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+  const productBlocked = Boolean(product.isBlocked || product.blockedReason);
+  const retExcludeLevel = product.retExclude ?? 0;
+  const returnPolicyLabel =
+    retExcludeLevel === 2
+      ? 'All sales final'
+      : retExcludeLevel === 1
+      ? 'Refund only'
+      : null;
 
   const handleAddToCart = async () => {
+    if (productBlocked) {
+      announceSuccess('This item is temporarily unavailable and cannot be added to the cart.');
+      return;
+    }
+
     setIsAdding(true);
     
     // Simulate a brief loading state for better UX
@@ -55,6 +71,8 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
       sku: product.sku,
       price: product.price,
       image: product.image,
+      retExclude: product.retExclude ?? 0,
+      blockedReason: product.blockedReason ?? null,
       maxCartQty: product.maxCartQty ?? null,
       ...(subscriptionEnabled && {
         subscription: {
@@ -158,10 +176,25 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                   showCurrency
                 />
               </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
-                <Check className="w-4 h-4" aria-hidden="true" />
-                <span className="sr-only">Availability: </span>In Stock
+              <div className="flex items-center gap-1 text-sm mt-1" role="status" aria-live="polite">
+                {productBlocked ? (
+                  <>
+                    <AlertTriangle className="w-4 h-4 text-red-600" aria-hidden="true" />
+                    <span className="text-red-600">Temporarily unavailable</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" aria-hidden="true" />
+                    <span className="sr-only">Availability: </span>
+                    <span className="text-green-600">In Stock</span>
+                  </>
+                )}
               </div>
+              {returnPolicyLabel && (
+                <div className="text-xs text-yellow-700 dark:text-yellow-300 mt-1 transition-colors">
+                  {returnPolicyLabel}
+                </div>
+              )}
             </div>
             
             {/* Subscription Widget - Compact */}
@@ -179,7 +212,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
             
             <Button 
               onClick={handleAddToCart}
-              disabled={isAdding || !product.inStock}
+              disabled={isAdding || !product.inStock || productBlocked}
               className={`w-full flex items-center justify-center gap-2 ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
             >
               {justAdded ? (
@@ -258,10 +291,24 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
               showCurrency
             />
           </div>
-          <div className="flex items-center gap-1 text-green-600 text-sm mt-1">
-            <Check className="w-4 h-4" />
-            In Stock
-          </div>
+            <div className="flex items-center gap-1 text-sm mt-1" role="status" aria-live="polite">
+              {productBlocked ? (
+                <>
+                  <AlertTriangle className="w-4 h-4 text-red-600" aria-hidden="true" />
+                  <span className="text-red-600">Temporarily unavailable</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 text-green-600" aria-hidden="true" />
+                  <span className="text-green-600">In Stock</span>
+                </>
+              )}
+            </div>
+            {returnPolicyLabel && (
+              <div className="text-xs text-yellow-700 dark:text-yellow-300 mt-1 transition-colors">
+                {returnPolicyLabel}
+              </div>
+            )}
         </div>
 
         {/* Spacer to push content to bottom */}
@@ -283,7 +330,7 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
         {/* Add to Cart Button */}
         <Button 
           onClick={handleAddToCart}
-          disabled={isAdding || !product.inStock}
+          disabled={isAdding || !product.inStock || productBlocked}
           className={`w-full flex items-center justify-center gap-2 mt-auto ${justAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
         >
           {justAdded ? (

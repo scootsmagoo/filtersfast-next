@@ -15,6 +15,9 @@ export interface SearchableProduct {
   productType?: string;
   requiresShipping?: boolean;
   maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
+  isBlocked?: boolean;
   
   // Search-specific fields
   category: 'refrigerator' | 'water' | 'air' | 'pool' | 'humidifier' | 'sale';

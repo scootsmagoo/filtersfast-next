@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useCart } from '@/lib/cart-context';
+import { useCart, type CartItem, type CartItemId } from '@/lib/cart-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import IdMeVerificationButton from '@/components/idme/IdMeVerificationButton';
@@ -13,10 +13,19 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package, Gift,
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart, appliedDeals } = useCart();
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const cart = useCart();
+  const items = cart.items as Array<CartItem & {
+    isReward?: boolean;
+    maxCartQty?: number | null;
+    blockedReason?: string | null;
+    retExclude?: 0 | 1 | 2;
+  }>;
+  const appliedDeals = ((cart as any).appliedDeals ?? []) as Array<{ id: number; description: string }>;
+  const { total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart } = cart;
+  const [removingId, setRemovingId] = useState<CartItemId | null>(null);
+  const hasBlockedItems = items.some(item => item.blockedReason);
 
-  const handleRemoveItem = (id: number) => {
+  const handleRemoveItem = (id: CartItemId) => {
     setRemovingId(id);
     setTimeout(() => {
       removeItem(id);
@@ -31,6 +40,10 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
+    if (hasBlockedItems) {
+      alert('Please remove unavailable items before proceeding to checkout.');
+      return;
+    }
     router.push('/checkout');
   };
 
@@ -121,6 +134,14 @@ export default function CartPage() {
           </button>
         </div>
 
+        {hasBlockedItems && (
+          <Card className="mb-6 border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 transition-colors" role="alert">
+            <div className="p-4 text-sm">
+              One or more items are temporarily unavailable and must be removed before checkout.
+            </div>
+          </Card>
+        )}
+
         {/* Applicable Deal Banner */}
         {rewardItems.length > 0 && (
           <Card 
@@ -192,6 +213,14 @@ export default function CartPage() {
               const maxCartQty = item.maxCartQty && item.maxCartQty > 0 ? item.maxCartQty : null;
               const sanitizedItemId = String(item.id ?? item.sku ?? 'item').replace(/[^a-zA-Z0-9_-]/g, '');
               const quantityLimitMessageId = maxCartQty ? `cart-max-limit-${sanitizedItemId || 'item'}` : undefined;
+              const retExcludeLevel = item.retExclude ?? 0;
+              const returnPolicyMessage =
+                retExcludeLevel === 2
+                  ? 'All sales are final for this item.'
+                  : retExcludeLevel === 1
+                  ? 'This item is eligible for refunds only.'
+                  : null;
+              const blockedReasonText = item.blockedReason ?? null;
               return (
                 <Card
                   key={item.id}
@@ -272,6 +301,10 @@ export default function CartPage() {
                           <div className="text-sm font-medium text-green-600 dark:text-green-400">
                             Quantity: {item.quantity}
                           </div>
+                        ) : blockedReasonText ? (
+                          <div className="text-sm font-medium text-red-600 dark:text-red-400" role="status" aria-live="assertive">
+                            Temporarily unavailable
+                          </div>
                         ) : (
                           <div className="flex items-center gap-3">
                             <span className="text-sm text-gray-600 dark:text-gray-300 font-medium transition-colors">Qty:</span>
@@ -294,7 +327,7 @@ export default function CartPage() {
                                 onChange={(e) => {
                                   const value = parseInt(e.target.value);
                                   if (Number.isNaN(value) || value <= 0) return;
-                                  const clampedValue = maxCartQty
+                                  const clampedValue = maxCartQty !== null
                                     ? Math.min(value, maxCartQty)
                                     : Math.min(value, 999);
                                   updateQuantity(item.id, clampedValue);
@@ -304,28 +337,34 @@ export default function CartPage() {
                               
                               <button
                                 onClick={() => {
-                                  const nextValue = maxCartQty
+                                  const nextValue = maxCartQty !== null
                                     ? Math.min(item.quantity + 1, maxCartQty)
                                     : item.quantity + 1;
                                   updateQuantity(item.id, nextValue);
                                 }}
-                                disabled={Boolean(maxCartQty) && item.quantity >= maxCartQty}
+                                disabled={maxCartQty !== null && item.quantity >= maxCartQty}
                                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
                                 aria-label="Increase quantity"
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
                             </div>
-                            {maxCartQty && item.quantity >= maxCartQty && (
-                              <p
-                                id={quantityLimitMessageId}
-                                role="status"
-                                aria-live="polite"
-                                className="text-xs text-orange-600 dark:text-orange-400 mt-1"
-                              >
-                                Maximum {maxCartQty} per order for this product.
-                              </p>
-                            )}
+                            {(() => {
+                              const limit = maxCartQty;
+                              if (limit === null || item.quantity < limit) {
+                                return null;
+                              }
+                              return (
+                                <p
+                                  id={quantityLimitMessageId}
+                                  role="status"
+                                  aria-live="polite"
+                                  className="text-xs text-orange-600 dark:text-orange-400 mt-1"
+                                >
+                                  Maximum {limit} per order for this product.
+                                </p>
+                              );
+                            })()}
                           </div>
                         )}
 
@@ -407,6 +446,21 @@ export default function CartPage() {
                           )}
                         </div>
                       )}
+
+                      {!isReward && (blockedReasonText || returnPolicyMessage) && (
+                        <div className="mt-4 space-y-2" role="status" aria-live="polite">
+                          {blockedReasonText && (
+                            <div className="rounded-md border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-200 px-3 py-2 transition-colors">
+                              Temporarily unavailable{`: ${blockedReasonText}`}
+                            </div>
+                          )}
+                          {returnPolicyMessage && (
+                            <div className="rounded-md border border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 px-3 py-2 transition-colors">
+                              {returnPolicyMessage}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -476,7 +530,7 @@ export default function CartPage() {
                   </ul>
                   {appliedDeals.length > 0 && (
                     <p className="mt-2 text-xs text-green-700 dark:text-green-300 transition-colors">
-                      Triggered by: {appliedDeals.map(deal => deal.description).join(', ')}
+                      Triggered by: {appliedDeals.map(({ description }) => description).join(', ')}
                     </p>
                   )}
                 </div>
@@ -491,6 +545,7 @@ export default function CartPage() {
               
               <Button
                 onClick={handleCheckout}
+                disabled={hasBlockedItems}
                 className="w-full flex items-center justify-center gap-2 mb-4"
               >
                 Proceed to Checkout

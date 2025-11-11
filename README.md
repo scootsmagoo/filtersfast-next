@@ -4,6 +4,27 @@ A modern, performant redesign of the FiltersFast e-commerce platform built with 
 
 ## 🆕 Latest Updates (January 2025)
 
+### 🚫 RETURN & BLOCKED MERCHANDISING FLAGS – NEW (NOVEMBER 2025)
+
+**Legacy `retExclude`/`blockedReason` controls are now live in the modern catalog, admin, and storefront.**
+
+- ✅ **Admin Parity**: Product create/edit forms now expose return policy overrides (normal, refund only, all sales final) and a blocked reason selector. Values are normalized and persisted to the catalog.
+- 🔐 **Security Hardening**: The API sanitizes reason codes (uppercase allow list) and enforces numeric return-policy levels so only approved flags reach the database or storefront.
+- 🛒 **Storefront UX**: PDPs, product cards, search results, and the cart announce “Temporarily unavailable” status and return-policy disclosures with fully accessible live-region messaging.
+- 📦 **Checkout Guardrails**: Blocked items cannot be added to cart/checkout; shoppers are prompted to remove them before purchasing.
+- 🧱 **Database Schema**: `ret_exclude` and `blocked_reason` columns added to the `products` table via the updated initialization script.
+- ♿ **Accessibility**: Screen-reader users receive `aria-live` updates and status alerts for both blocked messaging and all-sales-final notices.
+
+**Quick Start:**
+```bash
+# update schema to include ret_exclude / blocked_reason
+npm run init:products
+
+# launch and verify PDP/cart messaging
+npm run dev
+# http://localhost:3000/products/[id]
+```
+
 ### 🛡️ PER-PRODUCT PURCHASE CEILINGS – UPDATED (NOVEMBER 2025)
 
 **Legacy `maxCartQty` limits are now fully enforced across the modern cart, checkout, and admin workflows.**

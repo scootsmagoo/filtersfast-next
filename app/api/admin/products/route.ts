@@ -183,6 +183,13 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
 
+    const sanitizeBlockedReason = (value: string | null | undefined) => {
+      if (!value) return null;
+      const upper = value.trim().toUpperCase().slice(0, 100);
+      const cleaned = upper.replace(/[^A-Z0-9\s_-]/g, '').replace(/\s+/g, ' ').trim();
+      return cleaned.length ? cleaned : null;
+    };
+
     // Validate required fields with length constraints
     const schema = z.object({
       name: z.string().min(1, 'Product name is required').max(500, 'Name too long'),
@@ -224,12 +231,14 @@ export async function POST(request: NextRequest) {
       subscriptionDiscount: z.number().min(0).max(100).default(5),
       giftWithPurchaseProductId: z.string().max(100).nullable().optional(),
       giftWithPurchaseQuantity: z.number().int().min(1).max(1000).default(1),
-      giftWithPurchaseAutoAdd: z.boolean().default(true)
+      giftWithPurchaseAutoAdd: z.boolean().default(true),
+      retExclude: z.union([z.literal(0), z.literal(1), z.literal(2)]).default(0),
+      blockedReason: z.string().max(100).nullable().default(null)
     });
 
     const validatedData = schema.parse(body);
 
-    const normalizedData: ProductFormData = {
+    const normalizedData = {
       ...validatedData,
       maxCartQty: validatedData.maxCartQty && validatedData.maxCartQty > 0
         ? validatedData.maxCartQty
@@ -242,14 +251,18 @@ export async function POST(request: NextRequest) {
         : 1,
       giftWithPurchaseAutoAdd: validatedData.giftWithPurchaseProductId
         ? validatedData.giftWithPurchaseAutoAdd
-        : false
-    };
+        : false,
+      blockedReason: sanitizeBlockedReason(validatedData.blockedReason)
+    } as ProductFormData;
 
     if (normalizedData.type === 'gift-card') {
-      normalizedData.giftWithPurchaseProductId = null;
-      normalizedData.giftWithPurchaseQuantity = 1;
-      normalizedData.giftWithPurchaseAutoAdd = false;
-      normalizedData.maxCartQty = null;
+      const mutableData = normalizedData as ProductFormData & Record<string, unknown>;
+      mutableData.giftWithPurchaseProductId = null;
+      mutableData.giftWithPurchaseQuantity = 1;
+      mutableData.giftWithPurchaseAutoAdd = false;
+      mutableData.maxCartQty = null;
+      mutableData.retExclude = 0;
+      mutableData.blockedReason = null;
     }
 
     // Create product

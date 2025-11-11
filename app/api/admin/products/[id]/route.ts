@@ -1,3 +1,10 @@
+    const sanitizeBlockedReason = (value: string | null | undefined) => {
+      if (!value) return null;
+      const upper = value.trim().toUpperCase().slice(0, 100);
+      const cleaned = upper.replace(/[^A-Z0-9\s_-]/g, '').replace(/\s+/g, ' ').trim();
+      return cleaned.length ? cleaned : null;
+    };
+
 /**
  * Admin Product Detail API
  * GET - Get product by ID
@@ -160,7 +167,9 @@ export async function PATCH(
       subscriptionDiscount: z.number().min(0).max(100).optional(),
       giftWithPurchaseProductId: z.string().max(100).nullable().optional(),
       giftWithPurchaseQuantity: z.number().int().min(1).max(1000).optional(),
-      giftWithPurchaseAutoAdd: z.boolean().optional()
+      giftWithPurchaseAutoAdd: z.boolean().optional(),
+      retExclude: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+      blockedReason: z.string().max(100).nullable().optional()
     }).partial();
 
     const validatedData = schema.parse(body);
@@ -192,12 +201,18 @@ export async function PATCH(
       normalizedData.giftWithPurchaseQuantity = Math.max(1, normalizedData.giftWithPurchaseQuantity);
     }
 
+    if (normalizedData.blockedReason !== undefined) {
+      normalizedData.blockedReason = sanitizeBlockedReason(normalizedData.blockedReason);
+    }
+
     const resultingType = normalizedData.type ?? existing.type;
     if (resultingType === 'gift-card') {
       normalizedData.giftWithPurchaseProductId = null;
       normalizedData.giftWithPurchaseQuantity = 1;
       normalizedData.giftWithPurchaseAutoAdd = false;
       normalizedData.maxCartQty = null;
+      normalizedData.retExclude = 0;
+      normalizedData.blockedReason = null;
     } else if (
       normalizedData.giftWithPurchaseProductId &&
       normalizedData.giftWithPurchaseAutoAdd === undefined

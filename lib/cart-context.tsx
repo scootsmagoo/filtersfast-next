@@ -55,6 +55,8 @@ export interface CartItem {
   rewardSource?: CartRewardSource;
   parentProductId?: string;
   maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
 }
 
 export interface AppliedGiftCardState {

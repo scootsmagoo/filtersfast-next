@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Star, ShoppingCart, Check, ArrowLeft, Package, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { useCart, type GiftCardCartDetails } from '@/lib/cart-context';
+import { useCart, type GiftCardCartDetails, type CartItem } from '@/lib/cart-context';
 import { SearchableProduct } from '@/lib/types';
 import Link from 'next/link';
 import SocialShare from '@/components/social/SocialShare';
@@ -20,7 +20,14 @@ import BackorderNotify from '@/components/products/BackorderNotify';
 import GiftCardPurchaseForm from '@/components/gift-card/GiftCardPurchaseForm';
 
 // Mock product data (in production, this would come from an API)
-const mockProducts: SearchableProduct[] = [
+type ProductDetailProduct = SearchableProduct & {
+  maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
+  isBlocked?: boolean;
+};
+
+const mockProducts: ProductDetailProduct[] = [
   {
     id: 1,
     name: 'GE MWF Refrigerator Water Filter',
@@ -814,7 +821,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = params.id as string; // Use string ID directly
   const { data: session } = useSession();
-  const [product, setProduct] = useState<SearchableProduct | null>(null);
+  const [product, setProduct] = useState<ProductDetailProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -847,6 +854,15 @@ export default function ProductDetailPage() {
   const resolvedMaxCartQty = product?.maxCartQty && product.maxCartQty > 0
     ? Math.min(product.maxCartQty, 999)
     : null;
+  const productBlocked = Boolean(product?.isBlocked);
+  const blockedReasonText = product?.blockedReason ?? null;
+  const retExcludeLevel = product?.retExclude ?? 0;
+  const returnPolicyMessage =
+    retExcludeLevel === 2
+      ? 'All sales are final on this item.'
+      : retExcludeLevel === 1
+      ? 'This item is eligible for refunds only; exchanges are not available.'
+      : null;
 
   useEffect(() => {
     if (productId) {
@@ -899,7 +915,14 @@ export default function ProductDetailPage() {
           };
           
           const numericId = parseInt(id.replace(/\D/g, '')) || 0;
-          const searchableProduct: SearchableProduct = {
+          const retExcludeRaw = Number(data.product.retExclude);
+          const retExclude = [0, 1, 2].includes(retExcludeRaw) ? (retExcludeRaw as 0 | 1 | 2) : 0;
+          const blockedReason = data.product.blockedReason?.trim()
+            ? data.product.blockedReason.trim()
+            : null;
+          const isBlocked = Boolean(blockedReason);
+
+          const searchableProduct: ProductDetailProduct = {
             id: numericId,
             productId: data.product.id, // Store original database ID
             name: data.product.name,
@@ -910,7 +933,7 @@ export default function ProductDetailPage() {
             rating: data.product.rating || 0,
             reviewCount: data.product.reviewCount || 0,
             image: data.product.primaryImage || '/images/product-placeholder.jpg',
-            inStock: data.product.inventoryQuantity > 0 || !data.product.trackInventory,
+            inStock: (data.product.inventoryQuantity > 0 || !data.product.trackInventory) && !isBlocked,
             badges: [
               ...(data.product.isBestSeller ? ['bestseller'] : []),
               ...(data.product.isFeatured ? ['featured'] : []),
@@ -918,12 +941,16 @@ export default function ProductDetailPage() {
             ],
             productType: data.product.type,
             requiresShipping: data.product.requiresShipping,
+            maxCartQty: data.product.maxCartQty ?? null,
             category: categoryMap[data.product.type] || 'other',
             description: data.product.description || '',
             searchKeywords: [],
             partNumbers: [data.product.sku],
             compatibility: data.product.compatibleModels || [],
             specifications: data.product.specifications || {},
+            retExclude,
+            blockedReason,
+            isBlocked,
           };
           
           setProduct(searchableProduct);
@@ -1015,6 +1042,11 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     if (!product) return;
 
+    if (productBlocked) {
+      alert('This item is temporarily unavailable.');
+      return;
+    }
+
     if (!isGiftCard) {
       const requiredGroups = optionGroups.filter((og) => og.optionReq === 'Y');
       const missingRequired = requiredGroups.some((og) => !selectedOptions[og.idOptionGroup]);
@@ -1064,6 +1096,8 @@ export default function ProductDetailPage() {
         sku: product.sku,
         price: finalPrice,
         image: optionImageUrl || product.image,
+        retExclude: product.retExclude ?? 0,
+        blockedReason: product.blockedReason ?? null,
         ...(requestedQuantity > 1 && { quantity: requestedQuantity }),
         maxCartQty: resolvedMaxCartQty ?? null,
         ...(Object.keys(selectedOptions).length > 0 && {
@@ -1086,7 +1120,7 @@ export default function ProductDetailPage() {
             purchaserEmail: giftCardMetadata.purchaserEmail || undefined,
           },
         }),
-      });
+      } as Omit<CartItem, 'quantity'>);
 
       if (isGiftCard) {
         console.log('Gift card added to cart successfully');
@@ -1297,19 +1331,31 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Stock Status */}
-            <div className="flex items-center gap-2">
-              {product.inStock ? (
+            <div className="flex items-center gap-2" role="status" aria-live="polite">
+              {productBlocked ? (
                 <>
-                  <Check className="w-5 h-5 text-green-600" />
+                  <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
+                  <span className="text-red-600 font-semibold">Temporarily Unavailable</span>
+                </>
+              ) : product.inStock ? (
+                <>
+                  <Check className="w-5 h-5 text-green-600" aria-hidden="true" />
                   <span className="text-green-600 font-semibold">In Stock</span>
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <AlertTriangle className="w-5 h-5 text-red-600" aria-hidden="true" />
                   <span className="text-red-600 font-semibold">Out of Stock</span>
                 </>
               )}
             </div>
+            {productBlocked && (
+              <p className="text-sm text-red-600 dark:text-red-400 transition-colors" role="status" aria-live="polite">
+                {blockedReasonText
+                  ? `This item is currently unavailable (${blockedReasonText}).`
+                  : 'This item is currently unavailable.'}
+              </p>
+            )}
             {primaryOptionOutOfStock && primaryOptionDetails?.label && (
               <p className="text-sm text-red-600 dark:text-red-400 transition-colors">
                 Selected option “{primaryOptionDetails.label}” is currently unavailable.
@@ -1386,6 +1432,17 @@ export default function ProductDetailPage() {
 
             {/* Add to Cart */}
             <div className="space-y-4">
+              {returnPolicyMessage && (
+                <div
+                  className="flex items-start gap-3 rounded-md border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-3 text-sm text-yellow-800 dark:text-yellow-200 transition-colors"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                  <p>{returnPolicyMessage}</p>
+                </div>
+              )}
+
               <div className="flex items-center gap-4">
                 <label htmlFor="quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Quantity:

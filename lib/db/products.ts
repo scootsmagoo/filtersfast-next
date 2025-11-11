@@ -23,7 +23,8 @@ import type {
   BulkInventoryUpdateInput,
   BulkInventoryUpdateResult,
   ProductImportOptions,
-  ProductImportResult
+  ProductImportResult,
+  ReturnRestrictionLevel
 } from '../types/product';
 
 const dbPath = join(process.cwd(), 'filtersfast.db');
@@ -96,6 +97,8 @@ function rowToProduct(row: any): Product {
     madeInUSA: Boolean(row.made_in_usa),
     freeShipping: Boolean(row.free_shipping),
     badges: safeJsonParse(row.badges, []),
+    retExclude: Number(row.ret_exclude ?? 0) as ReturnRestrictionLevel,
+    blockedReason: row.blocked_reason ? String(row.blocked_reason).trim() || null : null,
     subscriptionEligible: Boolean(row.subscription_eligible),
     subscriptionDiscount: row.subscription_discount,
     giftWithPurchaseProductId: row.gift_with_purchase_product_id ?? null,
@@ -117,6 +120,13 @@ function rowToProduct(row: any): Product {
     orderCount: row.order_count,
     revenue: row.revenue
   };
+}
+
+function normalizeBlockedReason(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const upper = value.toString().trim().toUpperCase().slice(0, 100);
+  const cleaned = upper.replace(/[^A-Z0-9\s_-]/g, '').replace(/\s+/g, ' ').trim();
+  return cleaned.length ? cleaned : null;
 }
 
 /**
@@ -358,6 +368,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         category_ids, tags,
         meta_title, meta_description, meta_keywords,
         is_featured, is_new, is_best_seller, made_in_usa, free_shipping, badges,
+        ret_exclude, blocked_reason,
         subscription_eligible, subscription_discount,
         gift_with_purchase_product_id, gift_with_purchase_quantity, gift_with_purchase_auto_add,
         related_product_ids, cross_sell_product_ids,
@@ -374,6 +385,7 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
         ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?, ?, ?,
+        ?, ?,
         ?, ?,
         ?, ?,
         ?, ?, ?,
@@ -419,6 +431,12 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       return Math.min(floored, 999);
     })();
 
+    const normalizedRetExclude: ReturnRestrictionLevel =
+      typeof data.retExclude === 'number' && [0, 1, 2].includes(data.retExclude)
+        ? (data.retExclude as ReturnRestrictionLevel)
+        : 0;
+    const normalizedBlockedReason = normalizeBlockedReason(data.blockedReason);
+
     stmt.run(
       id, data.name, slug, data.sku, data.brand, data.description, data.shortDescription,
       data.type, data.status,
@@ -434,6 +452,8 @@ export function createProduct(data: ProductFormData, userId: string, userName: s
       data.metaTitle, data.metaDescription, data.metaKeywords,
       data.isFeatured ? 1 : 0, data.isNew ? 1 : 0, data.isBestSeller ? 1 : 0, 
       data.madeInUSA ? 1 : 0, isGiftCard ? 1 : (data.freeShipping ? 1 : 0), '[]',
+      normalizedRetExclude,
+      normalizedBlockedReason,
       isGiftCard ? 0 : (data.subscriptionEligible ? 1 : 0),
       isGiftCard ? 0 : data.subscriptionDiscount,
       normalizedGiftProductId,
@@ -519,6 +539,17 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     if (data.isBestSeller !== undefined) addUpdate('isBestSeller', data.isBestSeller ? 1 : 0, 'is_best_seller', existing.isBestSeller);
     if (data.madeInUSA !== undefined) addUpdate('madeInUSA', data.madeInUSA ? 1 : 0, 'made_in_usa', existing.madeInUSA);
     if (data.freeShipping !== undefined) addUpdate('freeShipping', data.freeShipping ? 1 : 0, 'free_shipping', existing.freeShipping);
+    if (data.retExclude !== undefined) {
+      const normalizedRetExclude =
+        typeof data.retExclude === 'number' && [0, 1, 2].includes(data.retExclude)
+          ? (data.retExclude as ReturnRestrictionLevel)
+          : 0;
+      addUpdate('retExclude', normalizedRetExclude, 'ret_exclude', existing.retExclude);
+    }
+    if (data.blockedReason !== undefined) {
+      const normalizedBlockedReason = normalizeBlockedReason(data.blockedReason);
+      addUpdate('blockedReason', normalizedBlockedReason, 'blocked_reason', existing.blockedReason);
+    }
 
     if (data.giftWithPurchaseProductId !== undefined) {
       const raw = data.giftWithPurchaseProductId;
@@ -639,6 +670,18 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
         updates.push('requires_shipping = ?');
         params.push(0);
         changes.requiresShipping = { old: existing.requiresShipping, new: false };
+      }
+
+      if (!hasUpdateFor('ret_exclude') && existing.retExclude !== 0) {
+        updates.push('ret_exclude = ?');
+        params.push(0);
+        changes.retExclude = { old: existing.retExclude, new: 0 };
+      }
+
+      if (!hasUpdateFor('blocked_reason') && existing.blockedReason) {
+        updates.push('blocked_reason = ?');
+        params.push(null);
+        changes.blockedReason = { old: existing.blockedReason, new: null };
       }
     }
 

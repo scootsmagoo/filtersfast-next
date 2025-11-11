@@ -18,6 +18,8 @@ export interface CartItem {
   giftCardDetails?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
 }
 
 export interface CartTotals {

@@ -66,7 +66,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     subscriptionDiscount: 5,
     giftWithPurchaseProductId: null,
     giftWithPurchaseQuantity: 1,
-    giftWithPurchaseAutoAdd: true
+    giftWithPurchaseAutoAdd: true,
+    retExclude: 0,
+    blockedReason: null
   });
 
   // Unwrap params
@@ -156,7 +158,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         subscriptionDiscount: p.subscriptionDiscount,
         giftWithPurchaseProductId: p.giftWithPurchaseProductId,
         giftWithPurchaseQuantity: p.giftWithPurchaseQuantity,
-        giftWithPurchaseAutoAdd: p.giftWithPurchaseAutoAdd
+        giftWithPurchaseAutoAdd: p.giftWithPurchaseAutoAdd,
+        retExclude: p.retExclude,
+        blockedReason: p.blockedReason
       });
 
     } catch (error) {
@@ -715,6 +719,54 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
                   <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-3 text-xs text-blue-700 dark:text-blue-300">
                     Reward items are priced at $0 and inherit removal logic when the parent item is removed.
+                  </div>
+                </div>
+              </Card>
+
+              {/* Return Policy & Availability */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 transition-colors">
+                  Returns & Availability Controls
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                      Return Policy Override
+                    </label>
+                    <select
+                      value={formData.retExclude}
+                      onChange={(e) => updateField('retExclude', Number(e.target.value) as 0 | 1 | 2)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                    >
+                      <option value={0}>Standard returns allowed</option>
+                      <option value={1}>Refund only (no exchanges)</option>
+                      <option value={2}>Non-returnable (all sales final)</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                      Controls PDP messaging and checkout disclosures for restricted items.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
+                      Blocked Reason Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.blockedReason ?? ''}
+                      onChange={(e) =>
+                        updateField(
+                          'blockedReason',
+                          e.target.value.trim().length > 0 ? e.target.value.trim().toUpperCase() : null
+                        )
+                      }
+                      placeholder="TEMP NLA, COMPLIANCE HOLD, etc."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                      When set, the item is blocked from cart/checkout and PDP prompts shoppers to choose alternates.
+                    </p>
                   </div>
                 </div>
               </Card>

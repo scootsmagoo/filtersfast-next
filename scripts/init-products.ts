@@ -94,6 +94,8 @@ try {
       made_in_usa INTEGER DEFAULT 0,
       free_shipping INTEGER DEFAULT 0,
       badges TEXT,  -- JSON array
+      ret_exclude INTEGER NOT NULL DEFAULT 0 CHECK(ret_exclude IN (0, 1, 2)),
+      blocked_reason TEXT,
       
       -- Subscription
       subscription_eligible INTEGER DEFAULT 1,
@@ -143,6 +145,16 @@ try {
   if (!productColumnNames.includes('gift_with_purchase_auto_add')) {
     console.log('Adding gift_with_purchase_auto_add column to products table...');
     db.exec(`ALTER TABLE products ADD COLUMN gift_with_purchase_auto_add INTEGER NOT NULL DEFAULT 1`);
+  }
+
+  if (!productColumnNames.includes('ret_exclude')) {
+    console.log('Adding ret_exclude column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN ret_exclude INTEGER NOT NULL DEFAULT 0`);
+  }
+
+  if (!productColumnNames.includes('blocked_reason')) {
+    console.log('Adding blocked_reason column to products table...');
+    db.exec(`ALTER TABLE products ADD COLUMN blocked_reason TEXT`);
   }
 
   if (!productColumnNames.includes('max_cart_qty')) {
@@ -452,18 +464,30 @@ try {
       id, name, slug, sku, brand, description, short_description, type, status,
       price, compare_at_price, cost_price, track_inventory, inventory_quantity, low_stock_threshold, allow_backorder, max_cart_qty,
       dimensions, merv_rating, features, specifications, compatible_models,
-      images, primary_image, has_variants, category_ids, tags,
-      is_featured, is_best_seller, made_in_usa, free_shipping,
-      rating, review_count, subscription_eligible, subscription_discount, weight,
-      created_at, updated_at
+      images, primary_image, has_variants, variants, category_ids, tags,
+      meta_title, meta_description, meta_keywords,
+      rating, review_count, is_featured, is_new, is_best_seller, made_in_usa, free_shipping, badges,
+      ret_exclude, blocked_reason,
+      subscription_eligible, subscription_discount,
+      gift_with_purchase_product_id, gift_with_purchase_quantity, gift_with_purchase_auto_add,
+      related_product_ids, cross_sell_product_ids,
+      weight, requires_shipping, shipping_class,
+      created_at, updated_at, created_by, updated_by, published_at,
+      view_count, order_count, revenue
     ) VALUES (
       ?, ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?, ?, ?, ?,
       ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?,
+      ?, ?,
+      ?, ?, ?,
+      ?, ?,
+      ?, ?, ?,
       ?, ?, ?, ?, ?,
-      ?, ?, ?, ?,
-      ?, ?, ?, ?, ?,
-      ?, ?
+      ?, ?, ?
     )
   `);
 
@@ -473,10 +497,16 @@ try {
       product.description, product.short_description, product.type, product.status,
       product.price, product.compare_at_price, product.cost_price, 1, product.inventory_quantity, 10, 0, product.max_cart_qty ?? null,
       product.dimensions, product.merv_rating, product.features, product.specifications, product.compatible_models,
-      product.images, product.primary_image, 0, product.category_ids, product.tags,
-      product.is_featured, product.is_best_seller, product.made_in_usa, product.free_shipping,
-      product.rating, product.review_count, product.subscription_eligible, product.subscription_discount, product.weight,
-      product.created_at, product.updated_at
+      product.images, product.primary_image, 0, '[]', product.category_ids, product.tags,
+      product.name, product.short_description, null,
+      product.rating, product.review_count, product.is_featured, 0, product.is_best_seller, product.made_in_usa, product.free_shipping, '[]',
+      0, null,
+      product.subscription_eligible, product.subscription_discount,
+      null, 1, 1,
+      '[]', '[]',
+      product.weight, 1, null,
+      product.created_at, product.updated_at, 'seed-script', 'seed-script', product.status === 'active' ? product.created_at : null,
+      0, 0, 0
     );
   });
 
