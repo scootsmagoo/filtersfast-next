@@ -2,7 +2,7 @@
  * Initialize Payment Gateway System
  * 
  * Creates database tables and sets up default payment gateway configurations
- * Supports Stripe (primary), PayPal, and Authorize.Net (backup)
+ * Supports Stripe (primary), PayPal, Authorize.Net, and CyberSource failover
  */
 
 import { initializePaymentGatewayTables, upsertPaymentGateway } from '../lib/db/payment-gateways';
@@ -89,6 +89,32 @@ try {
   });
   console.log('✅ Authorize.Net configured');
 
+  // Configure CyberSource (Failover Gateway)
+  console.log('\n🛡️  Configuring CyberSource (Failover)...');
+  upsertPaymentGateway({
+    gateway_type: 'cybersource',
+    gateway_name: 'CyberSource',
+    status: 'inactive', // Activate when credentials are provided
+    is_primary: false,
+    is_backup: true,
+    priority: 4,
+    credentials: {
+      merchant_id: process.env.CYBERSOURCE_MERCHANT_ID || '',
+      api_key_id: process.env.CYBERSOURCE_API_KEY_ID || '',
+      api_secret: process.env.CYBERSOURCE_API_SECRET || '',
+    },
+    test_mode: (process.env.CYBERSOURCE_ENVIRONMENT || '').toLowerCase() !== 'production',
+    capture_method: 'automatic',
+    supported_currencies: ['USD', 'CAD', 'AUD', 'EUR', 'GBP'],
+    supported_countries: ['US', 'CA', 'AU', 'GB', 'EU'],
+    supports_tokenization: false,
+    supports_3ds: true,
+    supports_refunds: true,
+    supports_partial_refunds: true,
+    supports_subscriptions: true,
+  });
+  console.log('✅ CyberSource configured');
+
   console.log('\n✅ Payment Gateway System initialized successfully!');
   console.log('\n📝 Next Steps:');
   console.log('1. Add payment gateway credentials to .env.local:');
@@ -104,7 +130,8 @@ try {
   console.log('\n🎯 Payment Gateway Configuration:');
   console.log('   ✅ Stripe: Primary gateway (active)');
   console.log('   ✅ PayPal: Alternative payment method (active)');
-  console.log('   ⚠️  Authorize.Net: Backup gateway (inactive - add credentials to enable)');
+  console.log('   ⚠️  Authorize.Net: Secondary backup (inactive - add credentials to enable)');
+  console.log('   ⚠️  CyberSource: Legacy failover (inactive - add credentials to enable)');
 
   console.log('\n🔐 Security Features:');
   console.log('   ✅ PCI compliant tokenization');

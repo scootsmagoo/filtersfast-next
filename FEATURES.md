@@ -148,7 +148,7 @@ Complete guide to all implemented features.
 
 ## 💳 Payment Gateway Integration System
 
-**NEW!** Multi-gateway payment processing with Stripe (primary), PayPal, and Authorize.Net (backup) support. Complete payment abstraction layer with automatic failover, comprehensive transaction logging, and fraud detection.
+**NEW!** Multi-gateway payment processing with Stripe (primary), PayPal, Authorize.Net, and CyberSource failover support. Complete payment abstraction layer with automatic failover, comprehensive transaction logging, and fraud detection.
 
 ### Overview
 Enterprise-grade payment processing system supporting multiple payment gateways with intelligent routing, automatic failover, tokenization, and comprehensive audit logging. Built for PCI compliance, reliability, and operational flexibility.
@@ -172,7 +172,7 @@ Enterprise-grade payment processing system supporting multiple payment gateways 
 - ✅ **Refunds** - Full and partial refunds
 - ✅ **Transaction Logging** - Complete audit trail
 
-**Authorize.Net (Backup Gateway):**
+**Authorize.Net (Secondary Backup Gateway):**
 - ✅ **AIM / Accept.js** - Direct card processing
 - ✅ **Customer Profiles (CIM)** - Secure tokenization
 - ✅ **3D Secure** - Advanced fraud protection
@@ -180,6 +180,14 @@ Enterprise-grade payment processing system supporting multiple payment gateways 
 - ✅ **Void Transactions** - Cancel authorizations
 - ✅ **Refunds** - Full and partial refunds
 - ✅ **USD Only** - US dollar transactions
+
+**CyberSource (Legacy Failover Gateway):**
+- ✅ **PTS REST API** - HTTP Signature secured payment processing
+- ✅ **Multi-currency** - USD, CAD, AUD, EUR, GBP parity with legacy flows
+- ✅ **Auth/Capture** - Real-time capture with reversal support
+- ✅ **Refunds & Credits** - Credit and reversal endpoints supported
+- ✅ **AVS/CVV Mapping** - Matches legacy fraud signals
+- ✅ **Failover Only** - Invoked automatically after upstream transport failures
 
 ### Core Features
 
@@ -213,6 +221,7 @@ Enterprise-grade payment processing system supporting multiple payment gateways 
 - ✅ **Stripe:** USD, CAD, AUD, EUR, GBP
 - ✅ **PayPal:** USD (primary)
 - ✅ **Authorize.Net:** USD only
+- ✅ **CyberSource:** USD, CAD, AUD, EUR, GBP
 - ✅ **Currency Conversion** - Integrated with currency system
 - ✅ **Regional Routing** - Auto-select gateway by currency/country
 
@@ -250,6 +259,7 @@ payment_gateway_transactions (
 - `lib/payment-gateways/stripe-gateway.ts` - Stripe implementation
 - `lib/payment-gateways/paypal-gateway.ts` - PayPal implementation
 - `lib/payment-gateways/authorizenet-gateway.ts` - Authorize.Net implementation
+- `lib/payment-gateways/cybersource-gateway.ts` - CyberSource failover implementation
 - `lib/db/payment-gateways.ts` - Database operations
 - `lib/types/payment-gateway.ts` - Type definitions
 
@@ -284,6 +294,9 @@ PAYPAL_CLIENT_ID=...
 PAYPAL_CLIENT_SECRET=...
 AUTHORIZENET_API_LOGIN_ID=...
 AUTHORIZENET_TRANSACTION_KEY=...
+CYBERSOURCE_MERCHANT_ID=...
+CYBERSOURCE_API_KEY_ID=...
+CYBERSOURCE_API_SECRET=...
 ```
 
 **Process Payment (Server-side):**

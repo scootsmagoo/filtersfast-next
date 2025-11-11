@@ -197,7 +197,7 @@ export default function AdminDashboard() {
     },
     {
       title: 'Payment Gateways',
-      description: 'Configure Stripe, PayPal, and Authorize.Net',
+      description: 'Configure Stripe, PayPal, Authorize.Net, and CyberSource',
       icon: CreditCard,
       href: '/admin/payment-gateways',
       color: 'emerald'

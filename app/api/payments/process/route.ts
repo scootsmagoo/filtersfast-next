@@ -1,7 +1,7 @@
 /**
  * Unified Payment Processing API
  * 
- * Routes payments to appropriate gateway (Stripe, PayPal, Authorize.Net)
+ * Routes payments to appropriate gateway (Stripe, PayPal, Authorize.Net, CyberSource)
  * with automatic failover and comprehensive transaction logging
  * 
  * OWASP Top 10 2021 Compliant
@@ -503,7 +503,10 @@ export async function POST(request: NextRequest) {
       errorCode = 'VALIDATION_ERROR';
       suggestion = 'Please check your payment information and try again.';
       statusCode = 400;
-    } else if (error.message && error.message.includes('network') || error.message.includes('timeout')) {
+    } else if (
+      error.message &&
+      (error.message.includes('network') || error.message.includes('timeout'))
+    ) {
       errorMessage = 'Payment processing is temporarily unavailable.';
       errorCode = 'NETWORK_ERROR';
       suggestion = 'Please try again in a few moments.';

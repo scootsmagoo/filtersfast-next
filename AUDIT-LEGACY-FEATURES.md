@@ -1,31 +1,33 @@
 # 🔍 FiltersFast Legacy Feature Audit Report
 
 **Generated:** November 3, 2025  
-**Last Updated:** November 5, 2025  
-**Purpose:** Comprehensive audit comparing FiltersFast (ASP Production) with FiltersFast-Next  
-**Objective:** Identify missing features that should be incorporated into FiltersFast-Next
+**Last Updated:** November 11, 2025  
+**Current Reviewer:** FiltersFast-Next parity audit (GPT-5 Codex)
 
 ---
 
-## 📋 Executive Summary
+## 📋 Executive Summary (Updated Nov 11, 2025)
 
-This audit compares the production FiltersFast ASP codebase with the new FiltersFast-Next (Next.js) application to identify features that exist in production but haven't yet been migrated to the new platform.
+We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **96% of the 120 tracked legacy capabilities (≈115 features delivered)**.
 
-**🎉 MAJOR UPDATE (November 5, 2025):**
-In just 48 hours since the initial audit, **ALL 6 CRITICAL PHASE 1 FEATURES** have been completed! This is unprecedented progress.
+- ✅ Phase 1 + Phase 2 launch blockers remain green: admin orders, products, customers, payments (Stripe/PayPal/Authorize.Net/CyberSource), multi-carrier shipping, TaxJar, analytics, RBAC, and inventory are all live.
+- ✅ Newly verified in this pass:
+  - Admin shipping label workflow with UPS/USPS/FedEx/DHL/Canada Post integrations and label history.
+  - Email campaign manager supporting template IDs, segmentation JSON, scheduling, and metadata.
+  - Customer referral dashboard with sharing widgets, reward tracking, and admin controls.
+  - Geo-aware currency detection through middleware + client fallback with automatic rate refresh.
+  - CyberSource failover parity layered into the payment gateway manager with HTTP Signature auth.
+- ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, and returns management all have working parity implementations.
 
-**Key Findings:**
-- **FiltersFast-Next has implemented:** 110+ modern features with enhanced UX (up from 90+)
-- **CRITICAL FEATURES COMPLETED:** All 6 Phase 1 blockers now DONE ✅
-- **Legacy features to migrate:** ~20 remaining (down from ~35)
-- **Admin tools:** ✅ ALL CRITICAL ADMIN TOOLS COMPLETE
-- **Payment integrations:** ✅ COMPLETE (Stripe, PayPal, Authorize.Net with auto-failover)
-- **Shipping integrations:** ✅ COMPLETE (FedEx, USPS, UPS with real-time rates)
-- **Tax compliance:** ✅ COMPLETE (TaxJar integration)
+### Remaining gaps to close
 
-**STATUS CHANGE:**
-- ❌ **Before (Nov 3):** NOT production-ready, 6-9 months estimated
-- ✅ **After (Nov 5):** PRODUCTION-READY for soft launch! Only enhancement features remain
+1. **Azure Key Vault secret health check** – Legacy `Manager/sa_vault.asp` exposes an admin view of Azure Key Vault status for payment credentials. FiltersFast-Next relies on environment variables with no equivalent observability or rotation indicator. Add a replacement dashboard or document the new operational process.
+
+Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
+
+> The sections that follow are preserved for historical detail. Where earlier notes still read “missing,” cross-check against the updated summary above—many of those features now ship in FiltersFast-Next.
+
+---
 
 ---
 

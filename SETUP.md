@@ -221,6 +221,31 @@ NODE_ENV=development
 3. Test with real PayPal account
 4. Monitor transactions in `paypal_transactions` database table
 
+### Authorize.Net Configuration (Optional Backup)
+
+```env
+# Authorize.Net (AIM / Accept.js)
+AUTHORIZENET_API_LOGIN_ID=your_authorizenet_api_login_id
+AUTHORIZENET_TRANSACTION_KEY=your_authorizenet_transaction_key
+```
+
+Enable the gateway from **Admin → Payment Gateways** once credentials are present. When active, Authorize.Net becomes the first failover after Stripe.
+
+### CyberSource Failover Configuration (Legacy Parity)
+
+```env
+# CyberSource HTTP Signature credentials
+CYBERSOURCE_MERCHANT_ID=your_merchant_id
+CYBERSOURCE_API_KEY_ID=your_rest_api_key_id
+CYBERSOURCE_API_SECRET=your_base64_rest_api_secret
+
+# Optional overrides
+CYBERSOURCE_ENVIRONMENT=sandbox   # or production
+# CYBERSOURCE_HOST=api.cybersource.com  # override host if needed
+```
+
+CyberSource is attempted automatically if all higher-priority gateways throw transport or system errors. Provide REST API credentials (HTTP Signature method). Set `CYBERSOURCE_ENVIRONMENT=production` and regenerate the init script (`npm run init:payment-gateways`) when ready for live traffic.
+
 ---
 
 ## 🔐 Multi-Factor Authentication (MFA) Setup

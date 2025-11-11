@@ -910,10 +910,10 @@ npm run init:order-credits  # Initialize database table
 
 **Multi-gateway payment processing with automatic failover - Critical payment infrastructure complete!**
 
-Just completed the comprehensive Payment Gateway Integration System supporting Stripe, PayPal, and Authorize.Net:
+Just completed the comprehensive Payment Gateway Integration System supporting Stripe, PayPal, Authorize.Net, and CyberSource:
 
-- ✅ **Multi-Gateway Support**: Stripe (primary), PayPal, Authorize.Net (backup)
-- ✅ **Automatic Failover**: If Stripe fails, automatically retries with Authorize.Net
+- ✅ **Multi-Gateway Support**: Stripe (primary), PayPal, Authorize.Net (secondary), CyberSource (legacy failover)
+- ✅ **Automatic Failover**: Seamlessly retries across designated backup gateways on transport/system errors
 - ✅ **Unified API**: Single endpoint routes to appropriate gateway
 - ✅ **Transaction Logging**: Complete audit trail with fraud indicators (AVS, CVV)
 - ✅ **Gateway Manager**: Abstraction layer with intelligent routing
@@ -941,15 +941,16 @@ Just completed the comprehensive Payment Gateway Integration System supporting S
 **Technical Implementation:**
 - **2 Database Tables**: payment_gateways, payment_gateway_transactions
 - **7 API Endpoints**: Process, refund, void, capture, admin management, transaction logs
-- **4 Core Libraries**: Gateway manager, 3 gateway implementations (Stripe, PayPal, Authorize.Net)
+- **5 Core Libraries**: Gateway manager plus 4 gateway implementations (Stripe, PayPal, Authorize.Net, CyberSource)
 - **Admin Dashboard**: Gateway configuration, statistics, transaction search
 
 **Gateway Features:**
 - 🎯 **Stripe**: Primary gateway with Payment Intents, subscriptions, multi-currency
 - 💰 **PayPal**: Alternative payment with Venmo support
-- 🔒 **Authorize.Net**: Backup gateway with CIM tokenization
+- 🔒 **Authorize.Net**: Secondary backup gateway with CIM tokenization
+- 🛰️ **CyberSource**: Legacy parity gateway using HTTP Signature auth for multi-currency failover
 - 📊 **Statistics**: Success rates, volume, average amounts per gateway
-- 🔄 **Failover**: Automatic retry with backup if primary fails
+- 🔄 **Failover**: Automatic tiered retry across Authorize.Net and CyberSource when higher-priority gateways error
 - 🛡️ **Fraud Detection**: AVS, CVV verification, risk scoring
 
 **Quick Start:**
@@ -1845,7 +1846,7 @@ Just completed a full audit comparing the production ASP codebase with FiltersFa
 - **Package Manager:** npm
 - **Authentication:** Better Auth
 - **Database:** SQLite (Better SQLite3)
-- **Payments:** Stripe + PayPal (replacing CyberSource/Authorize.Net)
+- **Payments:** Stripe + PayPal with Authorize.Net & CyberSource failover parity
 
 ## ✨ Features
 
@@ -2107,7 +2108,7 @@ npm run init:orders           # Initialize order management (admin system)
 npm run init:products         # Initialize product management (admin system) 🆕
 npm run init:analytics        # Initialize analytics views and indexes 🆕
 npm run init:subscriptions    # Initialize Subscribe & Save system (subscriptions) 🆕
-npm run init:payment-gateways # Initialize payment gateway system (Stripe, PayPal, Authorize.Net) 🆕
+npm run init:payment-gateways # Initialize payment gateway system (Stripe, PayPal, Authorize.Net, CyberSource) 🆕
 npm run init:giveaways        # Initialize giveaway tables
 npm run init:sms              # Initialize SMS system
 npm run init:abandoned-carts  # Initialize cart recovery

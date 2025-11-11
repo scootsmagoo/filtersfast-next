@@ -1,7 +1,7 @@
 /**
  * Payment Gateway Abstraction Layer
  * 
- * Unified interface for all payment gateways (Stripe, PayPal, Authorize.Net)
+ * Unified interface for all payment gateways (Stripe, PayPal, Authorize.Net, CyberSource)
  * Handles gateway selection, failover, and transaction processing
  */
 
@@ -19,12 +19,14 @@ import {
   getPrimaryPaymentGateway,
   getBackupPaymentGateway,
   getPaymentGatewayByType,
+  getActivePaymentGateways,
   logPaymentGatewayTransaction,
 } from './db/payment-gateways';
 
 import { StripeGateway } from './payment-gateways/stripe-gateway';
 import { PayPalGateway } from './payment-gateways/paypal-gateway';
 import { AuthorizeNetGateway } from './payment-gateways/authorizenet-gateway';
+import { CyberSourceGateway } from './payment-gateways/cybersource-gateway';
 
 /**
  * Payment Gateway Manager
@@ -58,6 +60,12 @@ export class PaymentGatewayManager {
       this.gateways.set('authorizenet', new AuthorizeNetGateway());
     } catch (error) {
       console.warn('Authorize.Net gateway initialization failed:', error);
+    }
+
+    try {
+      this.gateways.set('cybersource', new CyberSourceGateway());
+    } catch (error) {
+      console.warn('CyberSource gateway initialization failed:', error);
     }
   }
 
@@ -100,6 +108,7 @@ export class PaymentGatewayManager {
       { type: 'stripe' as PaymentGatewayType, instance: this.gateways.get('stripe') },
       { type: 'paypal' as PaymentGatewayType, instance: this.gateways.get('paypal') },
       { type: 'authorizenet' as PaymentGatewayType, instance: this.gateways.get('authorizenet') },
+      { type: 'cybersource' as PaymentGatewayType, instance: this.gateways.get('cybersource') },
     ];
 
     for (const { type, instance } of gateways) {
@@ -127,47 +136,72 @@ export class PaymentGatewayManager {
       throw new Error('No active payment gateway available');
     }
 
-    let { gateway, type } = selectedGateway;
-    let lastError: any = null;
+    const attempted = new Set<PaymentGatewayType>();
+    const errors: Array<{ type: PaymentGatewayType; error: unknown }> = [];
 
-    try {
-      // Attempt payment with primary gateway
-      const response = await gateway.processPayment(request);
+    const activeConfigs = getActivePaymentGateways();
+    const backupConfig = getBackupPaymentGateway();
 
-      // Log transaction
-      this.logTransaction(type, request, response);
+    const queue: PaymentGatewayType[] = [];
 
-      return response;
-    } catch (error) {
-      lastError = error;
-      console.error(`Payment failed with ${type}:`, error);
+    // Start with preferred/primary selection
+    queue.push(selectedGateway.type);
 
-      // Attempt failover to backup gateway
-      const backupConfig = getBackupPaymentGateway();
-      if (backupConfig && backupConfig.gateway_type !== type) {
-        const backupGateway = this.getGateway(backupConfig.gateway_type);
-        if (backupGateway) {
-          try {
-            console.log(`Attempting failover to ${backupConfig.gateway_type}...`);
-            const response = await backupGateway.processPayment(request);
+    // Explicit backup (if configured)
+    if (backupConfig && !queue.includes(backupConfig.gateway_type)) {
+      queue.push(backupConfig.gateway_type);
+    }
 
-            // Log successful failover transaction
-            this.logTransaction(backupConfig.gateway_type, request, response);
-
-            return response;
-          } catch (backupError) {
-            console.error(`Backup gateway ${backupConfig.gateway_type} also failed:`, backupError);
-            lastError = backupError;
-          }
-        }
+    // Add remaining active gateways not already queued
+    for (const config of activeConfigs) {
+      if (!queue.includes(config.gateway_type)) {
+        queue.push(config.gateway_type);
       }
     }
 
-    // All gateways failed
+    // Finally, add any gateways we initialized but are inactive (best-effort fallback)
+    for (const type of ['stripe', 'paypal', 'authorizenet', 'cybersource'] as PaymentGatewayType[]) {
+      if (!queue.includes(type)) {
+        queue.push(type);
+      }
+    }
+
+    for (const type of queue) {
+      if (attempted.has(type)) continue;
+      attempted.add(type);
+
+      const gateway = this.getGateway(type);
+      if (!gateway) continue;
+
+      if (
+        type === 'cybersource' &&
+        (!request.card_number || !request.card_exp_month || !request.card_exp_year)
+      ) {
+        console.warn(
+          'Skipping CyberSource failover: required card details are not present on the payment request.',
+        );
+        continue;
+      }
+
+      try {
+        if (attempted.size > 1) {
+          console.log(`Attempting gateway failover to ${type}...`);
+        }
+
+        const response = await gateway.processPayment(request);
+        this.logTransaction(type, request, response);
+        return response;
+      } catch (error) {
+        console.error(`Payment attempt failed with ${type}:`, error);
+        errors.push({ type, error });
+      }
+    }
+
+    const lastError = errors[errors.length - 1]?.error;
     throw new Error(
       lastError instanceof Error
         ? lastError.message
-        : 'Payment processing failed. Please try again.'
+        : 'Payment processing failed across all gateways. Please try again.',
     );
   }
 

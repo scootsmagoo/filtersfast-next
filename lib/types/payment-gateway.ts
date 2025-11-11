@@ -1,7 +1,7 @@
 /**
  * Payment Gateway Type Definitions
  * 
- * Multi-gateway payment processing with Stripe, PayPal, Authorize.Net support
+ * Multi-gateway payment processing with Stripe, PayPal, Authorize.Net, CyberSource support
  */
 
 export type PaymentGatewayType = 'stripe' | 'paypal' | 'authorizenet' | 'cybersource';
