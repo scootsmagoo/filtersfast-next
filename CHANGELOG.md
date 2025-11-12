@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
   - Updated edge middleware to recognise campaign triggers on every page load and automatically seed the appropriate cookies so marketing links unlock incentives without custom code.
   - Added `/campaign/[slug]` route handler for direct landing URLs that both activate the campaign profile and redirect to a safe destination.
   - Checkout now detects campaign cookies: free-shipping overrides zero out shipping charges, and recognised promo codes are validated and applied to the order summary automatically, complete with error state messaging when validation fails.
+- **Home Filter Club Activation Flow** 🧡
+  - Added secure `/start-subscription` page that decodes access keys, verifies order context, and displays subscription-eligible items with frequency selectors.
+  - Introduced `/api/subscriptions/activation` endpoint that validates tokens, prevents duplicate subscriptions, logs the event, and dispatches welcome emails for each new subscription.
+  - Legacy base64 links remain compatible, while new token storage supports one-time signed keys with consumption tracking and expiry enforcement.
 
 ### Added - 2025-11-11
 - **Gift-with-Purchase Auto Fulfillment** 🎁

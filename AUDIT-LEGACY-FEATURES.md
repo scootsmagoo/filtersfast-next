@@ -231,9 +231,9 @@ export async function GET(
     const response = await fetch('/api/checkout/validate-promo', { ... });
 ```
 
-### Home Filter Club activation flow missing
-- `start-subscription/default.asp` accepts encrypted `accesskey` links sent from marketing automation, extracts customer/order IDs, and renders the `outputOptInForm` wizard so shoppers can enroll in autoship after checkout.
-- FiltersFast-Next has no handler for those legacy URLs, so existing lifecycle campaigns land on 404s and customers cannot activate the promised subscription without manual support.
+### Home Filter Club activation flow ✅
+- `/start-subscription/default.asp` accepted encrypted `accesskey` links sent from marketing automation, extracted customer/order IDs, and rendered the `outputOptInForm` wizard so shoppers could enroll in autoship after checkout.
+- FiltersFast-Next now ships `/start-subscription` with secure access-key verification, token expiry checks, and `/api/subscriptions/activation` to create subscriptions and dispatch welcome emails—restoring the lifecycle funnel.
 
 ```34:58:start-subscription/default.asp
 call openDB()

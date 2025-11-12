@@ -9,7 +9,7 @@ FiltersFast-Next now delivers roughly **95% feature parity** with the legacy ASP
 - Gift-with-purchase auto fulfillment (`add_gift_item` in `cart.asp`) that inserts qualifying freebies into the cart when a promotion is active.
 - Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts.
 - Campaign landing toggles (`Filter10now.asp`, `CLT.asp`) that set session/cookie flags to unlock free shipping, stacked discounts, and promo overlays on arrival.
-- Home Filter Club “start subscription” handler (`start-subscription/default.asp`) that decodes secure `accesskey` links from lifecycle emails to render the autoship opt-in form.
+- ✅ Home Filter Club “start subscription” handler (`start-subscription/default.asp`) parity: `/start-subscription` page now verifies secure access keys, renders the autoship opt-in wizard, and posts to `/api/subscriptions/activation`.
 - Blog-to-cart ingestion endpoint (`add-from-blog.asp`) that validates SKU availability, seeds a cart, injects the promo SKU, and records blog attribution before redirecting to checkout.
 
 ---

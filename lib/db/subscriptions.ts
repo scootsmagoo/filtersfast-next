@@ -595,6 +595,32 @@ export async function markSubscriptionProcessed(
 }
 
 /**
+ * Check if customer already has subscription for a product
+ */
+export async function hasActiveSubscriptionForProduct(
+  customerId: string,
+  productId: string,
+): Promise<boolean> {
+  try {
+    const row = await db
+      .prepare(`
+        SELECT COUNT(*) AS count
+        FROM subscription_items si
+        INNER JOIN subscriptions s ON si.subscription_id = s.id
+        WHERE s.customer_id = ?
+          AND si.product_id = ?
+          AND s.status IN ('active', 'paused')
+      `)
+      .get(customerId, productId) as { count: number } | undefined
+
+    return (row?.count ?? 0) > 0
+  } catch (error) {
+    console.error('Error checking subscription duplicates:', error)
+    throw error
+  }
+}
+
+/**
  * Log subscription event
  */
 export async function logSubscriptionEvent(
