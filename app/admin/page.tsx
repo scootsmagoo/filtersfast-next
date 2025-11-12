@@ -192,8 +192,7 @@ export default function AdminDashboard() {
       description: 'Issue, adjust, and report on digital gift cards',
       icon: Gift,
       href: '/admin/gift-cards',
-      color: 'pink',
-      badge: 'NEW'
+      color: 'pink'
     },
     {
       title: 'Payment Gateways',
