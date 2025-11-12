@@ -10,7 +10,6 @@ FiltersFast-Next now delivers roughly **95% feature parity** with the legacy ASP
 - Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts.
 - Campaign landing toggles (`Filter10now.asp`, `CLT.asp`) that set session/cookie flags to unlock free shipping, stacked discounts, and promo overlays on arrival.
 - ✅ Home Filter Club “start subscription” handler (`start-subscription/default.asp`) parity: `/start-subscription` page now verifies secure access keys, renders the autoship opt-in wizard, and posts to `/api/subscriptions/activation`.
-- Blog-to-cart ingestion endpoint (`add-from-blog.asp`) that validates SKU availability, seeds a cart, injects the promo SKU, and records blog attribution before redirecting to checkout.
 
 ---
 
@@ -29,6 +28,7 @@ FiltersFast-Next now delivers roughly **95% feature parity** with the legacy ASP
 - Multi-carrier shipping admin (`/admin/shipping`) providing UPS/USPS/FedEx/DHL/Canada Post labels and history.
 - Email campaign manager with template IDs, segmentation JSON, scheduling, and metadata.
 - Customer referral dashboard + sharing widgets, abandoned cart orchestration, geo-aware currency detection, partner landing toolkit, pool filter wizard, Home Filter Club, returns management, SMS/Attentive opt-in, marketplace orchestration, and backorder notifications.
+- Blog/influencer cart ingestion: `/blog/add-to-cart` validates SKUs/options, seeds a short-lived cookie with attribution, and the cart context hydrates the payload with success/error messaging on `/cart`.
 
 ---
 

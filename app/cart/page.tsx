@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart, type CartItem, type CartItemId } from '@/lib/cart-context';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import IdMeVerificationButton from '@/components/idme/IdMeVerificationButton';
 import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package, Gift, Tag } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ArrowLeft, Package, Gift, Tag, Info } from 'lucide-react';
+
+interface SeedNotice {
+  itemCount: number;
+  source?: string;
+  medium?: string;
+  campaign?: string;
+  items?: string[];
+}
 
 export default function CartPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const cart = useCart();
   const items = cart.items as Array<CartItem & {
     isReward?: boolean;
@@ -23,7 +32,9 @@ export default function CartPage() {
   const appliedDeals = ((cart as any).appliedDeals ?? []) as Array<{ id: number; description: string }>;
   const { total, itemCount, updateQuantity, updateSubscription, removeItem, clearCart } = cart;
   const [removingId, setRemovingId] = useState<CartItemId | null>(null);
+  const [seedNotice, setSeedNotice] = useState<SeedNotice | null>(null);
   const hasBlockedItems = items.some(item => item.blockedReason);
+  const seedStatus = searchParams.get('seeded');
 
   const handleRemoveItem = (id: CartItemId) => {
     setRemovingId(id);
@@ -46,6 +57,34 @@ export default function CartPage() {
     }
     router.push('/checkout');
   };
+
+  useEffect(() => {
+    if (seedStatus !== 'blog') {
+      setSeedNotice(null);
+      return;
+    }
+    try {
+      const stored = sessionStorage.getItem('ff_cart_seed_notice');
+      if (stored) {
+        const parsed = JSON.parse(stored) as SeedNotice;
+        setSeedNotice(parsed);
+      } else {
+        setSeedNotice({
+          itemCount,
+          source: 'Blog',
+          medium: 'Web',
+        });
+      }
+      sessionStorage.removeItem('ff_cart_seed_notice');
+    } catch (error) {
+      console.warn('Unable to read cart seed notice', error);
+      setSeedNotice({
+        itemCount,
+        source: 'Blog',
+        medium: 'Web',
+      });
+    }
+  }, [seedStatus, itemCount]);
 
   // Calculate subscription discounts
   const calculateTotals = () => {
@@ -70,6 +109,30 @@ export default function CartPage() {
   const { subtotal, subscriptionDiscount, total: calculatedTotal } = calculateTotals();
   const rewardItems = items.filter(item => item.isReward);
   const activeDeal = appliedDeals[0] ?? null;
+
+  const errorMessages: Record<string, { title: string; body: string }> = {
+    'invalid-product': {
+      title: 'We could not find that link',
+      body: 'The product referenced in that blog link is no longer available. Feel free to browse our catalog and pick a replacement.',
+    },
+    'payload-too-large': {
+      title: 'Cart link too large',
+      body: 'The shared cart link contained too many details to import automatically. Please add the product manually.',
+    },
+    'rate-limited': {
+      title: 'Too many quick requests',
+      body: 'Please wait a moment before trying that link again. We limit how often carts can be pre-filled to keep things secure.',
+    },
+  };
+
+  const warningMessages: Record<string, { title: string; body: string }> = {
+    'blog': {
+      title: 'Cart pre-filled from blog',
+      body: seedNotice
+        ? `We added ${seedNotice.itemCount} item${seedNotice.itemCount === 1 ? '' : 's'} from our ${seedNotice.source ?? 'blog'} feature.`
+        : 'We added items from the blog link you followed.',
+    },
+  };
 
   const hasSubscriptions = items.some(item => item.subscription?.enabled);
 
@@ -118,6 +181,45 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
+        {(seedStatus && seedStatus !== 'blog' && errorMessages[seedStatus]) && (
+          <Card
+            className="mb-6 border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 transition-colors"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <Info className="w-5 h-5 mt-1" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold text-red-900 dark:text-red-100">{errorMessages[seedStatus].title}</h2>
+                <p className="text-sm mt-1 text-red-800 dark:text-red-200">{errorMessages[seedStatus].body}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {(seedStatus === 'blog' && warningMessages.blog) && (
+          <Card
+            className="mb-6 border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 transition-colors"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <Info className="w-5 h-5 mt-1" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold">{warningMessages.blog.title}</h2>
+                <p className="text-sm mt-1">
+                  {warningMessages.blog.body}
+                  {seedNotice?.items && seedNotice.items.length > 0 && (
+                    <>
+                      {' '}Items included: {seedNotice.items.join(', ')}.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

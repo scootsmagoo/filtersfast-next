@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Star, ShoppingCart, Check, ArrowLeft, Package, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -819,6 +819,7 @@ const mockProducts: ProductDetailProduct[] = [
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const productId = params.id as string; // Use string ID directly
   const { data: session } = useSession();
   const [product, setProduct] = useState<ProductDetailProduct | null>(null);
@@ -856,6 +857,7 @@ export default function ProductDetailPage() {
     : null;
   const productBlocked = Boolean(product?.isBlocked);
   const blockedReasonText = product?.blockedReason ?? null;
+  const [blogNotice, setBlogNotice] = useState<string | null>(null);
   const retExcludeLevel = product?.retExclude ?? 0;
   const returnPolicyMessage =
     retExcludeLevel === 2
@@ -870,6 +872,25 @@ export default function ProductDetailPage() {
       loadProductOptions(productId);
     }
   }, [productId]);
+
+  useEffect(() => {
+    const blogParam = searchParams.get('blog');
+    if (!blogParam) {
+      setBlogNotice(null);
+      return;
+    }
+    const normalized = blogParam.toLowerCase();
+    const messageMap: Record<string, string> = {
+      disc: 'This product link is discontinued, but you can review the details below or explore alternatives.',
+      oos: 'This product is currently out of stock. Check back soon or contact our team for timing updates.',
+      inactive: 'This product is not available for purchase at the moment. Please browse our catalog for similar items.',
+      unavailable: 'This product is temporarily unavailable. We\'ll restore purchase options as soon as inventory returns.',
+      'option-required': 'This item requires selecting specific options. Please choose the configuration that matches your needs below.',
+      'option-unavailable': 'The selected option is unavailable. You can pick a different configuration below.',
+      'option-discontinued': 'The selected option has been discontinued. Please choose an alternative configuration.',
+    };
+    setBlogNotice(messageMap[normalized] ?? null);
+  }, [searchParams]);
 
   useEffect(() => {
     let matched = false;
@@ -1214,6 +1235,17 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container-custom py-6">
+        {blogNotice && (
+          <Card
+            className="mb-6 border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 transition-colors"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="p-4 text-sm">
+              {blogNotice}
+            </div>
+          </Card>
+        )}
         {/* Back Button */}
         <div className="mb-6">
           <button 

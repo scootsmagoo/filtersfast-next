@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { useSession } from '@/lib/auth-client';
+import { getCookie, deleteCookie } from '@/lib/utils/cookies-client';
 
 export type CartItemId = string | number;
 
@@ -95,6 +96,138 @@ const initialState: CartState = {
   appliedGiftCards: [],
   appliedDeals: [],
 };
+
+const CART_SEED_COOKIE = 'ff_cart_seed';
+
+interface CartSeedPayload {
+  version: number;
+  generatedAt: number;
+  attribution?: Record<string, string>;
+  items: Array<Record<string, unknown>>;
+}
+
+function decodeBase64Url(value: string): string {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4));
+  const candidate = normalized + padding;
+
+  if (typeof globalThis.atob === 'function') {
+    return globalThis.atob(candidate);
+  }
+
+  const BufferCtor = (globalThis as Record<string, any>).Buffer;
+  if (typeof BufferCtor === 'function') {
+    return BufferCtor.from(candidate, 'base64').toString('utf8');
+  }
+
+  throw new Error('Base64 decoding is not supported in this environment');
+}
+
+function sanitizeString(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  return value.trim().slice(0, maxLength);
+}
+
+function sanitizeNumber(value: unknown, fallback: number, opts: { min?: number; max?: number } = {}): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+  let result = value;
+  if (typeof opts.min === 'number' && result < opts.min) {
+    result = opts.min;
+  }
+  if (typeof opts.max === 'number' && result > opts.max) {
+    result = opts.max;
+  }
+  return result;
+}
+
+function sanitizeQuantity(value: unknown, maxCartQty: number | null): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return 1;
+  }
+  const clamped = Math.max(1, Math.floor(value));
+  const limit = maxCartQty && maxCartQty > 0 ? Math.min(maxCartQty, 999) : 999;
+  return Math.min(clamped, limit);
+}
+
+function sanitizeCartSeedItem(raw: Record<string, unknown>): CartItem | null {
+  const id = sanitizeString(raw.id, 120);
+  const name = sanitizeString(raw.name, 200);
+  const brand = sanitizeString(raw.brand, 120) || 'FiltersFast';
+  const sku = sanitizeString(raw.sku, 120) || id || 'SKU';
+  const image = sanitizeString(raw.image, 500);
+  const productId = sanitizeString(raw.productId, 120) || id;
+  const productType = sanitizeString(raw.productType, 50) || undefined;
+  const blockedReasonRaw = sanitizeString(raw.blockedReason, 120);
+
+  const price = sanitizeNumber(raw.price, NaN, { min: 0, max: 100000 });
+  const basePrice = sanitizeNumber(raw.basePrice, price, { min: 0, max: 100000 });
+  const maxCartQtyRaw = typeof raw.maxCartQty === 'number' && Number.isFinite(raw.maxCartQty)
+    ? Math.max(1, Math.floor(raw.maxCartQty))
+    : null;
+  const retExcludeValue = typeof raw.retExclude === 'number' && [0, 1, 2].includes(raw.retExclude as number)
+    ? (raw.retExclude as 0 | 1 | 2)
+    : 0;
+
+  if (!id || !name || Number.isNaN(price)) {
+    return null;
+  }
+
+  const quantity = sanitizeQuantity(raw.quantity, maxCartQtyRaw);
+
+  const item: CartItem = {
+    id,
+    productId,
+    name,
+    brand,
+    sku,
+    price,
+    image: image || '',
+    quantity,
+    productType,
+    maxCartQty: maxCartQtyRaw,
+    retExclude: retExcludeValue,
+    blockedReason: blockedReasonRaw || null,
+  };
+
+  if (raw.metadata && typeof raw.metadata === 'object' && raw.metadata !== null) {
+    const metadataEntries = Object.entries(raw.metadata as Record<string, unknown>)
+      .filter(([key, value]) => typeof key === 'string' && (typeof value === 'string' || typeof value === 'number'))
+      .slice(0, 10);
+    if (metadataEntries.length > 0) {
+      item.metadata = metadataEntries.reduce<Record<string, unknown>>((acc, [key, value]) => {
+        acc[key.slice(0, 120)] = typeof value === 'number' ? value : value.toString().slice(0, 200);
+        return acc;
+      }, {});
+    }
+  }
+
+  if (raw.options && typeof raw.options === 'object' && raw.options !== null) {
+    const entries = Object.entries(raw.options as Record<string, unknown>)
+      .filter(([key, value]) => typeof key === 'string' && typeof value === 'string')
+      .slice(0, 5);
+    if (entries.length > 0) {
+      item.options = entries.reduce<Record<string, string>>((acc, [groupId, optionId]) => {
+        const groupKey = groupId.trim().slice(0, 120);
+        const optionValue = optionId.trim().slice(0, 120);
+        if (groupKey && optionValue) {
+          acc[groupKey] = optionValue;
+        }
+        return acc;
+      }, {});
+    }
+  }
+
+  item.metadata = {
+    ...(item.metadata ?? {}),
+    basePrice,
+  };
+
+  return item;
+}
 
 function resolveMaxCartQty(value?: number | null): number | null {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -490,6 +623,55 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'CLEAR_CART' });
     }
   }, [session?.user?.id, isPending]);
+
+  useEffect(() => {
+    if (isPending) return;
+    if (typeof document === 'undefined') return;
+
+    const encodedPayload = getCookie(CART_SEED_COOKIE);
+    if (!encodedPayload) return;
+
+    try {
+      const decoded = decodeBase64Url(encodedPayload);
+      const payload: CartSeedPayload = JSON.parse(decoded);
+      if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+        deleteCookie(CART_SEED_COOKIE);
+        return;
+      }
+
+      const sanitizedItems = payload.items
+        .map(item => (item && typeof item === 'object' ? sanitizeCartSeedItem(item as Record<string, unknown>) : null))
+        .filter((item): item is CartItem => Boolean(item));
+
+      if (sanitizedItems.length === 0) {
+        deleteCookie(CART_SEED_COOKIE);
+        return;
+      }
+
+      dispatch({
+        type: 'ADD_ITEMS_BATCH',
+        payload: sanitizedItems,
+      });
+
+      try {
+        const attribution = payload.attribution ?? {};
+        const notice = {
+          itemCount: sanitizedItems.reduce((sum, item) => sum + item.quantity, 0),
+          source: attribution.source ?? 'Blog',
+          medium: attribution.medium ?? 'Web',
+          campaign: attribution.campaign ?? 'blog-to-cart',
+          items: sanitizedItems.slice(0, 3).map(item => item.name),
+        };
+        sessionStorage.setItem('ff_cart_seed_notice', JSON.stringify(notice));
+      } catch (storageError) {
+        console.warn('Unable to persist cart seed notice', storageError);
+      }
+    } catch (error) {
+      console.error('Failed to process blog cart seed payload', error);
+    } finally {
+      deleteCookie(CART_SEED_COOKIE);
+    }
+  }, [isPending, dispatch]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {

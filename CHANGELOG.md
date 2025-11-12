@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
   - Updated edge middleware to recognise campaign triggers on every page load and automatically seed the appropriate cookies so marketing links unlock incentives without custom code.
   - Added `/campaign/[slug]` route handler for direct landing URLs that both activate the campaign profile and redirect to a safe destination.
   - Checkout now detects campaign cookies: free-shipping overrides zero out shipping charges, and recognised promo codes are validated and applied to the order summary automatically, complete with error state messaging when validation fails.
+- **Blog-to-Cart Deep Link Ingestion** 🛒
+  - New `/blog/add-to-cart` endpoint mirrors `add-from-blog.asp` by validating product + option availability, enforcing rate limits, logging attribution, and seeding a short-lived `ff_cart_seed` cookie before redirecting with preserved UTM parameters.
+  - Cart context now hydrates the cookie payload, sanitizes incoming items, persists a session notice, and dispatches `ADD_ITEMS_BATCH` so influencer/blog links pre-fill the cart client-side.
+  - `/cart` surfaces success or error messaging based on `seeded` query states, giving shoppers clear feedback when a deep link lands or when a SKU is no longer available.
 - **Home Filter Club Activation Flow** 🧡
   - Added secure `/start-subscription` page that decodes access keys, verifies order context, and displays subscription-eligible items with frequency selectors.
   - Introduced `/api/subscriptions/activation` endpoint that validates tokens, prevents duplicate subscriptions, logs the event, and dispatches welcome emails for each new subscription.

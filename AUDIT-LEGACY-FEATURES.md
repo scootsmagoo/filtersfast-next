@@ -1,12 +1,12 @@
 # 🔍 FiltersFast Legacy Feature Audit Report
 
 **Generated:** November 3, 2025  
-**Last Updated:** November 11, 2025  
+**Last Updated:** November 12, 2025  
 **Current Reviewer:** FiltersFast-Next parity audit (GPT-5 Codex)
 
 ---
 
-## 📋 Executive Summary (Updated Nov 11, 2025)
+## 📋 Executive Summary (Updated Nov 12, 2025)
 
 We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **96% of the 120 tracked legacy capabilities (≈115 features delivered)**.
 
@@ -18,6 +18,7 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
   - Geo-aware currency detection through middleware + client fallback with automatic rate refresh.
   - CyberSource failover parity layered into the payment gateway manager with HTTP Signature auth.
   - Legacy `maxCartQty` purchase ceilings enforced end-to-end (admin product editing, cart UX, and checkout API guardrails).
+  - Blog and influencer deep links now pre-seed carts through a dedicated ingestion endpoint with attribution parity.
 - ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, and returns management all have working parity implementations.
 
 ### Remaining gaps to close
@@ -25,7 +26,6 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
 2. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
 3. **Home Filter Club subscription activation links** – Legacy `start-subscription/default.asp` decodes encrypted `accesskey` parameters, hydrates customer/order context, and renders the autoship opt-in form. FiltersFast-Next lacks a route that accepts the CRM-triggered activation links, breaking the post-purchase subscription upsell journey.
-4. **Blog-to-cart ingestion endpoint** – Legacy `add-from-blog.asp` validates product availability, creates a cart if needed, inserts the promotional SKU, and records attribution. FiltersFast-Next does not expose a deep-linkable cart ingestion API, so blog CTAs and influencer posts cannot pre-populate checkout flows.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -245,9 +245,10 @@ dim paidDate : paidDate = split(base64decode(request.querystring("accesskey")),"
 ' ... renders outputOptInForm(idOrder,false) ...
 ```
 
-### Blog-to-cart ingestion still missing
-- `add-from-blog.asp` powers “Buy Now” buttons on marketing posts: it verifies the SKU, spins up a cart (if needed), injects the line item, logs attribution, and redirects to the appropriate cart experience.
-- FiltersFast-Next lacks an anonymous cart ingestion endpoint with attribution fields, breaking deep links from the blog, social campaigns, and partner embeds.
+### Blog-to-cart ingestion parity restored (Nov 12, 2025)
+- Legacy `add-from-blog.asp` powered marketing CTAs by validating SKUs, spinning up a cart session, inserting the promotional item, tagging attribution, and redirecting shoppers into the cart experience.
+- FiltersFast-Next now serves `/blog/add-to-cart`, which rate-limits requests, validates product/option state, builds a sanitized cart seed payload with attribution metadata, issues a short-lived `ff_cart_seed` cookie, and preserves UTM parameters on the redirect.
+- The cart context consumes the cookie on hydration, normalizes the incoming items, drops a sessionStorage notice for the cart UI, and surfaces success or failure messaging directly on `/cart`.
 
 ```98:187:add-from-blog.asp
 if(isnull(idOrder)) then
@@ -257,6 +258,113 @@ if len(idOrder) > 0 then
   mySQL = "INSERT INTO cartrows (idOrder,idProduct,sku,quantity,unitPrice,unitWeight,description,downloadCount,downloadDate,taxExempt,idDiscProd,discAmt,free,autoshipDiscAmt,unitCost,custom,customSKU,caseQty,product_sku,giftParentID, sourcePriceFlag, adCustomFrequency,googleLineID,oosBackorder) VALUES ( "
   ' ... line-item insert ...
 response.redirect "/cart.asp?utm_source=Blog&utm_medium=Web"
+```
+
+```269:335:app/blog/add-to-cart/route.ts
+  const cartItem: CartSeedItem = {
+    id: product.id,
+    productId: product.id,
+    name: product.name.slice(0, 200),
+    brand: product.brand.slice(0, 120),
+    sku: product.sku.slice(0, 120),
+    price: finalPrice,
+    basePrice: product.price,
+    quantity,
+    image: product.primaryImage || product.images?.[0]?.url || '',
+    productType: product.type,
+    maxCartQty: product.maxCartQty ?? null,
+    retExclude: product.retExclude ?? 0,
+    blockedReason: product.blockedReason ?? null,
+    metadata,
+  };
+// ... existing code ...
+  const response = NextResponse.redirect(destination);
+  response.cookies.set({
+    name: CART_SEED_COOKIE,
+    value: encodedPayload,
+    path: '/',
+    httpOnly: false,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60, // 1 minute
+  });
+```
+
+```619:666:lib/cart-context.tsx
+  useEffect(() => {
+    if (isPending) return;
+    if (typeof document === 'undefined') return;
+
+    const encodedPayload = getCookie(CART_SEED_COOKIE);
+    if (!encodedPayload) return;
+
+    try {
+      const decoded = decodeBase64Url(encodedPayload);
+      const payload: CartSeedPayload = JSON.parse(decoded);
+      if (!payload || !Array.isArray(payload.items) || payload.items.length === 0) {
+        deleteCookie(CART_SEED_COOKIE);
+        return;
+      }
+
+      const sanitizedItems = payload.items
+        .map(item => (item && typeof item === 'object' ? sanitizeCartSeedItem(item as Record<string, unknown>) : null))
+        .filter((item): item is CartItem => Boolean(item));
+
+      if (sanitizedItems.length === 0) {
+        deleteCookie(CART_SEED_COOKIE);
+        return;
+      }
+
+      dispatch({
+        type: 'ADD_ITEMS_BATCH',
+        payload: sanitizedItems,
+      });
+// ... existing code ...
+    } finally {
+      deleteCookie(CART_SEED_COOKIE);
+    }
+  }, [isPending, dispatch]);
+```
+
+```184:221:app/cart/page.tsx
+        {(seedStatus && seedStatus !== 'blog' && errorMessages[seedStatus]) && (
+          <Card
+            className="mb-6 border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 transition-colors"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <Info className="w-5 h-5 mt-1" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold text-red-900 dark:text-red-100">{errorMessages[seedStatus].title}</h2>
+                <p className="text-sm mt-1 text-red-800 dark:text-red-200">{errorMessages[seedStatus].body}</p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {(seedStatus === 'blog' && warningMessages.blog) && (
+          <Card
+            className="mb-6 border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 transition-colors"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex items-start gap-3 p-4">
+              <Info className="w-5 h-5 mt-1" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold">{warningMessages.blog.title}</h2>
+                <p className="text-sm mt-1">
+                  {warningMessages.blog.body}
+                  {seedNotice?.items && seedNotice.items.length > 0 && (
+                    <>
+                      {' '}Items included: {seedNotice.items.join(', ')}.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 ```
 
 > The sections that follow are preserved for historical detail. Where earlier notes still read “missing,” cross-check against the updated summary above—many of those features now ship in FiltersFast-Next.
