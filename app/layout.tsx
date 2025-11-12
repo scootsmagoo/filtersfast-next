@@ -17,6 +17,7 @@ import { cookies, headers } from "next/headers";
 import { isValidCurrency, parseCurrencyFromHeaders } from "@/lib/currency-utils";
 import type { CurrencyCode } from "@/lib/types/currency";
 import CurrencyDetectionNotice from "@/components/layout/CurrencyDetectionNotice";
+import CookieBanner from "@/components/layout/CookieBanner";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -70,6 +71,7 @@ export default async function RootLayout({
   const headerList = await headers();
   const cookieStore = await cookies();
   const cookieCurrency = cookieStore.get("ff_currency")?.value;
+  const consentCookie = cookieStore.get("ff_cookie_consent")?.value;
 
   let initialCurrency: CurrencyCode = "USD";
   let serverCurrencyHint: CurrencyCode | null = null;
@@ -146,6 +148,11 @@ export default async function RootLayout({
                 {children}
               </main>
               <Footer />
+              <CookieBanner
+                initialConsent={
+                  consentCookie === 'all' || consentCookie === 'necessary' ? consentCookie : null
+                }
+              />
               <ScreenReaderAnnouncements />
               <ChatbotWidget />
                 </CartProvider>

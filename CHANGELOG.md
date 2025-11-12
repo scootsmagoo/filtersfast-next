@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-11-12
+- **Campaign Landing Toggles & Promotion Auto-Apply** 🚀
+  - Introduced a centralized campaign registry (`lib/campaigns.ts`) that translates legacy landing flags (`/filter10now`, `fs=WIS`, `eml=FF10`) into modern cookies (`ff_campaign`, `ff_free_shipping`, `ff_campaign_promo`, `ff_campaign_context`) with configurable expirations.
+  - Updated edge middleware to recognise campaign triggers on every page load and automatically seed the appropriate cookies so marketing links unlock incentives without custom code.
+  - Added `/campaign/[slug]` route handler for direct landing URLs that both activate the campaign profile and redirect to a safe destination.
+  - Checkout now detects campaign cookies: free-shipping overrides zero out shipping charges, and recognised promo codes are validated and applied to the order summary automatically, complete with error state messaging when validation fails.
+
 ### Added - 2025-11-11
 - **Gift-with-Purchase Auto Fulfillment** 🎁
   - New `/api/cart/rewards` service inspects active cart items and injects promotional reward SKUs with zero pricing, mirroring legacy `cart.asp` behavior.

@@ -89,7 +89,7 @@ export default function Footer() {
 
       {/* Main Footer */}
       <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8">
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-4 text-brand-orange">
@@ -212,6 +212,16 @@ export default function Footer() {
               <li><Link href="/reviews" className="hover:text-brand-orange transition-colors">Reviews</Link></li>
               <li><Link href="/business-services" className="hover:text-brand-orange transition-colors">Business Services</Link></li>
               <li><Link href="/careers" className="hover:text-brand-orange transition-colors">Careers</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 className="font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-brand-gray-300">
+              <li><Link href="/terms" className="hover:text-brand-orange transition-colors">Terms &amp; Conditions</Link></li>
+              <li><Link href="/privacy" className="hover:text-brand-orange transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/accessibility" className="hover:text-brand-orange transition-colors">Accessibility</Link></li>
             </ul>
           </div>
         </div>

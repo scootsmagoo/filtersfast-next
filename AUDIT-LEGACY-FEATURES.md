@@ -24,9 +24,8 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 
 1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
 2. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
-3. **Campaign-driven discount landing toggles** – Legacy promo pages such as `Filter10now.asp` and `CLT.asp` set session flags and cookies to unlock free shipping, stackable discounts, and on-load modals. FiltersFast-Next has no equivalent campaign landing system, so marketing links cannot auto-enable these incentives.
-4. **Home Filter Club subscription activation links** – Legacy `start-subscription/default.asp` decodes encrypted `accesskey` parameters, hydrates customer/order context, and renders the autoship opt-in form. FiltersFast-Next lacks a route that accepts the CRM-triggered activation links, breaking the post-purchase subscription upsell journey.
-5. **Blog-to-cart ingestion endpoint** – Legacy `add-from-blog.asp` validates product availability, creates a cart if needed, inserts the promotional SKU, and records attribution. FiltersFast-Next does not expose a deep-linkable cart ingestion API, so blog CTAs and influencer posts cannot pre-populate checkout flows.
+3. **Home Filter Club subscription activation links** – Legacy `start-subscription/default.asp` decodes encrypted `accesskey` parameters, hydrates customer/order context, and renders the autoship opt-in form. FiltersFast-Next lacks a route that accepts the CRM-triggered activation links, breaking the post-purchase subscription upsell journey.
+4. **Blog-to-cart ingestion endpoint** – Legacy `add-from-blog.asp` validates product availability, creates a cart if needed, inserts the promotional SKU, and records attribution. FiltersFast-Next does not expose a deep-linkable cart ingestion API, so blog CTAs and influencer posts cannot pre-populate checkout flows.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -157,31 +156,79 @@ export interface Product {
 }
 ```
 
-### Campaign-driven discount landing toggles still missing
-- Landing experiences like `Filter10now.asp` and `CLT.asp` set session flags (`ogIntegration`, `10offdeal2`) and persistent cookies (`fShipWI`) to activate free shipping and promo overlays for targeted audiences.
-- FiltersFast-Next does not yet offer a campaign landing mechanism that can flip these incentives on arrival, preventing marketing links from fulfilling “instant free shipping/discount” promises.
+### Campaign-driven discount landing toggles parity restored (Nov 12, 2025)
+- Added a campaign registry (`lib/campaigns.ts`) that maps legacy landing slugs, query flags (`fs=WIS`, `eml=FF10`, `contextTag=10offdeal2`), and their resulting behaviours (free-shipping overrides, promo code cookies, context tags).
+- Middleware now inspects inbound requests and applies the campaign profile, issuing modern cookies (`ff_campaign`, `ff_free_shipping`, `ff_campaign_promo`, `ff_campaign_context`) with the correct TTL when a trigger matches.
+- A helper route `/campaign/[slug]` provides marketing-friendly links that both set the cookies and redirect to a safe destination, mirroring the legacy `Filter10now.asp`/`CLT.asp` endpoints.
+- Checkout automatically detects the new cookies: free-shipping overrides zero out delivery charges, and recognised promo codes are validated and applied to the order summary without user input. Validation failures surface a warning instead of silently failing.
 
-```139:148:Filter10now.asp
-session("ogIntegration") = "10offdeal2"
-session("10offdeal2") = "True"
-session("fShipWI")="True"
-if Request.Cookies("fShipWI")="" then
-  Response.Cookies("fShipWI")="True"
-  Response.Cookies("fShipWI").Expires=date()+7
-end if
+```10:98:lib/campaigns.ts
+export const CAMPAIGN_FREE_SHIPPING_COOKIE = 'ff_free_shipping';
+...
+const campaignDefinitions: CampaignDefinition[] = [
+  {
+    slug: 'filter10now',
+    label: 'Filter10now Legacy Landing',
+    freeShipping: true,
+    contextTag: '10offdeal2',
+    expiresDays: 7,
+    triggers: [
+      { type: 'path', value: '/filter10now' },
+      { type: 'query', key: 'campaign', value: 'filter10now' },
+      { type: 'query', key: 'contexttag', value: '10offdeal2' }
+    ]
+  },
+  {
+    slug: 'ff10-email-offer',
+    label: 'FF10 Email Offer',
+    promoCode: 'FF10',
+    contextTag: '762519',
+    triggers: [
+      { type: 'query', key: 'eml', value: 'ff10' },
+      { type: 'utm', key: 'utm_campaign', value: 'ff10' }
+    ]
+  }
+];
 ```
 
-```55:106:CLT.asp
-if Request.Cookies("fShipWI")="" then
-  Response.Cookies("fShipWI")="True"
-  Response.Cookies("fShipWI").Expires=date()+3
-end if
-' ... legacy landing content with forced promo modal ...
-<div id="discontinuedModal" style="display:block;position:absolute;top:-163px;">
-  <div id="cltWrap">
-    <div id="discCloseModal" style="border-color:#000;color:#000;top:22px;">
-      <a onclick="document.getElementById('discontinuedModal').style.display='none';document.getElementById('black_overlay').style.display='none';" href="javascript:void(0)" style="color:#000;">
-        X
+```84:107:middleware.ts
+  const shouldApplyCampaign = !pathname.startsWith('/api/');
+  if (shouldApplyCampaign) {
+    const campaign = resolveCampaignFromRequest(request);
+    if (campaign) {
+      applyCampaignToResponse(response, campaign);
+    }
+  }
+```
+
+```1:27:app/campaign/[slug]/route.ts
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+): Promise<NextResponse> {
+  const campaign = getCampaignDefinition(slug);
+  ...
+  applyCampaignToResponse(response, campaign, { refreshExpiry: true });
+  return response;
+}
+```
+
+```174:231:app/checkout/page.tsx
+  const baselineShippingRate = selectedShippingRate?.rate ?? (total >= 50 ? 0 : 9.99);
+  const shippingCost = hasShippableItems
+    ? (campaignFreeShipping ? 0 : baselineShippingRate)
+    : 0;
+  ...
+  useEffect(() => {
+    const codeCandidate = (campaignPromoCode ?? appliedPromo?.code ?? '').trim();
+    if (!codeCandidate) {
+      promoSignatureRef.current = null;
+      setAppliedPromo(null);
+      setPromoDiscount(0);
+      return;
+    }
+    ...
+    const response = await fetch('/api/checkout/validate-promo', { ... });
 ```
 
 ### Home Filter Club activation flow missing

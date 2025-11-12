@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { findCachedRedirect } from '@/lib/redirects-cache';
 import { COUNTRY_TO_CURRENCY, isValidCurrency, parseCurrencyFromHeaders } from '@/lib/currency-utils';
 import type { CurrencyCode } from '@/lib/types/currency';
+import { applyCampaignToResponse, resolveCampaignFromRequest } from '@/lib/campaigns';
 
 // Supported language codes
 const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'fr-ca'] as const;
@@ -83,6 +84,14 @@ export function middleware(request: NextRequest) {
   
   const response = NextResponse.next();
   
+  const shouldApplyCampaign = !pathname.startsWith('/api/');
+  if (shouldApplyCampaign) {
+    const campaign = resolveCampaignFromRequest(request);
+    if (campaign) {
+      applyCampaignToResponse(response, campaign);
+    }
+  }
+
   // Language detection and cookie setting
   const currentLang = request.cookies.get('language')?.value;
   if (!currentLang) {

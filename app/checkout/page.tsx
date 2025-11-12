@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
@@ -34,6 +34,9 @@ import {
   Plus
 } from 'lucide-react';
 import { useCurrency } from '@/lib/currency-context';
+import { Tag, AlertCircle } from 'lucide-react';
+import type { PromoCode, CartItem as PromoCartItem } from '@/lib/types/promo';
+import { getCookie, deleteCookie } from '@/lib/utils/cookies-client';
 
 type CheckoutStep = 'account' | 'shipping' | 'payment' | 'review';
 
@@ -81,6 +84,14 @@ export default function CheckoutPage() {
   const [giftCardCode, setGiftCardCode] = useState('');
   const [giftCardError, setGiftCardError] = useState('');
   const [giftCardLoading, setGiftCardLoading] = useState(false);
+  const [campaignSlug, setCampaignSlug] = useState<string | null>(null);
+  const [campaignFreeShipping, setCampaignFreeShipping] = useState(false);
+  const [campaignPromoCode, setCampaignPromoCode] = useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoApplying, setPromoApplying] = useState(false);
+  const promoSignatureRef = useRef<string | null>(null);
 
   const hasShippableItems = useMemo(
     () => items.some(item => (item.productType ?? '').toLowerCase() !== 'gift-card'),
@@ -168,15 +179,132 @@ export default function CheckoutPage() {
     }
   }, [hasShippableItems]);
 
+  useEffect(() => {
+    const slug = getCookie('ff_campaign');
+    if (slug) {
+      setCampaignSlug(slug);
+    }
+
+    const freeShippingCookie = getCookie('ff_free_shipping');
+    if (freeShippingCookie === '1') {
+      setCampaignFreeShipping(true);
+    }
+
+    const promoCookie = getCookie('ff_campaign_promo');
+    if (promoCookie) {
+      setCampaignPromoCode(promoCookie.toUpperCase());
+    }
+
+    const contextTagFallback = getCookie('ff_campaign_context');
+    if (!slug && contextTagFallback) {
+      setCampaignSlug(contextTagFallback);
+    }
+  }, []);
+
+  useEffect(() => {
+    const codeCandidate = (campaignPromoCode ?? appliedPromo?.code ?? '').trim();
+    if (!codeCandidate) {
+      promoSignatureRef.current = null;
+      setAppliedPromo(null);
+      setPromoDiscount(0);
+      return;
+    }
+
+    const normalizedCode = codeCandidate.toUpperCase();
+    const signature = `${normalizedCode}|${items
+      .map(item => `${item.id}:${item.quantity}:${item.price}`)
+      .join('|')}|${total}`;
+
+    if (promoSignatureRef.current === signature || promoApplying || items.length === 0) {
+      return;
+    }
+
+    promoSignatureRef.current = signature;
+    let cancelled = false;
+
+    const validatePromo = async () => {
+      try {
+        setPromoApplying(true);
+        const promoItems: PromoCartItem[] = items.map(item => ({
+          productId:
+            typeof item.productId === 'string' && item.productId.trim().length > 0
+              ? item.productId
+              : String(item.id),
+          quantity: item.quantity,
+          price: item.price,
+          categoryId:
+            typeof item.metadata?.categoryId === 'string'
+              ? item.metadata?.categoryId
+              : undefined
+        }));
+
+        const response = await fetch('/api/checkout/validate-promo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            code: normalizedCode,
+            cartTotal: total,
+            cartItems: promoItems,
+            customerId: session?.user?.id,
+            isFirstTimeCustomer: undefined
+          })
+        });
+
+        const data = await response.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (response.ok && data.valid) {
+          setAppliedPromo(data.promoCode);
+          setCampaignPromoCode(data.promoCode?.code ?? normalizedCode);
+          setPromoDiscount(data.discountAmount ?? 0);
+          setPromoError(null);
+        } else {
+          setAppliedPromo(null);
+          setPromoDiscount(0);
+          setPromoError(data.error || 'We could not apply your promotion automatically.');
+          setCampaignPromoCode(null);
+          deleteCookie('ff_campaign_promo');
+          promoSignatureRef.current = null;
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setAppliedPromo(null);
+          setPromoDiscount(0);
+          setPromoError('Unable to validate the promotion right now. Please try again later.');
+          promoSignatureRef.current = null;
+        }
+      } finally {
+        if (!cancelled) {
+          setPromoApplying(false);
+        }
+      }
+    };
+
+    validatePromo();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [campaignPromoCode, appliedPromo?.code, items, total, session?.user?.id, promoApplying]);
+
   // Use selected shipping rate or default to free shipping if over $50
+  const baselineShippingRate = selectedShippingRate?.rate ?? (total >= 50 ? 0 : 9.99);
   const shippingCost = hasShippableItems
-    ? selectedShippingRate?.rate || (total >= 50 ? 0 : 9.99)
+    ? (campaignFreeShipping ? 0 : baselineShippingRate)
     : 0;
   const tax = calculatedTax; // Real-time tax from TaxJar
   const donationAmount = donation?.amount || 0;
   const insuranceCost = insurance?.cost || 0;
   const giftCardDeduction = appliedGiftCards.reduce((sum, card) => sum + (card.amountApplied || 0), 0);
-  const orderTotal = Math.max(0, total + shippingCost + tax + donationAmount + insuranceCost - giftCardDeduction);
+  const orderTotal = Math.max(
+    0,
+    total + shippingCost + tax + donationAmount + insuranceCost - giftCardDeduction - promoDiscount
+  );
   
   // Convert totals to selected currency for display
   const displayTotal = convertPrice(total);
@@ -185,6 +313,7 @@ export default function CheckoutPage() {
   const displayInsurance = convertPrice(insuranceCost);
   const displayDonation = convertPrice(donationAmount);
   const displayGiftCardDeduction = convertPrice(giftCardDeduction);
+  const displayPromoDiscount = convertPrice(promoDiscount);
   const displayOrderTotal = convertPrice(orderTotal);
 
   // Step navigation
@@ -382,6 +511,9 @@ export default function CheckoutPage() {
             code: card.code,
             amount: card.amountApplied,
           })),
+          promo_code: appliedPromo?.code ?? campaignPromoCode ?? null,
+          promo_discount: promoDiscount,
+          campaign: campaignSlug,
         }),
       });
       
@@ -834,11 +966,12 @@ export default function CheckoutPage() {
                             subtotal={total}
                             shipping={shippingCost}
                             tax={calculatedTax}
-                            discount={0}
+                            discount={promoDiscount}
                             handling={0}
                             donation={donationAmount}
                             insurance={insuranceCost}
                             total={orderTotal}
+                            promoCode={appliedPromo?.code ?? campaignPromoCode ?? undefined}
                             shippingAddress={{
                               name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
                               address_line1: shippingAddress.address1,
@@ -1082,6 +1215,11 @@ export default function CheckoutPage() {
                           {selectedShippingRate.service_name}
                         </span>
                       )}
+                      {campaignFreeShipping && (
+                        <span className="block text-xs text-green-600 dark:text-green-400 mt-0.5">
+                          Campaign free shipping applied
+                        </span>
+                      )}
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100 transition-colors">
                       {shippingCost === 0 ? 'FREE' : formatPriceCurrency(displayShipping)}
@@ -1117,6 +1255,17 @@ export default function CheckoutPage() {
                       </span>
                       <span className="font-medium text-green-600 dark:text-green-400 transition-colors">
                         -{formatPriceCurrency(displayGiftCardDeduction)}
+                      </span>
+                    </div>
+                  )}
+                  {promoDiscount > 0 && appliedPromo && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors">
+                        <Tag className="w-3 h-3 text-green-600" />
+                        Promo {appliedPromo.code}
+                      </span>
+                      <span className="font-medium text-green-600 dark:text-green-400 transition-colors">
+                        -{formatPriceCurrency(displayPromoDiscount)}
                       </span>
                     </div>
                   )}
@@ -1198,7 +1347,14 @@ export default function CheckoutPage() {
                   <span className="text-brand-orange">{formatPriceCurrency(displayOrderTotal)}</span>
                 </div>
                 
-                {total < 50 && (
+                {promoError && (
+                  <div className="flex items-start gap-2 text-xs text-red-600 dark:text-red-400 mb-4 transition-colors">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{promoError}</span>
+                  </div>
+                )}
+                
+                {total < 50 && !campaignFreeShipping && (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-300 transition-colors">
                     Add {formatPriceCurrency(convertPrice(50 - total))} more for free shipping!
                   </div>
