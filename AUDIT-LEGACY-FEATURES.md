@@ -24,6 +24,9 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 
 1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
 2. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
+3. **Campaign-driven discount landing toggles** – Legacy promo pages such as `Filter10now.asp` and `CLT.asp` set session flags and cookies to unlock free shipping, stackable discounts, and on-load modals. FiltersFast-Next has no equivalent campaign landing system, so marketing links cannot auto-enable these incentives.
+4. **Home Filter Club subscription activation links** – Legacy `start-subscription/default.asp` decodes encrypted `accesskey` parameters, hydrates customer/order context, and renders the autoship opt-in form. FiltersFast-Next lacks a route that accepts the CRM-triggered activation links, breaking the post-purchase subscription upsell journey.
+5. **Blog-to-cart ingestion endpoint** – Legacy `add-from-blog.asp` validates product availability, creates a cart if needed, inserts the promotional SKU, and records attribution. FiltersFast-Next does not expose a deep-linkable cart ingestion API, so blog CTAs and influencer posts cannot pre-populate checkout flows.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -152,6 +155,61 @@ export interface Product {
   badges: string[]
   // Return exclusions or block reasons are not modelled
 }
+```
+
+### Campaign-driven discount landing toggles still missing
+- Landing experiences like `Filter10now.asp` and `CLT.asp` set session flags (`ogIntegration`, `10offdeal2`) and persistent cookies (`fShipWI`) to activate free shipping and promo overlays for targeted audiences.
+- FiltersFast-Next does not yet offer a campaign landing mechanism that can flip these incentives on arrival, preventing marketing links from fulfilling “instant free shipping/discount” promises.
+
+```139:148:Filter10now.asp
+session("ogIntegration") = "10offdeal2"
+session("10offdeal2") = "True"
+session("fShipWI")="True"
+if Request.Cookies("fShipWI")="" then
+  Response.Cookies("fShipWI")="True"
+  Response.Cookies("fShipWI").Expires=date()+7
+end if
+```
+
+```55:106:CLT.asp
+if Request.Cookies("fShipWI")="" then
+  Response.Cookies("fShipWI")="True"
+  Response.Cookies("fShipWI").Expires=date()+3
+end if
+' ... legacy landing content with forced promo modal ...
+<div id="discontinuedModal" style="display:block;position:absolute;top:-163px;">
+  <div id="cltWrap">
+    <div id="discCloseModal" style="border-color:#000;color:#000;top:22px;">
+      <a onclick="document.getElementById('discontinuedModal').style.display='none';document.getElementById('black_overlay').style.display='none';" href="javascript:void(0)" style="color:#000;">
+        X
+```
+
+### Home Filter Club activation flow missing
+- `start-subscription/default.asp` accepts encrypted `accesskey` links sent from marketing automation, extracts customer/order IDs, and renders the `outputOptInForm` wizard so shoppers can enroll in autoship after checkout.
+- FiltersFast-Next has no handler for those legacy URLs, so existing lifecycle campaigns land on 404s and customers cannot activate the promised subscription without manual support.
+
+```34:58:start-subscription/default.asp
+call openDB()
+' ... legacy initialization ...
+dim idCust : idCust = split(base64decode(request.querystring("accesskey")),"|")(0)
+dim idOrder : idOrder = split(base64decode(request.querystring("accesskey")),"|")(1)
+dim idWallet : idWallet = split(base64decode(request.querystring("accesskey")),"|")(2)
+dim paidDate : paidDate = split(base64decode(request.querystring("accesskey")),"|")(3)
+' ... renders outputOptInForm(idOrder,false) ...
+```
+
+### Blog-to-cart ingestion still missing
+- `add-from-blog.asp` powers “Buy Now” buttons on marketing posts: it verifies the SKU, spins up a cart (if needed), injects the line item, logs attribution, and redirects to the appropriate cart experience.
+- FiltersFast-Next lacks an anonymous cart ingestion endpoint with attribution fields, breaking deep links from the blog, social campaigns, and partner embeds.
+
+```98:187:add-from-blog.asp
+if(isnull(idOrder)) then
+  mySQL = "INSERT INTO carthead (orderDate,orderDateInt,randomKey, subTotal, shipmentTotal, Total, shipmentMethod,orderStatus,storeCommentsPriv,auditInfo,referralSource,ogAutoship) VALUES("
+  ' ... order bootstrap logic ...
+if len(idOrder) > 0 then
+  mySQL = "INSERT INTO cartrows (idOrder,idProduct,sku,quantity,unitPrice,unitWeight,description,downloadCount,downloadDate,taxExempt,idDiscProd,discAmt,free,autoshipDiscAmt,unitCost,custom,customSKU,caseQty,product_sku,giftParentID, sourcePriceFlag, adCustomFrequency,googleLineID,oosBackorder) VALUES ( "
+  ' ... line-item insert ...
+response.redirect "/cart.asp?utm_source=Blog&utm_medium=Web"
 ```
 
 > The sections that follow are preserved for historical detail. Where earlier notes still read “missing,” cross-check against the updated summary above—many of those features now ship in FiltersFast-Next.

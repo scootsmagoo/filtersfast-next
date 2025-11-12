@@ -1,12 +1,16 @@
 # 📋 Missing Features – November 11, 2025 Update
 
-FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. Only a couple of legacy-only workflows still need attention to reach full parity.
+FiltersFast-Next now delivers roughly **95% feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. Only a handful of legacy-only workflows still need attention to reach full parity.
 
 ---
 
 ## Remaining gaps (legacy-only functionality)
 
-- Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts are still missing from the modern product model.
+- Gift-with-purchase auto fulfillment (`add_gift_item` in `cart.asp`) that inserts qualifying freebies into the cart when a promotion is active.
+- Return-policy and blocked merchandising switches (`retExclude`, `blockedReason`) that drive “all sales final” messaging and temporary lockouts.
+- Campaign landing toggles (`Filter10now.asp`, `CLT.asp`) that set session/cookie flags to unlock free shipping, stacked discounts, and promo overlays on arrival.
+- Home Filter Club “start subscription” handler (`start-subscription/default.asp`) that decodes secure `accesskey` links from lifecycle emails to render the autoship opt-in form.
+- Blog-to-cart ingestion endpoint (`add-from-blog.asp`) that validates SKU availability, seeds a cart, injects the promo SKU, and records blog attribution before redirecting to checkout.
 
 ---
 
@@ -30,5 +34,5 @@ FiltersFast-Next now delivers roughly **96% feature parity** with the legacy ASP
 
 ## Feature parity score
 
-- **≈98%** (118 of 120 tracked legacy capabilities). Closing the two remaining items above would bring FiltersFast-Next to complete functional parity with the production ASP site.
+- **≈95%** (114 of 120 tracked legacy capabilities). Closing the remaining journeys above would bring FiltersFast-Next to complete functional parity with the production ASP site.
 
