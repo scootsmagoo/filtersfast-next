@@ -209,6 +209,26 @@ try {
   `);
 
   // ============================================================================
+  // PRODUCT SNAPSHOTS TABLE (Versioning)
+  // ============================================================================
+  console.log('Creating product_snapshots table...');
+  
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS product_snapshots (
+      id TEXT PRIMARY KEY,
+      product_id TEXT NOT NULL,
+      snapshot_file TEXT NOT NULL,
+      snapshot_json TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      note TEXT,
+      created_at INTEGER NOT NULL,
+      created_by TEXT NOT NULL,
+      created_by_name TEXT NOT NULL,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    );
+  `);
+
+  // ============================================================================
   // PRODUCT VIEWS TABLE (Analytics)
   // ============================================================================
   console.log('Creating product_views table...');
@@ -252,6 +272,10 @@ try {
     CREATE INDEX IF NOT EXISTS idx_history_product ON product_history(product_id);
     CREATE INDEX IF NOT EXISTS idx_history_timestamp ON product_history(timestamp);
     CREATE INDEX IF NOT EXISTS idx_history_action ON product_history(action);
+    
+    -- Snapshot indexes
+    CREATE INDEX IF NOT EXISTS idx_snapshots_product ON product_snapshots(product_id);
+    CREATE INDEX IF NOT EXISTS idx_snapshots_created ON product_snapshots(created_at);
     
     -- Views indexes
     CREATE INDEX IF NOT EXISTS idx_views_product ON product_views(product_id);

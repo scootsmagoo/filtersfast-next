@@ -287,6 +287,37 @@ export interface ProductHistoryEntry {
   notes?: string
 }
 
+export interface ProductSnapshotMetadata {
+  id: string
+  productId: string
+  fileName: string
+  fileSize: number
+  note: string | null
+  createdAt: number
+  createdBy: string
+  createdByName: string
+}
+
+export interface ProductSnapshotPayload {
+  metadata: {
+    snapshotId: string
+    productId: string
+    capturedAt: number
+    capturedBy: {
+      id: string
+      name: string
+    }
+    note: string | null
+    version: number
+  }
+  product: Product
+  extras?: Record<string, any> | null
+}
+
+export interface ProductSnapshot extends ProductSnapshotMetadata {
+  snapshot: ProductSnapshotPayload
+}
+
 export interface BulkProductAction {
   action: 'update-status' | 'update-price' | 'update-inventory' | 'add-tag' | 'remove-tag' | 'delete'
   productIds: string[]

@@ -4,9 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import { ArrowLeft, Save, Trash2, Eye, History, Link2 } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Eye, History, Link2, Camera, Download, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import type { Product, ProductFormData, ProductHistoryEntry, ProductType, ProductStatus } from '@/lib/types/product';
+import type {
+  Product,
+  ProductFormData,
+  ProductHistoryEntry,
+  ProductType,
+  ProductStatus,
+  ProductSnapshotMetadata
+} from '@/lib/types/product';
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 import SKUCompatibilityModal from '@/components/admin/SKUCompatibilityModal';
 
@@ -26,6 +33,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [showHistory, setShowHistory] = useState(false);
   const [showCompatibilityModal, setShowCompatibilityModal] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [snapshots, setSnapshots] = useState<ProductSnapshotMetadata[]>([]);
+  const [loadingSnapshots, setLoadingSnapshots] = useState(false);
+  const [creatingSnapshot, setCreatingSnapshot] = useState(false);
+  const [downloadingSnapshotId, setDownloadingSnapshotId] = useState<string | null>(null);
+  const [deletingSnapshotId, setDeletingSnapshotId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     sku: '',
@@ -76,10 +88,28 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     params.then(p => setProductId(p.id));
   }, [params]);
 
+  const formatBytes = (bytes: number) => {
+    if (!bytes || bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex += 1;
+    }
+    const decimals = unitIndex === 0 || value >= 10 ? 0 : 1;
+    return `${value.toFixed(decimals)} ${units[unitIndex]}`;
+  };
+
   // Load product
   useEffect(() => {
     if (!productId) return;
     loadProduct();
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId) return;
+    loadSnapshots();
   }, [productId]);
 
   // Load categories
@@ -181,6 +211,117 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       if (data.categories) setCategories(data.categories);
     } catch (error) {
       console.error('Error loading categories:', error);
+    }
+  };
+
+  const loadSnapshots = async (showSpinner = true) => {
+    if (!productId) return;
+
+    try {
+      if (showSpinner) setLoadingSnapshots(true);
+      const response = await fetch(`/api/admin/products/${productId}/snapshots`);
+
+      if (!response.ok) {
+        throw new Error('Failed to load snapshots');
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data.snapshots)) {
+        setSnapshots(data.snapshots);
+      }
+    } catch (error) {
+      console.error('Error loading snapshots:', error);
+      if (showSpinner) {
+        alert('Failed to load product snapshots');
+      }
+    } finally {
+      if (showSpinner) setLoadingSnapshots(false);
+    }
+  };
+
+  const handleCreateSnapshot = async () => {
+    if (!productId) return;
+
+    const noteInput = window.prompt('Add a note for this snapshot (optional):') ?? '';
+    const note = noteInput.trim();
+
+    try {
+      setCreatingSnapshot(true);
+      const response = await fetch(`/api/admin/products/${productId}/snapshots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: note ? JSON.stringify({ note }) : JSON.stringify({})
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to create snapshot');
+      }
+
+      await loadSnapshots();
+      alert('Snapshot captured successfully.');
+    } catch (error) {
+      console.error('Error creating snapshot:', error);
+      alert(error instanceof Error ? error.message : 'Failed to create snapshot');
+    } finally {
+      setCreatingSnapshot(false);
+    }
+  };
+
+  const handleDownloadSnapshot = async (snapshotId: string, fileName: string) => {
+    if (!productId) return;
+
+    try {
+      setDownloadingSnapshotId(snapshotId);
+      const response = await fetch(
+        `/api/admin/products/${productId}/snapshots/${snapshotId}/download`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to download snapshot');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading snapshot:', error);
+      alert('Failed to download snapshot');
+    } finally {
+      setDownloadingSnapshotId(null);
+    }
+  };
+
+  const handleDeleteSnapshot = async (snapshotId: string) => {
+    if (!productId) return;
+    if (!confirm('Delete this product snapshot? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingSnapshotId(snapshotId);
+      const response = await fetch(
+        `/api/admin/products/${productId}/snapshots/${snapshotId}`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to delete snapshot');
+      }
+
+      setSnapshots(prev => prev.filter(snapshot => snapshot.id !== snapshotId));
+    } catch (error) {
+      console.error('Error deleting snapshot:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete snapshot');
+    } finally {
+      setDeletingSnapshotId(null);
     }
   };
 
@@ -318,6 +459,117 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </div>
+
+        {/* Product Snapshots */}
+        <Card className="p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
+              Product Snapshots
+            </h3>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => loadSnapshots()}
+                disabled={loadingSnapshots}
+                className="flex items-center gap-2"
+                aria-label="Refresh product snapshots"
+                aria-busy={loadingSnapshots}
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loadingSnapshots ? 'animate-spin' : ''}`}
+                  aria-hidden="true"
+                />
+                Refresh
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleCreateSnapshot}
+                disabled={creatingSnapshot}
+                className="flex items-center gap-2"
+                aria-label="Capture product snapshot"
+                aria-busy={creatingSnapshot}
+              >
+                <Camera className="w-4 h-4" aria-hidden="true" />
+                {creatingSnapshot ? 'Capturing...' : 'Capture Snapshot'}
+              </Button>
+            </div>
+          </div>
+
+          {loadingSnapshots ? (
+            <div
+              className="text-sm text-gray-600 dark:text-gray-300 transition-colors"
+              role="status"
+              aria-live="polite"
+            >
+              Loading snapshots...
+            </div>
+          ) : snapshots.length === 0 ? (
+            <div
+              className="text-sm text-gray-600 dark:text-gray-300 transition-colors"
+              role="status"
+              aria-live="polite"
+            >
+              No snapshots captured yet. Use "Capture Snapshot" to save the current product state.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {snapshots.map((snapshot) => (
+                <div
+                  key={snapshot.id}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 transition-colors"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 transition-colors">
+                        {snapshot.fileName}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 transition-colors">
+                        Captured {new Date(snapshot.createdAt).toLocaleString()} by {snapshot.createdByName} • {formatBytes(snapshot.fileSize)}
+                      </div>
+                      {snapshot.note && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400 transition-colors mt-1">
+                          Note: {snapshot.note}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleDownloadSnapshot(snapshot.id, snapshot.fileName)}
+                        disabled={downloadingSnapshotId === snapshot.id}
+                        className="flex items-center gap-2"
+                        aria-label={`Download snapshot ${snapshot.fileName}`}
+                        aria-busy={downloadingSnapshotId === snapshot.id}
+                      >
+                        <Download className="w-4 h-4" aria-hidden="true" />
+                        {downloadingSnapshotId === snapshot.id ? 'Downloading...' : 'Download'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteSnapshot(snapshot.id)}
+                        disabled={deletingSnapshotId === snapshot.id}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        aria-label={`Delete snapshot ${snapshot.fileName}`}
+                        aria-busy={deletingSnapshotId === snapshot.id}
+                      >
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        {deletingSnapshotId === snapshot.id ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
         {/* History Timeline */}
         {showHistory && history.length > 0 && (

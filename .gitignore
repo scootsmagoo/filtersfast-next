@@ -48,3 +48,6 @@ public/ProdImages/**/*
 !public/ProdImages/
 !public/ProdImages/**/.gitkeep
 
+# runtime product snapshot archives
+data/product-snapshots/
+
