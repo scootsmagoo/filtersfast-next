@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, User } from 'lucide-react';
+import { useSystemConfig } from '@/lib/system-config-context';
 
 interface Message {
   id: number | string;
@@ -17,6 +18,14 @@ interface Message {
 }
 
 export default function ChatbotWidget() {
+  const systemConfig = useSystemConfig();
+  const chatEnabled = systemConfig.chatActive === 1;
+  const textChatEnabled = systemConfig.txtChatEnabled === 1;
+
+  if (!chatEnabled) {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -90,6 +99,7 @@ export default function ChatbotWidget() {
   }, [isOpen]);
 
   const handleSend = async () => {
+    if (!textChatEnabled) return;
     if (!inputValue.trim() || isLoading) return;
 
     // WCAG/OWASP: Validate message length client-side
@@ -168,10 +178,12 @@ export default function ChatbotWidget() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (textChatEnabled) {
+        handleSend();
+      }
     }
   };
 
@@ -183,12 +195,15 @@ export default function ChatbotWidget() {
   ];
 
   if (!isOpen) {
+    const closedButtonLabel = textChatEnabled
+      ? 'Open chat assistant - Get help with your order'
+      : 'Live chat offline - View contact options';
     return (
       <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 bg-brand-orange text-white rounded-full p-4 shadow-[0_0_0_4px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.2)] hover:shadow-[0_0_0_4px_rgba(242,103,34,0.4),0_12px_24px_rgba(0,0,0,0.3)] hover:scale-110 transition-all duration-200 z-50 group border-4 border-gray-800 dark:border-gray-600 min-w-[56px] min-h-[56px]"
-        aria-label="Open chat assistant - Get help with your order"
-        title="Chat with our AI assistant"
+        aria-label={closedButtonLabel}
+        title={textChatEnabled ? "Chat with our AI assistant" : "Chat is offline. Click for contact options."}
       >
         <MessageCircle className="w-6 h-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]" strokeWidth={2.5} aria-hidden="true" />
         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse border-2 border-gray-800 dark:border-gray-600 font-bold shadow-lg" aria-label="New">
@@ -224,6 +239,26 @@ export default function ChatbotWidget() {
           <X className="w-5 h-5" />
         </button>
       </div>
+
+      {!textChatEnabled && (
+        <div
+          className="mx-4 mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="font-semibold">Live chat is currently unavailable.</p>
+          <p className="mt-1">
+            Please call us at <span className="font-bold">1-866-438-3458</span> or email{' '}
+            <a
+              href="mailto:support@filtersfast.com"
+              className="underline hover:text-amber-700 dark:hover:text-amber-100"
+            >
+              support@filtersfast.com
+            </a>{' '}
+            for assistance.
+          </p>
+        </div>
+      )}
 
       {/* WCAG: Error announcement for screen readers */}
       {errorMessage && (
@@ -345,10 +380,12 @@ export default function ChatbotWidget() {
               <button
                 key={action}
                 onClick={() => {
+                  if (!textChatEnabled) return;
                   setInputValue(action);
                   setTimeout(handleSend, 100);
                 }}
-                className="text-left text-xs bg-white dark:bg-gray-700 hover:bg-brand-orange hover:text-white text-gray-700 dark:text-gray-300 px-3 py-3 rounded border-2 border-gray-300 dark:border-gray-600 hover:border-brand-orange transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-orange min-h-[44px]"
+                disabled={!textChatEnabled}
+                className="text-left text-xs bg-white dark:bg-gray-700 hover:bg-brand-orange hover:text-white text-gray-700 dark:text-gray-300 px-3 py-3 rounded border-2 border-gray-300 dark:border-gray-600 hover:border-brand-orange transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-orange min-h-[44px] disabled:opacity-60 disabled:hover:bg-white disabled:hover:text-gray-700 dark:disabled:hover:bg-gray-700 disabled:cursor-not-allowed"
                 aria-label={`Ask: ${action}`}
               >
                 {action}
@@ -362,7 +399,11 @@ export default function ChatbotWidget() {
       <div className="p-4 border-t-4 border-brand-orange bg-gray-50 dark:bg-gray-900 transition-colors">
         {/* WCAG: Character counter */}
         {inputValue.length > 0 && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-right transition-colors" aria-live="polite">
+          <div
+            id="chat-char-count"
+            className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-right transition-colors"
+            aria-live="polite"
+          >
             {inputValue.length} / {MAX_MESSAGE_LENGTH} characters
             {inputValue.length > MAX_MESSAGE_LENGTH && (
               <span className="text-red-600 dark:text-red-400 font-semibold ml-2 transition-colors">
@@ -377,24 +418,24 @@ export default function ChatbotWidget() {
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            onKeyDown={handleKeyDown}
+            placeholder={textChatEnabled ? "Type your message..." : "Live chat is offline. Please reach out via phone or email."}
             rows={1}
             maxLength={MAX_MESSAGE_LENGTH + 100}
             className={`flex-1 resize-none border-2 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 transition-colors ${
               inputValue.length > MAX_MESSAGE_LENGTH ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
             }`}
-            disabled={isLoading}
-            aria-label="Type your message"
-            aria-describedby="char-count"
+            disabled={isLoading || !textChatEnabled}
+            aria-label={textChatEnabled ? "Type your message" : "Live chat offline message input disabled"}
+            aria-describedby={inputValue.length > 0 ? 'chat-char-count' : undefined}
             aria-invalid={inputValue.length > MAX_MESSAGE_LENGTH}
           />
           <button
             onClick={handleSend}
-            disabled={!inputValue.trim() || isLoading || inputValue.length > MAX_MESSAGE_LENGTH}
+            disabled={!textChatEnabled || !inputValue.trim() || isLoading || inputValue.length > MAX_MESSAGE_LENGTH}
             className="bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-brand-orange-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-2 border-brand-orange-dark focus:outline-none focus:ring-2 focus:ring-brand-orange shadow-md min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Send message"
-            title="Send message (Enter)"
+            aria-label={textChatEnabled ? "Send message" : "Live chat offline"}
+            title={textChatEnabled ? "Send message (Enter)" : "Live chat is currently unavailable"}
           >
             <Send className="w-5 h-5" />
           </button>

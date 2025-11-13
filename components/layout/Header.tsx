@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, Search, Phone, Menu, X, User } from 'lucide-react';
+import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
 import { useSession } from '@/lib/auth-client';
@@ -11,6 +11,7 @@ import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
 import { CurrencySelector } from '@/components/layout/CurrencySelector';
 import LanguageSelector from '@/components/layout/LanguageSelector';
+import { useSystemConfig } from '@/lib/system-config-context';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,6 +23,17 @@ export default function Header() {
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+  const systemConfig = useSystemConfig();
+
+  const phoneEnabled = systemConfig.phoneNumActive === 1;
+  const callWaitState = systemConfig.callLongWait ?? 0;
+
+  const callWaitMessage =
+    callWaitState === 1
+      ? 'High call volume — expect longer wait times.'
+      : callWaitState === 2
+        ? 'Phone support is currently unavailable. Please use chat or email.'
+        : null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,12 +101,12 @@ export default function Header() {
       {/* Top Banner */}
       <div className="bg-brand-orange text-white py-2">
         <div className="container-custom">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="font-semibold">⭐ Over 62,000 5-star reviews</span>
               <span className="hidden md:inline">Free Shipping on Orders $99+</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 justify-end">
               <Link href="/support" className="hidden md:inline hover:underline font-medium">
                 Support
               </Link>
@@ -105,12 +117,24 @@ export default function Header() {
                 <LanguageSelector />
                 <CurrencySelector />
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span className="font-semibold">1-866-438-3458</span>
-              </div>
+              {phoneEnabled && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span className="font-semibold">1-866-438-3458</span>
+                </div>
+              )}
             </div>
           </div>
+          {callWaitMessage && (
+            <div
+              className="mt-2 flex items-center gap-2 text-xs sm:text-sm"
+              role="status"
+              aria-live="polite"
+            >
+              <AlertCircle className="w-4 h-4" aria-hidden="true" />
+              <span className="font-semibold">{callWaitMessage}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -410,4 +434,5 @@ export default function Header() {
     </header>
   );
 }
+
 

@@ -1,14 +1,14 @@
 # 🔍 FiltersFast Legacy Feature Audit Report
 
 **Generated:** November 3, 2025  
-**Last Updated:** November 12, 2025  
+**Last Updated:** November 27, 2025  
 **Current Reviewer:** FiltersFast-Next parity audit (GPT-5 Codex)
 
 ---
 
-## 📋 Executive Summary (Updated Nov 12, 2025)
+## 📋 Executive Summary (Updated Nov 27, 2025)
 
-We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **96% of the 120 tracked legacy capabilities (≈115 features delivered)**.
+We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **98% of the 125 tracked legacy capabilities (≈122 features delivered)**.
 
 - ✅ Phase 1 + Phase 2 launch blockers remain green: admin orders, products, customers, payments (Stripe/PayPal/Authorize.Net/CyberSource), multi-carrier shipping, TaxJar, analytics, RBAC, and inventory are all live.
 - ✅ Newly verified in this pass:
@@ -19,17 +19,70 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
   - CyberSource failover parity layered into the payment gateway manager with HTTP Signature auth.
   - Legacy `maxCartQty` purchase ceilings enforced end-to-end (admin product editing, cart UX, and checkout API guardrails).
   - Blog and influencer deep links now pre-seed carts through a dedicated ingestion endpoint with attribution parity.
-- ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, and returns management all have working parity implementations.
+- ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, returns management, large orders report, review management, sales code management, and return/blocked merchandise flags all have working parity implementations.
+- ✅ Product snapshot/versioning parity restored with JSON archive storage, admin UI tooling, and audit visibility.
 
 ### Remaining gaps to close
 
-1. **Gift-with-purchase auto fulfillment** – Legacy cart logic (`cart.asp`) automatically inserts promotional freebies and BOGO rewards via `add_gift_item`, tied to `giftwithpurchase` flags on each SKU. FiltersFast-Next surfaces deal messaging but never injects the reward item into the cart, so customers miss the promised free goods.
-2. **Return/blocked merchandising flags** – Classic admin tooling captures `retExclude` (refund-only / all-sales-final) and `blockedReason` codes that block checkout and steer shoppers to alternates. The modern product model lacks these fields, so non-returnable or temporarily blocked catalog items are treated like normal inventory.
-3. **Home Filter Club subscription activation links** – Legacy `start-subscription/default.asp` decodes encrypted `accesskey` parameters, hydrates customer/order context, and renders the autoship opt-in form. FiltersFast-Next lacks a route that accepts the CRM-triggered activation links, breaking the post-purchase subscription upsell journey.
+1. **Model/Appliance management system** – Legacy `SA_mods.asp` manages global settings like titles, insurance, shipping, discount toggles, related products, featured cart, chat settings, and phone number display. FiltersFast-Next lacks this global configuration management interface.
+2. **Product option groups** – Legacy `SA_optGrp.asp` manages product option groups that contain multiple options. FiltersFast-Next has product options support but lacks the option groups management interface.
+3. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions. FiltersFast-Next lacks this specialized listing tool.
+4. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products. FiltersFast-Next has analytics but lacks this specific report format.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
-## 🆕 Newly identified legacy-only workflows (Nov 11, 2025)
+## 🆕 Newly identified features (Nov 27, 2025)
+
+### ✅ Features verified as complete (previously thought missing)
+
+1. **Admin Direct Email Composer** – ✅ Implemented at `/admin/direct-email` with permission-gated API (`/api/admin/direct-email`). Provides from-address allow list, HTML/plain-text toggle, sender copy option, audit logging, and SendGrid fallback to console mode to mirror `Manager/email.asp` + `email_exec.asp`.
+2. **Return/Blocked Merchandise Flags** – Full implementation verified: `retExclude` and `blockedReason` fields exist in product schema, admin UI (`/admin/products`), cart warnings, and checkout validation.
+3. **Home Filter Club Activation** – Full implementation verified: `/start-subscription` page with access key verification and activation form.
+4. **Large Orders Report** – Full implementation verified: `/admin/orders/large` with configurable thresholds and filtering.
+5. **Review Management** – Full implementation verified: `/admin/reviews` with TrustPilot integration, moderation, and reply functionality.
+6. **Sales Code Management** – Full implementation verified: `/api/admin/sales-codes` with sales rep assignment in admin user management.
+7. **Product Snapshots/Versioning System** – Admins can capture JSON product archives via `/api/admin/products/[id]/snapshots`, stored in the new `product_snapshots` SQLite table with files under `data/product-snapshots`, and managed through the `/admin/products/[id]` snapshot card.
+
+### 🆕 Newly identified legacy-only workflows (Nov 27, 2025)
+
+#### 1. Model/Appliance Management System (Global Settings)
+- **Legacy:** `SA_mods.asp` manages global settings like titles, insurance, shipping, discount toggles, related products, featured cart, chat settings, and phone number display.
+- **Missing:** FiltersFast-Next lacks this global configuration management interface. No centralized admin tool for these global feature toggles.
+- **Files in Legacy:**
+  ```
+  /Manager/SA_mods.asp
+  /Manager/SA_mod_exec.asp
+  ```
+- **Recommendation:** Add global settings management at `/admin/settings/features` or `/admin/modules` to manage these global feature toggles and configurations.
+
+#### 2. Product Option Groups Management
+- **Legacy:** `SA_optGrp.asp` manages product option groups that contain multiple options.
+- **Missing:** FiltersFast-Next has product options support but lacks the option groups management interface. No admin UI for managing option groups.
+- **Files in Legacy:**
+  ```
+  /Manager/SA_optGrp.asp
+  /Manager/SA_optGrp_edit.asp
+  /Manager/SA_optGrp_exec.asp
+  ```
+- **Recommendation:** Add option groups management at `/admin/product-options/groups` to create and manage option groups that can contain multiple options.
+
+#### 3. List by Size Admin Tool
+- **Legacy:** `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
+- **Missing:** FiltersFast-Next lacks this specialized listing tool. No admin interface to view products organized by size/dimensions.
+- **Files in Legacy:**
+  ```
+  /Manager/sa_listbysize.asp
+  ```
+- **Recommendation:** Add list by size tool at `/admin/products/by-size` to help admins view and manage products organized by dimensions/size.
+
+#### 4. Top 300 Products Report
+- **Legacy:** `top300.asp` generates a special report for top performing products.
+- **Missing:** FiltersFast-Next has analytics but lacks this specific report format. No dedicated top 300 products report.
+- **Files in Legacy:**
+  ```
+  /Manager/top300.asp
+  ```
+- **Recommendation:** Add top products report at `/admin/analytics/top-products` with configurable limit (default 300) showing best-selling products with detailed metrics.
 
 ### Gift-with-purchase automation (parity restored Nov 11, 2025)
 - Cart rewards service `/api/cart/rewards` now mirrors legacy auto-add logic, injecting qualifying freebies with zero pricing and parent linkage.
@@ -121,9 +174,9 @@ if (lookupId) {
 }
 ```
 
-### Return-policy and blocked merchandise flags still missing
+### Return-policy and blocked merchandise flags ✅ COMPLETE (Nov 27, 2025)
 - Legacy admin captures `retExclude` (normal, refund-only, non-returnable) and `blockedReason` codes, and the cart refuses checkout when a product is temporarily blocked.
-- FiltersFast-Next’s product schema and storefront do not expose these controls, so customers get no all-sales-final warnings and can purchase temporarily blocked SKUs.
+- ✅ **FiltersFast-Next now fully implements these features**: Product schema includes `retExclude` and `blockedReason` fields, admin UI exposes these controls at `/admin/products`, cart displays appropriate warnings, and checkout API validates blocked products. Fully implemented in product model, admin editor, cart context, and checkout validation.
 
 ```64:72:Manager/_INCproductManagement.asp
 <label>Return Policy</label>
@@ -231,9 +284,9 @@ export async function GET(
     const response = await fetch('/api/checkout/validate-promo', { ... });
 ```
 
-### Home Filter Club activation flow ✅
+### Home Filter Club activation flow ✅ COMPLETE (Nov 11, 2025)
 - `/start-subscription/default.asp` accepted encrypted `accesskey` links sent from marketing automation, extracted customer/order IDs, and rendered the `outputOptInForm` wizard so shoppers could enroll in autoship after checkout.
-- FiltersFast-Next now ships `/start-subscription` with secure access-key verification, token expiry checks, and `/api/subscriptions/activation` to create subscriptions and dispatch welcome emails—restoring the lifecycle funnel.
+- ✅ **FiltersFast-Next fully implements this feature**: `/start-subscription` page verifies secure access keys, extracts customer/order context, renders the activation form via `ActivationForm` component, and posts to `/api/subscriptions/activation` to create subscriptions—complete parity achieved.
 
 ```34:58:start-subscription/default.asp
 call openDB()

@@ -13,6 +13,8 @@ import ReferralTracker from "@/components/tracking/ReferralTracker";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { LanguageProvider } from "@/lib/language-context";
+import { SystemConfigProvider } from "@/lib/system-config-context";
+import { getSystemConfigCached } from "@/lib/system-config-server";
 import { cookies, headers } from "next/headers";
 import { isValidCurrency, parseCurrencyFromHeaders } from "@/lib/currency-utils";
 import type { CurrencyCode } from "@/lib/types/currency";
@@ -68,6 +70,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const systemConfig = getSystemConfigCached();
   const headerList = await headers();
   const cookieStore = await cookies();
   const cookieCurrency = cookieStore.get("ff_currency")?.value;
@@ -116,11 +119,12 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${lato.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
-        <ThemeProvider>
-          <StatusAnnouncementProvider>
-            <LanguageProvider>
-              <CurrencyProvider initialCurrency={initialCurrency}>
-                <CartProvider>
+        <SystemConfigProvider config={systemConfig}>
+          <ThemeProvider>
+            <StatusAnnouncementProvider>
+              <LanguageProvider>
+                <CurrencyProvider initialCurrency={initialCurrency}>
+                  <CartProvider>
               <CurrencyDetectionNotice
                 serverHint={serverCurrencyHint}
                 serverCountry={serverCountry}
@@ -155,11 +159,12 @@ export default async function RootLayout({
               />
               <ScreenReaderAnnouncements />
               <ChatbotWidget />
-                </CartProvider>
-              </CurrencyProvider>
-            </LanguageProvider>
-          </StatusAnnouncementProvider>
-        </ThemeProvider>
+                  </CartProvider>
+                </CurrencyProvider>
+              </LanguageProvider>
+            </StatusAnnouncementProvider>
+          </ThemeProvider>
+        </SystemConfigProvider>
       </body>
     </html>
   );

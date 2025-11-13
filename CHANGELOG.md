@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-11-13
+- **Admin Direct Email Composer** ✉️
+  - Launched `/admin/direct-email` as a modern replacement for legacy `email.asp`, complete with from-address allow list, HTML/plain-text toggle, and "send copy to sender" parity.
+  - Introduced `/api/admin/direct-email` (GET/POST) with new `DirectEmail` permission seed, email provider awareness (SendGrid vs console), stringent validation, and full audit logging for compliance.
+  - Added configuration helpers (`lib/email/direct-email.ts`) that parse `DIRECT_EMAIL_FROM_ADDRESSES`, `DIRECT_EMAIL_DEFAULT_FROM`, and `SENDGRID_FROM_EMAIL`, ensuring safe fallbacks to FiltersFast sales/support/admin addresses.
+
 ### Added - 2025-11-12
 - **Campaign Landing Toggles & Promotion Auto-Apply** 🚀
   - Introduced a centralized campaign registry (`lib/campaigns.ts`) that translates legacy landing flags (`/filter10now`, `fs=WIS`, `eml=FF10`) into modern cookies (`ff_campaign`, `ff_free_shipping`, `ff_campaign_promo`, `ff_campaign_context`) with configurable expirations.
@@ -91,6 +97,7 @@ All notable changes to this project will be documented in this file.
     - Error/success announcements
   - **Setup:** Auto-initializes on first import
   - **Based on Legacy:** Manager/SA_mods.asp, SA_mod_exec.asp
+  - **Runtime Integration (2025-11-13):** Root layout now wraps a `SystemConfigProvider`, enabling the header banner, phone block, and chatbot availability to react instantly to `callLongWait`, `phoneNumActive`, `chatActive`, and `txtChatEnabled`.
   - **OWASP Top 10 2021:** ✅ 10/10 PASS
   - **WCAG 2.1 Level AA:** ✅ 100% PASS
 
