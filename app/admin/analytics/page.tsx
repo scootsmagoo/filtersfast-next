@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { 
   StatCard, 
@@ -10,8 +11,9 @@ import {
   DataTable,
 } from '@/components/admin/AnalyticsCharts';
 import { formatCurrency, formatNumber, calculatePercentageChange } from '@/lib/analytics-utils';
-import { TrendingUp, DollarSign, ShoppingCart, Users, Package, Calendar } from 'lucide-react';
+import { TrendingUp, DollarSign, ShoppingCart, Users, Calendar, ListOrdered } from 'lucide-react';
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
+import Button from '@/components/ui/Button';
 
 type DatePeriod = 'today' | '7days' | '30days' | '90days' | 'year' | 'custom';
 
@@ -145,13 +147,21 @@ export default function AnalyticsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="analytics-content">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Analytics & Reporting Dashboard
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Comprehensive insights into your business performance
-          </p>
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Analytics & Reporting Dashboard
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">
+              Comprehensive insights into your business performance
+            </p>
+          </div>
+          <Link href="/admin/analytics/top-300">
+            <Button variant="outline" className="inline-flex items-center gap-2">
+              <ListOrdered className="h-4 w-4" />
+              Open Top 300 Report
+            </Button>
+          </Link>
         </div>
 
         {/* Period Selector */}

@@ -32,6 +32,19 @@ export interface TopCustomer {
   totalSpent: number;
 }
 
+export interface Top300ProductReportRow {
+  productId: string;
+  productName: string;
+  sku: string;
+  variantId: string | null;
+  optionDescription: string | null;
+  quantitySold: number;
+  revenue: number;
+  stock: number;
+  ignoreStock: boolean;
+  flagStock: string;
+}
+
 export interface RevenueBySource {
   source: string;
   orderCount: number;
@@ -173,6 +186,109 @@ export function getTopProductsByRevenue(
   db.close();
   
   return results;
+}
+
+/**
+ * Top 300 products report (legacy top300.asp parity)
+ */
+export function getTop300ProductsReport(options?: {
+  startTimeMs?: number;
+  endTimeMs?: number;
+  limit?: number;
+}): Top300ProductReportRow[] {
+  const db = new Database(dbPath);
+
+  try {
+    const now = Date.now();
+    const endTime = options?.endTimeMs ?? now;
+    const defaultStart = endTime - 7 * 24 * 60 * 60 * 1000;
+    const startTime = options?.startTimeMs ?? defaultStart;
+    const limit = Math.min(Math.max(options?.limit ?? 300, 1), 350);
+
+    const start = Math.min(startTime, endTime);
+    const end = Math.max(startTime, endTime);
+
+    const query = `
+      SELECT 
+        oi.product_id as productId,
+        COALESCE(p.name, oi.product_name) as productName,
+        COALESCE(p.sku, oi.product_sku) as sku,
+        oi.variant_id as variantId,
+        COALESCE(opt.optionDescrip, oi.variant_name) as optionDescription,
+        SUM(oi.quantity) as quantitySold,
+        SUM(oi.total_price) as revenue,
+        CASE
+          WHEN oi.variant_id IS NOT NULL THEN COALESCE(poi.stock, p.inventory_quantity, 0)
+          ELSE COALESCE(p.inventory_quantity, 0)
+        END as stock,
+        CASE
+          WHEN oi.variant_id IS NOT NULL THEN COALESCE(poi.ignoreStock, 0)
+          ELSE CASE 
+            WHEN COALESCE(p.track_inventory, 1) = 0 OR COALESCE(p.allow_backorder, 0) = 1 THEN 1
+            ELSE 0
+          END
+        END as ignoreStock,
+        CASE
+          WHEN (
+            CASE
+              WHEN oi.variant_id IS NOT NULL THEN COALESCE(poi.stock, p.inventory_quantity, 0)
+              ELSE COALESCE(p.inventory_quantity, 0)
+            END
+          ) <= 0
+          AND (
+            CASE
+              WHEN oi.variant_id IS NOT NULL THEN COALESCE(poi.ignoreStock, 0)
+              ELSE CASE 
+                WHEN COALESCE(p.track_inventory, 1) = 0 OR COALESCE(p.allow_backorder, 0) = 1 THEN 1
+                ELSE 0
+              END
+            END
+          ) = 0
+          THEN 'Out of stock'
+          ELSE ''
+        END as flagStock
+      FROM order_items oi
+      JOIN orders o ON o.id = oi.order_id
+      LEFT JOIN products p ON p.id = oi.product_id
+      LEFT JOIN product_option_inventory poi
+        ON poi.idProduct = oi.product_id AND poi.idOption = oi.variant_id
+      LEFT JOIN options opt ON opt.idOption = oi.variant_id
+      WHERE o.status IN ('paid', 'shipped', 'completed')
+        AND o.created_at >= ?
+        AND o.created_at <= ?
+      GROUP BY oi.product_id, oi.variant_id
+      ORDER BY quantitySold DESC, revenue DESC
+      LIMIT ?
+    `;
+
+    const rows = db.prepare(query).all(start, end, limit) as Array<{
+      productId: string;
+      productName: string | null;
+      sku: string | null;
+      variantId: string | null;
+      optionDescription: string | null;
+      quantitySold: number;
+      revenue: number;
+      stock: number | null;
+      ignoreStock: number;
+      flagStock: string | null;
+    }>;
+
+    return rows.map((row) => ({
+      productId: row.productId,
+      productName: row.productName || 'Unknown product',
+      sku: row.sku || 'N/A',
+      variantId: row.variantId,
+      optionDescription: row.optionDescription,
+      quantitySold: row.quantitySold || 0,
+      revenue: row.revenue || 0,
+      stock: row.stock ?? 0,
+      ignoreStock: row.ignoreStock === 1,
+      flagStock: row.flagStock || '',
+    }));
+  } finally {
+    db.close();
+  }
 }
 
 /**

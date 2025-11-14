@@ -20,12 +20,12 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
   - Legacy `maxCartQty` purchase ceilings enforced end-to-end (admin product editing, cart UX, and checkout API guardrails).
   - Blog and influencer deep links now pre-seed carts through a dedicated ingestion endpoint with attribution parity.
 - ✅ Partner landing system, giveaways, pool wizard, Home Filter Club, abandoned cart outreach, SMS, backorder notifications, marketplace orchestration, returns management, large orders report, review management, sales code management, and return/blocked merchandise flags all have working parity implementations.
+- ✅ **Top 300 products report** now lives at `/admin/analytics/top-300` with a dedicated `/api/admin/analytics/top-300` endpoint, mirroring `Manager/top300.asp` (7-day default window, option-level stock, ignore-stock flag, CSV export, RBAC, and analytics rate limits).
 - ✅ Product snapshot/versioning parity restored with JSON archive storage, admin UI tooling, and audit visibility.
 
 ### Remaining gaps to close
 
 1. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions. FiltersFast-Next lacks this specialized listing tool.
-2. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products. FiltersFast-Next has analytics but lacks this specific report format.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -58,14 +58,10 @@ Legacy-only Visa Checkout / classic mobile templates remain intentionally deprec
   ```
 - **Recommendation:** Add list by size tool at `/admin/products/by-size` to help admins view and manage products organized by dimensions/size.
 
-#### 3. Top 300 Products Report
-- **Legacy:** `top300.asp` generates a special report for top performing products.
-- **Missing:** FiltersFast-Next has analytics but lacks this specific report format. No dedicated top 300 products report.
-- **Files in Legacy:**
-  ```
-  /Manager/top300.asp
-  ```
-- **Recommendation:** Add top products report at `/admin/analytics/top-products` with configurable limit (default 300) showing best-selling products with detailed metrics.
+#### 3. Top 300 Products Report — ✅ Completed Nov 14, 2025
+- **Legacy Reference:** `Manager/top300.asp`
+- **Next Implementation:** `/admin/analytics/top-300` (UI) + `/api/admin/analytics/top-300` (JSON) deliver a 7/14/30-day high-velocity SKU report with legacy fields (SKU, product ID, option ID, quantity, option description, stock, ignore-stock flag, stock warning). The CSV export, RBAC guardrails, analytics rate limiting, and option-level inventory joins recreate the original workflow for replenishment planning.
+- **Runtime Notes:** Backed by `getTop300ProductsReport()` in `lib/db/analytics.ts`, aggregating `orders` + `order_items` with product + option inventory tables so admins can filter window size and download parity spreadsheets.
 
 ### Gift-with-purchase automation (parity restored Nov 11, 2025)
 - Cart rewards service `/api/cart/rewards` now mirrors legacy auto-add logic, injecting qualifying freebies with zero pricing and parent linkage.

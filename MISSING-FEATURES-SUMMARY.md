@@ -6,7 +6,7 @@ FiltersFast-Next now delivers roughly **99% feature parity** with the legacy ASP
 
 ## Remaining gaps (legacy-only functionality)
 
-1. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products.
+1. **List by Size admin tool** – Legacy `sa_listbysize.asp` lets merchants review SKUs grouped by size/dimensions, toggle availability, and export planning summaries. FiltersFast-Next still needs this specialised management surface.
 
 ---
 
@@ -22,6 +22,7 @@ FiltersFast-Next now delivers roughly **99% feature parity** with the legacy ASP
 8. ✅ **Gift-with-purchase automation** – Fully implemented: Cart rewards service `/api/cart/rewards` with auto-add logic.
 9. ✅ **Campaign landing toggles** – Fully implemented: Campaign registry with cookie-based free shipping and promo code application.
 10. ✅ **Product snapshots/versioning** – Fully implemented: `/api/admin/products/[id]/snapshots` captures JSON archives stored in the `product_snapshots` table and `data/product-snapshots` directory, with management UI embedded in `/admin/products/[id]`.
+11. ✅ **Top 300 products report** – `/admin/analytics/top-300` pairs with `/api/admin/analytics/top-300` to replicate `top300.asp`, including 7/14/30-day windows, inventory/ignore-stock flags, CSV export, and RBAC/rate-limited access.
 
 ---
 
@@ -33,7 +34,7 @@ FiltersFast-Next now delivers roughly **99% feature parity** with the legacy ASP
 
 ## Recent parity wins (validated Nov 27, 2025)
 
-- **List by Size Admin Tool** – `/admin/list-by-size` reproduces `sa_listbysize.asp` with a dedicated SQLite-backed datastore, search/filter controls, summary widgets, and the ability to toggle size assignments via `/api/admin/list-by-size`.
+- **Top 300 Products Report** – `/admin/analytics/top-300` mirrors `Manager/top300.asp`, surfacing high-velocity SKUs with stock status, option-level inventory, and CSV export for replenishment planning.
 - **Model/Appliance Global Settings** – `/admin/settings` now manages the legacy `mods` toggles, persisted in the SQLite `mods` table with `/api/admin/settings` updates. A new `SystemConfigProvider` wires the data into the app shell so the header phone block, call-wait messaging, and chat widget respect `phoneNumActive`, `callLongWait`, `chatActive`, and `txtChatEnabled` without exposing a public API surface.
 - **Return/Blocked Merchandise Flags** – Complete implementation verified in product schema, admin UI, cart, and checkout.
 - **Product Snapshots/Versioning** – Admin product editor now captures JSON snapshots with downloadable archives and version history parity.

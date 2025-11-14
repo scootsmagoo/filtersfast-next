@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-11-14
+- **Top 300 Products Report** 📈
+  - Delivered `/admin/analytics/top-300`, a dedicated admin view that mirrors legacy `Manager/top300.asp` with rank, SKU/product ID, option ID/description, quantity sold, revenue, inventory level, ignore-stock flag, and stock status.
+  - Added `/api/admin/analytics/top-300` powered by `getTop300ProductsReport()` so admins can pull 7/14/30-day (default 7-day) summaries of the highest-velocity SKUs with option-level inventory joins, RBAC, analytics rate limits, and CSV export support.
+  - Ensured the main analytics dashboard links to the new report for quick access while keeping parity-friendly defaults (top 300 rows, last 7 days).
+
 ### Added - 2025-11-13
 - **Admin Direct Email Composer** ✉️
   - Launched `/admin/direct-email` as a modern replacement for legacy `email.asp`, complete with from-address allow list, HTML/plain-text toggle, and "send copy to sender" parity.
