@@ -7,12 +7,13 @@ const RATE_LIMIT = 30; // requests per window
 const RATE_WINDOW = 10 * 60 * 1000; // 10 minutes in ms
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-export function checkAnalyticsRateLimit(identifier: string): boolean {
+export function checkAnalyticsRateLimit(identifier: string, scope: string = 'global'): boolean {
   const now = Date.now();
-  const record = rateLimitMap.get(identifier);
+  const key = `${scope}:${identifier || 'anonymous'}`;
+  const record = rateLimitMap.get(key);
 
   if (!record || now > record.resetAt) {
-    rateLimitMap.set(identifier, { count: 1, resetAt: now + RATE_WINDOW });
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW });
     return true;
   }
 

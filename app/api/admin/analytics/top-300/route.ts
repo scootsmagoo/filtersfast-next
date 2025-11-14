@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const identifier = session.user.id || session.user.email || 'unknown';
-    if (!checkAnalyticsRateLimit(identifier)) {
+    if (!checkAnalyticsRateLimit(identifier, 'analytics:top-300')) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }

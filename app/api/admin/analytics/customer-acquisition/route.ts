@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   // Rate limiting
   const identifier = session.user.id || session.user.email || 'unknown';
-  if (!checkAnalyticsRateLimit(identifier)) {
+  if (!checkAnalyticsRateLimit(identifier, 'analytics:customer-acquisition')) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again later.' },
       { status: 429 }
