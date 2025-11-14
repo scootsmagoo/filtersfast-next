@@ -1,13 +1,12 @@
 # 📋 Missing Features – November 27, 2025 Update
 
-FiltersFast-Next now delivers roughly **97% feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. After a thorough audit, we've verified several features previously thought missing are actually complete, and identified a few additional legacy-only workflows that still need attention.
+FiltersFast-Next now delivers roughly **99% feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. After a thorough audit, we've verified several features previously thought missing are actually complete, and identified a few additional legacy-only workflows that still need attention.
 
 ---
 
 ## Remaining gaps (legacy-only functionality)
 
-1. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
-2. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products.
+1. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products.
 
 ---
 
@@ -34,6 +33,7 @@ FiltersFast-Next now delivers roughly **97% feature parity** with the legacy ASP
 
 ## Recent parity wins (validated Nov 27, 2025)
 
+- **List by Size Admin Tool** – `/admin/list-by-size` reproduces `sa_listbysize.asp` with a dedicated SQLite-backed datastore, search/filter controls, summary widgets, and the ability to toggle size assignments via `/api/admin/list-by-size`.
 - **Model/Appliance Global Settings** – `/admin/settings` now manages the legacy `mods` toggles, persisted in the SQLite `mods` table with `/api/admin/settings` updates. A new `SystemConfigProvider` wires the data into the app shell so the header phone block, call-wait messaging, and chat widget respect `phoneNumActive`, `callLongWait`, `chatActive`, and `txtChatEnabled` without exposing a public API surface.
 - **Return/Blocked Merchandise Flags** – Complete implementation verified in product schema, admin UI, cart, and checkout.
 - **Product Snapshots/Versioning** – Admin product editor now captures JSON snapshots with downloadable archives and version history parity.
@@ -56,5 +56,5 @@ Previously completed (Nov 11, 2025):
 
 ## Feature parity score
 
-- **≈98%** (122 of 125 tracked legacy capabilities). Closing the remaining features above would bring FiltersFast-Next to complete functional parity with the production ASP site.
+- **≈99%** (124 of 125 tracked legacy capabilities). Closing the remaining feature above would bring FiltersFast-Next to complete functional parity with the production ASP site.
 

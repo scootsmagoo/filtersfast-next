@@ -35,7 +35,8 @@ import {
   FileText,
   Mail,
   MapPin,
-  Layers3
+  Layers3,
+  Ruler
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -164,6 +165,13 @@ export default function AdminDashboard() {
       icon: Layers3,
       href: '/admin/option-groups',
       color: 'teal'
+    },
+    {
+      title: 'List by Size',
+      description: 'Audit size-by-dimension merchandising assignments',
+      icon: Ruler,
+      href: '/admin/list-by-size',
+      color: 'orange'
     },
     {
       title: 'Image Management',

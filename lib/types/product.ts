@@ -580,3 +580,63 @@ export interface ProductOptionGroupAssignment {
   excludedOptions?: string[] // Option IDs to exclude for this product
 }
 
+// ========================================
+// LIST BY SIZE ADMIN TYPES
+// ========================================
+
+export type SizeFilterQuality = 'good' | 'better' | 'best'
+
+export interface ListBySizeEntry {
+  id: string
+  sizeLabel: string
+  sizeKey: string
+  filterType: string
+  ratingLabel: string | null
+  quality: SizeFilterQuality
+  qualityRank: number
+  rowOrder: number
+  height: number | null
+  width: number | null
+  depth: number | null
+  productId: string
+  productName: string | null
+  productSku: string | null
+  productSlug: string | null
+  productStatus: ProductStatus | null
+  brand: string | null
+  price: number | null
+  packSize: string | null
+  sizeActive: boolean
+  trackInventory: boolean
+  allowBackorder: boolean
+  inventoryQuantity: number | null
+  optionId: string | null
+  optionDescrip: string | null
+  optionPriceToAdd: number | null
+  optionStock: number | null
+  optionActualInventory: number | null
+  optionDropShip: boolean
+  optionUnavailable: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ListBySizeFilters {
+  search?: string
+  size?: string
+  active?: 'all' | 'active' | 'inactive'
+}
+
+export interface ListBySizeSummary {
+  total: number
+  active: number
+  inactive: number
+  sizes: Array<{
+    sizeKey: string
+    sizeLabel: string
+    depth: number | null
+    total: number
+    active: number
+  }>
+}
+

@@ -84,6 +84,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
       Sales: -1,
     },
   },
+  ListBySize: {
+    description: 'Manage size-by-dimension merchandising matrix',
+    group: 'Products & Catalog',
+    sortOrder: 37,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: -1,
+    },
+  },
   Marketplaces: {
     description: 'Manage marketplace channel integrations and sync jobs',
     group: 'Operations & Integrations',
