@@ -84,6 +84,44 @@ Complete guide to all implemented features.
   - `CANADAPOST_USERNAME`, `CANADAPOST_PASSWORD`, `CANADAPOST_CUSTOMER_NUMBER`, `CANADAPOST_CONTRACT_ID`, `CANADAPOST_ENVIRONMENT`
 - Navigate to `/admin/shipping` to configure carriers and create labels in one workflow
 
+## 📧 Admin Direct Email Composer
+
+### Overview
+- Replacement for legacy `Manager/email.asp` + `email_exec.asp`
+- Located at `/admin/direct-email` with permission-gated access (`DirectEmail`)
+- Compose one-off customer messages with From allow list, HTML/plain-text toggle, and sender copy option
+- Prefills legacy `TO`/`RE` content via query parameters (`emailTo`, `emailToName`, `emailSubj`, `emailBody`)
+
+### Key Capabilities
+- **From Address Allow List** — Pulls from `DIRECT_EMAIL_FROM_ADDRESSES`, `DIRECT_EMAIL_DEFAULT_FROM`, and `SENDGRID_FROM_EMAIL`, with FiltersFast sales/support/admin fallbacks
+- **HTML or Plain Text** — Toggle for rich HTML (sanitized) or plain-text messages with line-break preservation
+- **Send Copy to Sender** — Mirrors legacy "Send copy to From address" checkbox
+- **Provider Awareness** — Inline banner shows SendGrid vs console mode so admins know if emails will actually deliver
+- **Audit Logging** — Every send hits the admin audit trail with recipient, sender, format, and provider metadata
+- **Permission Seeding** — New `DirectEmail` permission seeded for Admin, Manager, and Support roles (Sales denied by default)
+
+### API Endpoints
+- `GET /api/admin/direct-email` — Returns configuration (from addresses, limits, provider status). Requires `DirectEmail` read access.
+- `POST /api/admin/direct-email` — Sends email via SendGrid (or console fallback). Validates allow list, subject/body length, optional reply-to, and logs success/failure.
+
+### Configuration
+- **Environment Variables:**
+  - `DIRECT_EMAIL_FROM_ADDRESSES` — Comma-separated list (`"Support Team <support@filtersfast.com>,sales@filtersfast.com"`)
+  - `DIRECT_EMAIL_DEFAULT_FROM` — Preferred default sender (overrides allow list ordering)
+  - `SENDGRID_API_KEY` / `SENDGRID_FROM_EMAIL` — Enables production delivery (otherwise console logging)
+- **Defaults:** If no env values set, falls back to `sales@`, `support@`, and `admin@filtersfast.com`
+
+### Accessibility & Security
+- WCAG-compliant form with semantic labels, inline validation, status regions, keyboard-friendly controls
+- HTML mode sanitizes script/event handlers and strips unsafe tags before send
+- Subject limited to 200 characters, body to 10,000 (matching legacy guardrails), email addresses validated server-side
+- API enforces permission check, payload size limit, and audits both successes and failures
+
+### Operational Notes
+- Console mode (no SendGrid) logs email payload to server logs for testing; UI warns admins when in mock mode
+- Sender copy uses `[Copy] {subject}` prefix to match CSR expectations from legacy flow
+- Audit entries appear under action keys `admin.direct-email.sent`, `.failed`, and `.error` for compliance reporting
+
 
 ## 🔐 Authentication System
 
@@ -3222,6 +3260,7 @@ For issues or questions about the order management system:
 - **Required/Optional Options** - Mark option groups as required or optional
 - **Option Types** - Support dropdown (Select) or text input options
 - **Availability Management** - Mark options as unavailable, blocked, or discontinued
+- **Admin UI** - `/admin/option-groups` provides list, create, edit, delete, and option-assignment tooling with exclude-all parity and guardrails for text-input groups
 
 **Database Schema:**
 - `option_groups` - Groups of options (e.g., "Size", "Color")
@@ -3238,6 +3277,9 @@ For issues or questions about the order management system:
 - `GET /api/admin/option-groups/[id]` - Get option group
 - `PUT /api/admin/option-groups/[id]` - Update option group
 - `DELETE /api/admin/option-groups/[id]` - Delete option group
+- `GET /api/admin/option-groups/[id]/options` - Retrieve linked + available options for a group
+- `POST /api/admin/option-groups/[id]/options` - Add option to a group (supports exclude-all parity)
+- `DELETE /api/admin/option-groups/[id]/options/[optionId]` - Remove option from a group
 - `GET /api/admin/options` - List all options (with optional group filter)
 - `POST /api/admin/options` - Create option
 - `GET /api/admin/options/[id]` - Get option
@@ -3251,6 +3293,7 @@ For issues or questions about the order management system:
 - `ProductOptions` - Component for displaying and selecting product options
 - Product detail page integration - Shows options and updates price/image based on selection
 - Cart integration - Displays selected options in cart items
+- Admin option-group console - `/admin/option-groups`, `/admin/option-groups/new`, `/admin/option-groups/[id]` for parity editing and option management
 
 **Usage:**
 1. Create option groups (e.g., "Size", "Pack Quantity")

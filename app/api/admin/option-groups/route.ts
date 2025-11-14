@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import {
   getAllOptionGroups,
   createOptionGroup,
@@ -17,9 +17,12 @@ import type { OptionGroupFormData } from '@/lib/types/product';
 // GET /api/admin/option-groups - List all option groups
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAdminAuth(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const permissionCheck = await checkPermission(request, 'ProductOptions', 'read');
+    if (!permissionCheck.authorized) {
+      return NextResponse.json(
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
     }
 
     const optionGroups = getAllOptionGroups();
@@ -36,9 +39,12 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/option-groups - Create new option group
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAdminAuth(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const permissionCheck = await checkPermission(request, 'ProductOptions', 'write');
+    if (!permissionCheck.authorized) {
+      return NextResponse.json(
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();

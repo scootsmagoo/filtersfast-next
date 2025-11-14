@@ -34,7 +34,8 @@ import {
   Image,
   FileText,
   Mail,
-  MapPin
+  MapPin,
+  Layers3
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -155,6 +156,13 @@ export default function AdminDashboard() {
       description: 'Manage product categories and hierarchy',
       icon: FolderTree,
       href: '/admin/categories',
+      color: 'teal'
+    },
+    {
+      title: 'Option Groups',
+      description: 'Manage product option groups and linked options',
+      icon: Layers3,
+      href: '/admin/option-groups',
       color: 'teal'
     },
     {
@@ -303,6 +311,13 @@ export default function AdminDashboard() {
     }
   ],
   customerService: [
+    {
+      title: 'Direct Email',
+      description: 'Compose one-off customer emails',
+      icon: Mail,
+      href: '/admin/direct-email',
+      color: 'indigo'
+    },
     {
       title: 'Abandoned Carts',
       description: 'View cart recovery metrics and analytics',

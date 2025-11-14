@@ -6,9 +6,8 @@ FiltersFast-Next now delivers roughly **97% feature parity** with the legacy ASP
 
 ## Remaining gaps (legacy-only functionality)
 
-1. **Product option groups** – Legacy `SA_optGrp.asp` manages product option groups that contain multiple options.
-2. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
-3. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products.
+1. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
+2. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products.
 
 ---
 
@@ -17,12 +16,13 @@ FiltersFast-Next now delivers roughly **97% feature parity** with the legacy ASP
 1. ✅ **Admin Direct Email Composer** – `/admin/direct-email` delivers legacy `email.asp` parity with from-address selection, HTML/plain-text toggle, sender copy, audit logging, and `/api/admin/direct-email` powered by SendGrid (console fallback).
 2. ✅ **Return/Blocked Merchandise Flags** – Fully implemented: `retExclude` and `blockedReason` fields exist in product schema, admin UI (`/admin/products`), cart warnings, and checkout validation.
 3. ✅ **Home Filter Club Activation** – Fully implemented: `/start-subscription` page with access key verification and activation form.
-4. ✅ **Large Orders Report** – Fully implemented: `/admin/orders/large` with configurable thresholds and filtering.
-5. ✅ **Review Management** – Fully implemented: `/admin/reviews` with TrustPilot integration, moderation, and reply functionality.
-6. ✅ **Sales Code Management** – Fully implemented: `/api/admin/sales-codes` with sales rep assignment in admin user management.
-7. ✅ **Gift-with-purchase automation** – Fully implemented: Cart rewards service `/api/cart/rewards` with auto-add logic.
-8. ✅ **Campaign landing toggles** – Fully implemented: Campaign registry with cookie-based free shipping and promo code application.
-9. ✅ **Product snapshots/versioning** – Fully implemented: `/api/admin/products/[id]/snapshots` captures JSON archives stored in the `product_snapshots` table and `data/product-snapshots` directory, with management UI embedded in `/admin/products/[id]`.
+4. ✅ **Product Option Groups Management** – Fully implemented: `/admin/option-groups` list/detail pages, option assignment tooling (including exclude-all parity), and supporting APIs (`/api/admin/option-groups`, `/api/admin/option-groups/[id]/options`) now mirror legacy `SA_optGrp.asp` + `_edit` + `_exec`.
+5. ✅ **Large Orders Report** – Fully implemented: `/admin/orders/large` with configurable thresholds and filtering.
+6. ✅ **Review Management** – Fully implemented: `/admin/reviews` with TrustPilot integration, moderation, and reply functionality.
+7. ✅ **Sales Code Management** – Fully implemented: `/api/admin/sales-codes` with sales rep assignment in admin user management.
+8. ✅ **Gift-with-purchase automation** – Fully implemented: Cart rewards service `/api/cart/rewards` with auto-add logic.
+9. ✅ **Campaign landing toggles** – Fully implemented: Campaign registry with cookie-based free shipping and promo code application.
+10. ✅ **Product snapshots/versioning** – Fully implemented: `/api/admin/products/[id]/snapshots` captures JSON archives stored in the `product_snapshots` table and `data/product-snapshots` directory, with management UI embedded in `/admin/products/[id]`.
 
 ---
 
@@ -56,5 +56,5 @@ Previously completed (Nov 11, 2025):
 
 ## Feature parity score
 
-- **≈98%** (122 of 125 tracked legacy capabilities). Closing the remaining 5 features above would bring FiltersFast-Next to complete functional parity with the production ASP site.
+- **≈98%** (122 of 125 tracked legacy capabilities). Closing the remaining features above would bring FiltersFast-Next to complete functional parity with the production ASP site.
 

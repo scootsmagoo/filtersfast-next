@@ -24,10 +24,8 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 
 ### Remaining gaps to close
 
-1. **Model/Appliance management system** – Legacy `SA_mods.asp` manages global settings like titles, insurance, shipping, discount toggles, related products, featured cart, chat settings, and phone number display. FiltersFast-Next lacks this global configuration management interface.
-2. **Product option groups** – Legacy `SA_optGrp.asp` manages product option groups that contain multiple options. FiltersFast-Next has product options support but lacks the option groups management interface.
-3. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions. FiltersFast-Next lacks this specialized listing tool.
-4. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products. FiltersFast-Next has analytics but lacks this specific report format.
+1. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions. FiltersFast-Next lacks this specialized listing tool.
+2. **Top 300 products report** – Legacy `top300.asp` generates a special report for top performing products. FiltersFast-Next has analytics but lacks this specific report format.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
@@ -38,35 +36,20 @@ Legacy-only Visa Checkout / classic mobile templates remain intentionally deprec
 1. **Admin Direct Email Composer** – ✅ Implemented at `/admin/direct-email` with permission-gated API (`/api/admin/direct-email`). Provides from-address allow list, HTML/plain-text toggle, sender copy option, audit logging, and SendGrid fallback to console mode to mirror `Manager/email.asp` + `email_exec.asp`.
 2. **Return/Blocked Merchandise Flags** – Full implementation verified: `retExclude` and `blockedReason` fields exist in product schema, admin UI (`/admin/products`), cart warnings, and checkout validation.
 3. **Home Filter Club Activation** – Full implementation verified: `/start-subscription` page with access key verification and activation form.
-4. **Large Orders Report** – Full implementation verified: `/admin/orders/large` with configurable thresholds and filtering.
-5. **Review Management** – Full implementation verified: `/admin/reviews` with TrustPilot integration, moderation, and reply functionality.
-6. **Sales Code Management** – Full implementation verified: `/api/admin/sales-codes` with sales rep assignment in admin user management.
-7. **Product Snapshots/Versioning System** – Admins can capture JSON product archives via `/api/admin/products/[id]/snapshots`, stored in the new `product_snapshots` SQLite table with files under `data/product-snapshots`, and managed through the `/admin/products/[id]` snapshot card.
+4. **Product Option Groups Management** – ✅ Completed Nov 14, 2025. Admins can now manage option groups at `/admin/option-groups`, with dedicated create/edit pages, option assignment controls (including exclude-all parity), and REST endpoints (`/api/admin/option-groups`, `/api/admin/option-groups/[id]/options`). This covers legacy `SA_optGrp.asp`, `_edit`, and `_exec` workflows.
+5. **Large Orders Report** – Full implementation verified: `/admin/orders/large` with configurable thresholds and filtering.
+6. **Review Management** – Full implementation verified: `/admin/reviews` with TrustPilot integration, moderation, and reply functionality.
+7. **Sales Code Management** – Full implementation verified: `/api/admin/sales-codes` with sales rep assignment in admin user management.
+8. **Product Snapshots/Versioning System** – Admins can capture JSON product archives via `/api/admin/products/[id]/snapshots`, stored in the new `product_snapshots` SQLite table with files under `data/product-snapshots`, and managed through the `/admin/products/[id]` snapshot card.
 
 ### 🆕 Newly identified legacy-only workflows (Nov 27, 2025)
 
-#### 1. Model/Appliance Management System (Global Settings)
-- **Legacy:** `SA_mods.asp` manages global settings like titles, insurance, shipping, discount toggles, related products, featured cart, chat settings, and phone number display.
-- **Missing:** FiltersFast-Next lacks this global configuration management interface. No centralized admin tool for these global feature toggles.
-- **Files in Legacy:**
-  ```
-  /Manager/SA_mods.asp
-  /Manager/SA_mod_exec.asp
-  ```
-- **Recommendation:** Add global settings management at `/admin/settings/features` or `/admin/modules` to manage these global feature toggles and configurations.
+#### 1. Model/Appliance Management System (Global Settings) — ✅ Completed Nov 13, 2025
+- **Legacy Reference:** `Manager/SA_mods.asp`, `Manager/SA_mod_exec.asp`
+- **Next Implementation:** `/admin/settings` provides the admin parity UI backed by SQLite `mods` table management in `lib/db/system-config.ts` with field-level validation and audit logging via `/api/admin/settings`.
+- **Runtime Integration:** A new `SystemConfigProvider` (`lib/system-config-context.tsx`) hydrates settings inside `app/layout.tsx`, allowing the header to respect `phoneNumActive` and `callLongWait` for phone visibility + warning banners, while the chatbot widget enforces `chatActive` and `txtChatEnabled` for live-chat availability.
 
-#### 2. Product Option Groups Management
-- **Legacy:** `SA_optGrp.asp` manages product option groups that contain multiple options.
-- **Missing:** FiltersFast-Next has product options support but lacks the option groups management interface. No admin UI for managing option groups.
-- **Files in Legacy:**
-  ```
-  /Manager/SA_optGrp.asp
-  /Manager/SA_optGrp_edit.asp
-  /Manager/SA_optGrp_exec.asp
-  ```
-- **Recommendation:** Add option groups management at `/admin/product-options/groups` to create and manage option groups that can contain multiple options.
-
-#### 3. List by Size Admin Tool
+#### 2. List by Size Admin Tool
 - **Legacy:** `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
 - **Missing:** FiltersFast-Next lacks this specialized listing tool. No admin interface to view products organized by size/dimensions.
 - **Files in Legacy:**
@@ -75,7 +58,7 @@ Legacy-only Visa Checkout / classic mobile templates remain intentionally deprec
   ```
 - **Recommendation:** Add list by size tool at `/admin/products/by-size` to help admins view and manage products organized by dimensions/size.
 
-#### 4. Top 300 Products Report
+#### 3. Top 300 Products Report
 - **Legacy:** `top300.asp` generates a special report for top performing products.
 - **Missing:** FiltersFast-Next has analytics but lacks this specific report format. No dedicated top 300 products report.
 - **Files in Legacy:**

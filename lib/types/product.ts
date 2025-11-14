@@ -481,7 +481,16 @@ export interface OptionGroup {
   sortOrder: number
   createdAt: number
   updatedAt: number
+  optionCount?: number
+  productCount?: number
 }
+
+export interface OptionGroupStats {
+  optionCount: number
+  productCount: number
+}
+
+export interface OptionGroupWithStats extends OptionGroup, OptionGroupStats {}
 
 export interface Option {
   idOption: string

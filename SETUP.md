@@ -402,9 +402,15 @@ EMAIL_CAMPAIGN_BATCH_SIZE=100
 EMAIL_CAMPAIGN_MAX_PARALLEL=3
 # Override destination when campaign.test_mode = true
 EMAIL_CAMPAIGN_TEST_RECIPIENT=marketing-team@example.com
+
+# Admin direct-email composer allow list (optional)
+DIRECT_EMAIL_FROM_ADDRESSES="Support Team <support@filtersfast.com>,sales@filtersfast.com"
+DIRECT_EMAIL_DEFAULT_FROM=support@filtersfast.com
 ```
 
 Leave `EMAIL_PROVIDER` unset (or set to `console`) to fall back to the mock logger during development.
+
+If the direct-email variables are omitted the composer will automatically expose FiltersFast Sales, Support, and Admin addresses as safe defaults.
 
 Once configured you can verify the integration from the admin Utilities → Test Email tool (`/api/admin/utilities/test-email`), which now sends through SendGrid and reports any delivery errors.
 

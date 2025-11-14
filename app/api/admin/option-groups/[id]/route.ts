@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminAuth } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 import {
   getOptionGroupById,
   updateOptionGroup,
@@ -18,13 +18,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAdminAuth(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const permissionCheck = await checkPermission(request, 'ProductOptions', 'read');
+    if (!permissionCheck.authorized) {
+      return NextResponse.json(
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
     }
 
     const { id } = await params;
-    const optionGroup = getOptionGroupById(id);
+    const optionGroup = getOptionGroupById(id, true);
 
     if (!optionGroup) {
       return NextResponse.json(
@@ -49,9 +52,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAdminAuth(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const permissionCheck = await checkPermission(request, 'ProductOptions', 'write');
+    if (!permissionCheck.authorized) {
+      return NextResponse.json(
+        { error: permissionCheck.message },
+        { status: 403 }
+      );
     }
 
     const { id } = await params;
@@ -115,7 +121,7 @@ export async function PUT(
     console.error('Error updating option group:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to update option group' },
-      { status: 500 }
+      { status: error?.message ? 400 : 500 }
     );
   }
 }
@@ -126,22 +132,33 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAdminAuth(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { id } = await params;
-    const success = deleteOptionGroup(id);
-
-    if (!success) {
+    const permissionCheck = await checkPermission(request, 'ProductOptions', 'write');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Option group not found' },
-        { status: 404 }
+        { error: permissionCheck.message },
+        { status: 403 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    const { id } = await params;
+
+    try {
+      const success = deleteOptionGroup(id);
+
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Option group not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ success: true });
+    } catch (dbError: any) {
+      return NextResponse.json(
+        { error: dbError?.message || 'Unable to delete option group' },
+        { status: 400 }
+      );
+    }
   } catch (error: any) {
     console.error('Error deleting option group:', error);
     return NextResponse.json(

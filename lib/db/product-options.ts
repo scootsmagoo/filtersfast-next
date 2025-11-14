@@ -1,3 +1,12 @@
+export function getOptionGroupStats(idOptionGroup: string): OptionGroupStats {
+  const db = getDb();
+  try {
+    return getOptionGroupStatsInternal(db, idOptionGroup);
+  } finally {
+    db.close();
+  }
+}
+
 /**
  * Product Options/Variants Database Operations
  * Helper functions for managing product options, option groups, and inventory
@@ -7,6 +16,8 @@ import Database from 'better-sqlite3';
 import { join } from 'path';
 import type {
   OptionGroup,
+  OptionGroupStats,
+  OptionGroupWithStats,
   Option,
   ProductOptionGroup,
   ProductOptionInventory,
@@ -27,28 +38,64 @@ function getDb() {
   return db;
 }
 
+function mapOptionGroupRow(row: any): OptionGroup {
+  return {
+    idOptionGroup: row.idOptionGroup,
+    optionGroupDesc: row.optionGroupDesc,
+    optionReq: row.optionReq,
+    optionType: row.optionType,
+    sizingLink: row.sizingLink,
+    sortOrder: row.sortOrder,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    optionCount: row.optionCount ?? undefined,
+    productCount: row.productCount ?? undefined,
+  };
+}
+
+function getOptionGroupStatsInternal(db: Database, idOptionGroup: string): OptionGroupStats {
+  const counts = db.prepare(
+    `
+      SELECT
+        (SELECT COUNT(*) FROM option_group_xref WHERE idOptionGroup = ?) AS optionCount,
+        (SELECT COUNT(*) FROM product_option_groups WHERE idOptionGroup = ?) AS productCount
+    `
+  ).get(idOptionGroup, idOptionGroup) as { optionCount: number; productCount: number };
+
+  return {
+    optionCount: counts?.optionCount ?? 0,
+    productCount: counts?.productCount ?? 0,
+  };
+}
+
 // ============================================================================
 // OPTION GROUPS CRUD
 // ============================================================================
 
 /**
- * Get all option groups
+ * Get all option groups with option/product counts
  */
-export function getAllOptionGroups(): OptionGroup[] {
+export function getAllOptionGroups(): OptionGroupWithStats[] {
   const db = getDb();
   
   try {
-    const rows = db.prepare('SELECT * FROM option_groups ORDER BY sortOrder, optionGroupDesc').all();
-    return rows.map((row: any) => ({
-      idOptionGroup: row.idOptionGroup,
-      optionGroupDesc: row.optionGroupDesc,
-      optionReq: row.optionReq,
-      optionType: row.optionType,
-      sizingLink: row.sizingLink,
-      sortOrder: row.sortOrder,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-    }));
+    const rows = db.prepare(`
+      SELECT
+        og.*,
+        (
+          SELECT COUNT(*) 
+          FROM option_group_xref x 
+          WHERE x.idOptionGroup = og.idOptionGroup
+        ) AS optionCount,
+        (
+          SELECT COUNT(*)
+          FROM product_option_groups pog
+          WHERE pog.idOptionGroup = og.idOptionGroup
+        ) AS productCount
+      FROM option_groups og
+      ORDER BY og.sortOrder, og.optionGroupDesc
+    `).all();
+    return rows.map(mapOptionGroupRow);
   } finally {
     db.close();
   }
@@ -57,7 +104,7 @@ export function getAllOptionGroups(): OptionGroup[] {
 /**
  * Get option group by ID
  */
-export function getOptionGroupById(idOptionGroup: string): OptionGroup | null {
+export function getOptionGroupById(idOptionGroup: string, withStats = false): OptionGroup | null {
   // Validate ID format (defense in depth)
   if (!idOptionGroup || typeof idOptionGroup !== 'string' || !idOptionGroup.startsWith('og-')) {
     return null;
@@ -69,16 +116,13 @@ export function getOptionGroupById(idOptionGroup: string): OptionGroup | null {
     const row = db.prepare('SELECT * FROM option_groups WHERE idOptionGroup = ?').get(idOptionGroup);
     if (!row) return null;
     
-    return {
-      idOptionGroup: (row as any).idOptionGroup,
-      optionGroupDesc: (row as any).optionGroupDesc,
-      optionReq: (row as any).optionReq,
-      optionType: (row as any).optionType,
-      sizingLink: (row as any).sizingLink,
-      sortOrder: (row as any).sortOrder,
-      createdAt: (row as any).createdAt,
-      updatedAt: (row as any).updatedAt,
-    };
+    const optionGroup = mapOptionGroupRow(row);
+    if (withStats) {
+      const stats = getOptionGroupStatsInternal(db, idOptionGroup);
+      return { ...optionGroup, ...stats };
+    }
+
+    return optionGroup;
   } finally {
     db.close();
   }
@@ -104,6 +148,8 @@ export function createOptionGroup(data: OptionGroupFormData): OptionGroup {
     
     // Sanitize input
     const sanitizedDesc = data.optionGroupDesc.trim().substring(0, 255);
+    const sortOrderValue = typeof data.sortOrder === 'number' ? data.sortOrder : 0;
+    const sizingLinkValue = data.sizingLink === 1 ? 1 : 0;
     
     db.prepare(`
       INSERT INTO option_groups 
@@ -114,13 +160,13 @@ export function createOptionGroup(data: OptionGroupFormData): OptionGroup {
       sanitizedDesc,
       data.optionReq,
       data.optionType,
-      data.sizingLink,
-      data.sortOrder,
+      sizingLinkValue,
+      sortOrderValue,
       now,
       now
     );
     
-    return getOptionGroupById(idOptionGroup)!;
+    return getOptionGroupById(idOptionGroup, true)!;
   } finally {
     db.close();
   }
@@ -138,13 +184,26 @@ export function updateOptionGroup(idOptionGroup: string, data: Partial<OptionGro
   const db = getDb();
   
   try {
+    const existing = db.prepare(`
+      SELECT optionType 
+      FROM option_groups 
+      WHERE idOptionGroup = ?
+    `).get(idOptionGroup) as { optionType: string } | undefined;
+
+    if (!existing) {
+      throw new Error('Option group not found');
+    }
+
     const now = Date.now();
     const updates: string[] = [];
     const params: any[] = [];
     
     if (data.optionGroupDesc !== undefined) {
+      if (typeof data.optionGroupDesc !== 'string' || data.optionGroupDesc.trim().length === 0) {
+        throw new Error('Option group description is required');
+      }
       updates.push('optionGroupDesc = ?');
-      params.push(data.optionGroupDesc);
+      params.push(data.optionGroupDesc.trim().substring(0, 255));
     }
     if (data.optionReq !== undefined) {
       updates.push('optionReq = ?');
@@ -156,11 +215,19 @@ export function updateOptionGroup(idOptionGroup: string, data: Partial<OptionGro
     }
     if (data.sizingLink !== undefined) {
       updates.push('sizingLink = ?');
-      params.push(data.sizingLink);
+      params.push(data.sizingLink === 1 ? 1 : 0);
     }
     if (data.sortOrder !== undefined) {
       updates.push('sortOrder = ?');
-      params.push(data.sortOrder);
+      params.push(typeof data.sortOrder === 'number' ? data.sortOrder : 0);
+    }
+
+    const targetType = data.optionType ?? existing.optionType;
+    if (targetType === 'T') {
+      const stats = getOptionGroupStatsInternal(db, idOptionGroup);
+      if (stats.optionCount > 1) {
+        throw new Error('Text input option groups can only be linked to a single option. Remove extra options first.');
+      }
     }
     
     updates.push('updatedAt = ?');
@@ -168,7 +235,7 @@ export function updateOptionGroup(idOptionGroup: string, data: Partial<OptionGro
     
     db.prepare(`UPDATE option_groups SET ${updates.join(', ')} WHERE idOptionGroup = ?`).run(...params);
     
-    return getOptionGroupById(idOptionGroup)!;
+    return getOptionGroupById(idOptionGroup, true)!;
   } finally {
     db.close();
   }
@@ -186,6 +253,19 @@ export function deleteOptionGroup(idOptionGroup: string): boolean {
   const db = getDb();
   
   try {
+    const exists = db.prepare('SELECT 1 FROM option_groups WHERE idOptionGroup = ?').get(idOptionGroup);
+    if (!exists) {
+      return false;
+    }
+
+    const stats = getOptionGroupStatsInternal(db, idOptionGroup);
+    if (stats.optionCount > 0) {
+      throw new Error('Option group cannot be deleted while it still has options linked to it.');
+    }
+    if (stats.productCount > 0) {
+      throw new Error('Option group cannot be deleted while it is assigned to products.');
+    }
+
     const result = db.prepare('DELETE FROM option_groups WHERE idOptionGroup = ?').run(idOptionGroup);
     return result.changes > 0;
   } finally {
@@ -268,6 +348,43 @@ export function getOptionsByGroupId(idOptionGroup: string): Option[] {
       ORDER BY o.sortOrder, o.optionDescrip
     `).all(idOptionGroup);
     
+    return rows.map((row: any) => ({
+      idOption: row.idOption,
+      optionDescrip: row.optionDescrip,
+      priceToAdd: row.priceToAdd,
+      percToAdd: row.percToAdd,
+      sortOrder: row.sortOrder,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }));
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * Get options that are not linked to the specified option group
+ */
+export function getAvailableOptionsForGroup(idOptionGroup: string): Option[] {
+  if (!idOptionGroup || typeof idOptionGroup !== 'string' || !idOptionGroup.startsWith('og-')) {
+    return [];
+  }
+
+  const db = getDb();
+
+  try {
+    const rows = db.prepare(`
+      SELECT o.*
+      FROM options o
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM option_group_xref x
+        WHERE x.idOption = o.idOption
+          AND x.idOptionGroup = ?
+      )
+      ORDER BY o.sortOrder, o.optionDescrip
+    `).all(idOptionGroup);
+
     return rows.map((row: any) => ({
       idOption: row.idOption,
       optionDescrip: row.optionDescrip,
@@ -394,25 +511,90 @@ export function deleteOption(idOption: string): boolean {
 /**
  * Add option to group
  */
-export function addOptionToGroup(idOptionGroup: string, idOption: string): boolean {
+export function addOptionToGroup(
+  idOptionGroup: string,
+  idOption: string,
+  settings?: { excludeAll?: boolean }
+): boolean {
   // Validate inputs (defense in depth)
   if (!idOptionGroup || typeof idOptionGroup !== 'string' || !idOptionGroup.startsWith('og-')) {
-    return false;
+    throw new Error('Invalid option group ID');
   }
   if (!idOption || typeof idOption !== 'string' || !idOption.startsWith('opt-')) {
-    return false;
+    throw new Error('Invalid option ID');
   }
   
   const db = getDb();
   
   try {
-    db.prepare(`
-      INSERT OR IGNORE INTO option_group_xref (idOptionGroup, idOption)
+    const group = db.prepare(`
+      SELECT optionType
+      FROM option_groups
+      WHERE idOptionGroup = ?
+    `).get(idOptionGroup) as { optionType: string } | undefined;
+
+    if (!group) {
+      throw new Error('Option group not found');
+    }
+
+    const optionExists = db.prepare(`
+      SELECT 1
+      FROM options
+      WHERE idOption = ?
+    `).get(idOption) as { 1: number } | undefined;
+
+    if (!optionExists) {
+      throw new Error('Option not found');
+    }
+
+    const existingLink = db.prepare(`
+      SELECT 1
+      FROM option_group_xref
+      WHERE idOptionGroup = ?
+        AND idOption = ?
+    `).get(idOptionGroup, idOption);
+
+    if (existingLink) {
+      throw new Error('Option is already linked to this group.');
+    }
+
+    if (group.optionType === 'T') {
+      const stats = getOptionGroupStatsInternal(db, idOptionGroup);
+      if (stats.optionCount >= 1) {
+        throw new Error('Text input option groups can only have one option. Remove the existing option first.');
+      }
+    }
+
+    const insertResult = db.prepare(`
+      INSERT INTO option_group_xref (idOptionGroup, idOption)
       VALUES (?, ?)
     `).run(idOptionGroup, idOption);
+
+    if (insertResult.changes === 0) {
+      return false;
+    }
+
+    if (settings?.excludeAll) {
+      const products = db.prepare(`
+        SELECT idProduct
+        FROM product_option_groups
+        WHERE idOptionGroup = ?
+      `).all(idOptionGroup) as Array<{ idProduct: string }>;
+
+      if (products.length > 0) {
+        const excludeStmt = db.prepare(`
+          INSERT OR IGNORE INTO product_option_exclusions (id, idProduct, idOption, createdAt)
+          VALUES (?, ?, ?, ?)
+        `);
+
+        for (const product of products) {
+          const excludeId = `excl-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+          excludeStmt.run(excludeId, product.idProduct, idOption, Date.now());
+        }
+      }
+    }
+
     return true;
-  } catch (error) {
-    return false;
   } finally {
     db.close();
   }

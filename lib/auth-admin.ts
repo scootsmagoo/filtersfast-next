@@ -4,6 +4,8 @@
  * NOTE: These functions should only be called server-side (API routes, server components)
  */
 
+import type { NextRequest } from 'next/server'
+import { auth } from './auth'
 import { 
   getAdminByUserId, 
   getEffectivePermissions, 
@@ -125,6 +127,50 @@ export function recordAdminLogin(userId: string): void {
     }
   } catch (error) {
     console.error('Error recording admin login:', error)
+  }
+}
+
+/**
+ * Require an authenticated admin session for API routes / server actions.
+ * Returns session information when valid, otherwise null.
+ */
+type BetterAuthSession = Awaited<ReturnType<typeof auth.api.getSession>>
+
+export interface AdminAuthSession {
+  session: BetterAuthSession
+  user: NonNullable<BetterAuthSession['user']>
+  admin: AdminWithDetails
+}
+
+export async function requireAdminAuth(
+  request?: NextRequest
+): Promise<AdminAuthSession | null> {
+  try {
+    const session = await auth.api.getSession({
+      headers: request?.headers ?? new Headers()
+    })
+
+    if (!session?.user) {
+      return null
+    }
+
+    if (!hasAdminAccess(session.user)) {
+      return null
+    }
+
+    const adminDetails = getAdminDetails(session.user.id)
+    if (!adminDetails || adminDetails.is_enabled !== 1) {
+      return null
+    }
+
+    return {
+      session,
+      user: session.user,
+      admin: adminDetails
+    }
+  } catch (error) {
+    console.error('[requireAdminAuth] Failed to verify admin session', error)
+    return null
   }
 }
 

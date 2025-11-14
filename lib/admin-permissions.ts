@@ -29,6 +29,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
       Sales: 0,
     },
   },
+  DirectEmail: {
+    description: 'Compose and send direct emails to customers',
+    group: 'Customer Service',
+    sortOrder: 47,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 1,
+      Sales: 0,
+    },
+  },
   Reviews: {
     description: 'Manage customer reviews and Trustpilot integration',
     group: 'Marketing & Sales',
@@ -55,6 +66,17 @@ const PERMISSION_SEED_CONFIG: Record<string, {
     description: 'View and manage backorder notification requests',
     group: 'Products & Catalog',
     sortOrder: 35,
+    roleDefaults: {
+      Admin: 1,
+      Manager: 1,
+      Support: 0,
+      Sales: -1,
+    },
+  },
+  ProductOptions: {
+    description: 'Manage product option groups and linked options',
+    group: 'Products & Catalog',
+    sortOrder: 36,
     roleDefaults: {
       Admin: 1,
       Manager: 1,
