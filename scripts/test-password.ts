@@ -4,11 +4,14 @@
 
 import Database from 'better-sqlite3'
 import { compareSync } from 'bcryptjs'
+import dotenv from 'dotenv';
+dotenv.config();
 
-const db = new Database('auth.db')
+const dbPath = process.env.DB_PATH || 'auth.db';
+const testPassword = process.env.TEST_PASSWORD || 'defaultPassword';
+const db = new Database(dbPath);
 
 const email = 'falonya@gmail.com'
-const testPassword = 'Admin123!'
 
 console.log('🔐 Testing Password Hash...\n')
 

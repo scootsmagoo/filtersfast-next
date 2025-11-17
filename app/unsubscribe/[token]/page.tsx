@@ -93,9 +93,10 @@ export default function UnsubscribePage() {
           role="status"
           aria-live="polite"
           aria-atomic="true"
+          aria-label="Validation in progress"
           className="text-center"
         >
-          <Loader2 className="w-12 h-12 animate-spin text-brand-orange mx-auto mb-4" aria-hidden="true" />
+          <Loader2 className="w-12 h-12 animate-spin text-brand-orange mx-auto mb-4" aria-hidden="true" alt="Loading spinner" />
           <p className="text-gray-600 dark:text-gray-300">Validating your unsubscribe request...</p>
         </div>
       </div>
@@ -192,6 +193,7 @@ export default function UnsubscribePage() {
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
+          aria-label="Error message"
           className="sr-only"
         >
           Error: {error}
