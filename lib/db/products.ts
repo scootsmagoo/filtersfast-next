@@ -703,7 +703,44 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     // Log history
     logProductHistory(id, 'updated', changes, userId, userName, 'Product updated');
 
-    return getProductById(id)!;
+    // Trigger workflow events
+    const updated = getProductById(id)!;
+    
+    // Trigger event if inventory went to 0
+    if (changes.inventoryQuantity && updated.inventoryQuantity === 0 && existing.inventoryQuantity > 0) {
+      try {
+        const { triggerWorkflowsByEvent } = require('../workflow-engine');
+        triggerWorkflowsByEvent('product.out_of_stock', {
+          productId: id,
+          productName: updated.name,
+          productSku: updated.sku,
+          previousQuantity: existing.inventoryQuantity,
+          currentQuantity: 0,
+        });
+      } catch (error) {
+        // Don't let workflow errors break product updates
+        console.error('Error triggering out-of-stock workflow:', error);
+      }
+    }
+    
+    // Trigger event if status changed
+    if (changes.status) {
+      try {
+        const { triggerWorkflowsByEvent } = require('../workflow-engine');
+        triggerWorkflowsByEvent('product.status_changed', {
+          productId: id,
+          productName: updated.name,
+          productSku: updated.sku,
+          oldStatus: changes.status.old,
+          newStatus: changes.status.new,
+        });
+      } catch (error) {
+        // Don't let workflow errors break product updates
+        console.error('Error triggering status change workflow:', error);
+      }
+    }
+
+    return updated;
   } finally {
     db.close();
   }

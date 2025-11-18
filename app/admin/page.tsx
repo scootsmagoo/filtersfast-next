@@ -36,7 +36,8 @@ import {
   Mail,
   MapPin,
   Layers3,
-  Ruler
+  Ruler,
+  GitBranch
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -446,6 +447,13 @@ export default function AdminDashboard() {
       icon: Wrench,
       href: '/admin/utilities',
       color: 'gray'
+    },
+    {
+      title: 'Automated Workflows',
+      description: 'Create and manage automated workflows',
+      icon: GitBranch,
+      href: '/admin/workflows',
+      color: 'purple'
     }
   ]
 }
