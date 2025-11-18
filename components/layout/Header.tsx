@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle, Heart } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
 import { useSession } from '@/lib/auth-client';
 import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
@@ -20,6 +21,7 @@ export default function Header() {
   const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
   const router = useRouter();
@@ -211,6 +213,21 @@ export default function Header() {
                 Sign In
               </Link>
             )}
+            <Link 
+              href="/wishlist" 
+              className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-label={`Wishlist with ${wishlistCount} items`}
+            >
+              <Heart className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors" />
+              {wishlistCount > 0 && (
+                <span 
+                  className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  aria-label={`${wishlistCount} items in wishlist`}
+                >
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <Link 
               href="/cart" 
               className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"

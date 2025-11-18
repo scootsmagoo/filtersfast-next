@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
 import { CartProvider } from "@/lib/cart-context";
+import { WishlistProvider } from "@/lib/wishlist-context";
 import ScreenReaderAnnouncements from "@/components/ui/ScreenReaderAnnouncements";
 import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementProvider";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
@@ -125,6 +126,7 @@ export default async function RootLayout({
               <LanguageProvider>
                 <CurrencyProvider initialCurrency={initialCurrency}>
                   <CartProvider>
+                    <WishlistProvider>
               <CurrencyDetectionNotice
                 serverHint={serverCurrencyHint}
                 serverCountry={serverCountry}
@@ -159,6 +161,7 @@ export default async function RootLayout({
               />
               <ScreenReaderAnnouncements />
               <ChatbotWidget />
+                    </WishlistProvider>
                   </CartProvider>
                 </CurrencyProvider>
               </LanguageProvider>

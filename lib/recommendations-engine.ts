@@ -718,7 +718,7 @@ export function getProductRecommendations(
   }> = [];
   
   for (const rec of unique.slice(0, limit)) {
-    const product = await getProductById(rec.productId);
+    const product = getProductById(rec.productId);
     if (!product || product.status !== 'active') continue;
     
     results.push({

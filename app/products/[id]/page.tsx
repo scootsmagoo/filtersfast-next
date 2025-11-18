@@ -20,6 +20,7 @@ import BackorderNotify from '@/components/products/BackorderNotify';
 import GiftCardPurchaseForm from '@/components/gift-card/GiftCardPurchaseForm';
 import ProductRecommendations from '@/components/products/ProductRecommendations';
 import FrequentlyBoughtTogether from '@/components/products/FrequentlyBoughtTogether';
+import WishlistButton from '@/components/wishlist/WishlistButton';
 
 // Mock product data (in production, this would come from an API)
 type ProductDetailProduct = SearchableProduct & {
@@ -1368,21 +1369,30 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="space-y-2">
-              <HeroPrice 
-                amountUSD={product.price + priceAdjustment}
-                originalPrice={product.originalPrice ? product.originalPrice + priceAdjustment : undefined}
-              />
-              {product.originalPrice && (
-                <div className="text-sm font-semibold">
-                  <Savings amountUSD={product.originalPrice - product.price} />
+              <div className="flex items-center justify-between">
+                <div>
+                  <HeroPrice 
+                    amountUSD={product.price + priceAdjustment}
+                    originalPrice={product.originalPrice ? product.originalPrice + priceAdjustment : undefined}
+                  />
+                  {product.originalPrice && (
+                    <div className="text-sm font-semibold">
+                      <Savings amountUSD={product.originalPrice - product.price} />
+                    </div>
+                  )}
+                  {priceAdjustment !== 0 && (
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Base price: ${product.price.toFixed(2)}
+                      {priceAdjustment > 0 ? ` + $${priceAdjustment.toFixed(2)} (options)` : ''}
+                    </div>
+                  )}
                 </div>
-              )}
-              {priceAdjustment !== 0 && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Base price: ${product.price.toFixed(2)}
-                  {priceAdjustment > 0 ? ` + $${priceAdjustment.toFixed(2)} (options)` : ''}
-                </div>
-              )}
+                <WishlistButton
+                  productId={product.productId ? product.productId.toString() : product.id.toString()}
+                  variant="icon"
+                  size="lg"
+                />
+              </div>
             </div>
 
             {/* Stock Status */}
