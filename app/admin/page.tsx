@@ -291,6 +291,13 @@ export default function AdminDashboard() {
       color: 'purple'
     },
     {
+      title: 'Loyalty Program',
+      description: 'Manage loyalty points, tiers, and rewards',
+      icon: Star,
+      href: '/admin/loyalty',
+      color: 'yellow'
+    },
+    {
       title: 'Affiliate Program',
       description: 'Manage affiliates and commissions',
       icon: TrendingUp,

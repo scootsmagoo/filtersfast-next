@@ -353,6 +353,10 @@ function AccountPageContent() {
                   <Gift className="w-5 h-5" />
                   Referral Program
                 </Link>
+                <Link href="/account/loyalty" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                  <Star className="w-5 h-5" />
+                  Loyalty Program
+                </Link>
                 <Link href="/affiliate" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
                   <TrendingUp className="w-5 h-5" />
                   Become an Affiliate

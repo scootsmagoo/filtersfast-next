@@ -5,6 +5,7 @@
 
 import Database from 'better-sqlite3'
 import { issueGiftCard, GiftCard, markGiftCardDelivered } from '@/lib/db/gift-cards'
+import { earnLoyaltyPoints, getLoyaltyTransactions } from '@/lib/db/loyalty'
 import { sendEmail } from '@/lib/email'
 import {
   buildGiftCardIssuedEmail,
@@ -360,6 +361,42 @@ export function updateOrder(order_id: string, data: UpdateOrderRequest, admin_id
   const order = getOrder(order_id)
   if (!order) {
     throw new Error('Order not found after update')
+  }
+
+  // Award loyalty points when order is delivered
+  if (data.status === 'delivered' || (data.shipping_status === 'delivered' && order.status === 'delivered')) {
+    try {
+      // Check if points were already awarded for this order
+      const existingTransactions = getLoyaltyTransactions(order.customer_email, 100, 0)
+      const alreadyAwarded = existingTransactions.some(
+        txn => txn.order_id === order_id && txn.transaction_type === 'earned'
+      )
+
+      if (!alreadyAwarded && order.payment_status === 'paid') {
+        // Calculate points based on order total (excluding shipping and tax)
+        const { getLoyaltySettings } = require('./loyalty')
+        const settings = getLoyaltySettings()
+        
+        if (settings.is_enabled) {
+          // Calculate points based on subtotal (before discounts)
+          const pointsToEarn = Math.floor(order.subtotal * settings.points_per_dollar)
+          
+          if (pointsToEarn > 0) {
+            earnLoyaltyPoints({
+              customerEmail: order.customer_email,
+              userId: order.user_id || undefined,
+              points: pointsToEarn,
+              orderId: order.id,
+              orderNumber: order.order_number,
+              description: `Points earned from order ${order.order_number}`,
+            })
+          }
+        }
+      }
+    } catch (error) {
+      // Silently fail - loyalty points are not critical for order updates
+      console.error('Error awarding loyalty points:', error)
+    }
   }
 
   return order

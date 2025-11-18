@@ -15,6 +15,7 @@ import SavedPaymentSelector from '@/components/checkout/SavedPaymentSelector';
 import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
 import PayPalButton from '@/components/payments/PayPalButton';
 import ShippingRateSelector from '@/components/checkout/ShippingRateSelector';
+import LoyaltyPointsRedeem from '@/components/checkout/LoyaltyPointsRedeem';
 import { DonationSelection } from '@/lib/types/charity';
 import { InsuranceSelection } from '@/lib/types/insurance';
 import type { ShippingRate } from '@/lib/types/shipping';
@@ -92,6 +93,8 @@ export default function CheckoutPage() {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoApplying, setPromoApplying] = useState(false);
   const promoSignatureRef = useRef<string | null>(null);
+  const [loyaltyPointsRedeemed, setLoyaltyPointsRedeemed] = useState(0);
+  const [loyaltyPointsDiscount, setLoyaltyPointsDiscount] = useState(0);
 
   const hasShippableItems = useMemo(
     () => items.some(item => (item.productType ?? '').toLowerCase() !== 'gift-card'),
@@ -303,7 +306,7 @@ export default function CheckoutPage() {
   const giftCardDeduction = appliedGiftCards.reduce((sum, card) => sum + (card.amountApplied || 0), 0);
   const orderTotal = Math.max(
     0,
-    total + shippingCost + tax + donationAmount + insuranceCost - giftCardDeduction - promoDiscount
+    total + shippingCost + tax + donationAmount + insuranceCost - giftCardDeduction - promoDiscount - loyaltyPointsDiscount
   );
   
   // Convert totals to selected currency for display
@@ -314,6 +317,7 @@ export default function CheckoutPage() {
   const displayDonation = convertPrice(donationAmount);
   const displayGiftCardDeduction = convertPrice(giftCardDeduction);
   const displayPromoDiscount = convertPrice(promoDiscount);
+  const displayLoyaltyPointsDiscount = convertPrice(loyaltyPointsDiscount);
   const displayOrderTotal = convertPrice(orderTotal);
 
   // Step navigation
@@ -1269,6 +1273,17 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                   )}
+                  {loyaltyPointsDiscount > 0 && loyaltyPointsRedeemed > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors">
+                        <Star className="w-3 h-3 text-brand-orange" />
+                        Loyalty Points ({loyaltyPointsRedeemed.toLocaleString()} pts)
+                      </span>
+                      <span className="font-medium text-green-600 dark:text-green-400 transition-colors">
+                        -{formatPriceCurrency(displayLoyaltyPointsDiscount)}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors space-y-3">
@@ -1303,6 +1318,20 @@ export default function CheckoutPage() {
                       <p className="mt-2 text-sm text-red-600 dark:text-red-400 transition-colors">{giftCardError}</p>
                     )}
                   </div>
+
+                  <LoyaltyPointsRedeem
+                    cartTotal={total}
+                    onPointsRedeemed={(points, discount) => {
+                      setLoyaltyPointsRedeemed(points);
+                      setLoyaltyPointsDiscount(discount);
+                    }}
+                    onPointsRemoved={() => {
+                      setLoyaltyPointsRedeemed(0);
+                      setLoyaltyPointsDiscount(0);
+                    }}
+                    appliedPoints={loyaltyPointsRedeemed}
+                    appliedDiscount={loyaltyPointsDiscount}
+                  />
 
                   {appliedGiftCards.length > 0 && (
                     <div className="space-y-2">

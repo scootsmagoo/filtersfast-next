@@ -43,6 +43,7 @@
     "init:store-locations": "tsx scripts/init-store-locations.ts",
     "init:blog": "tsx scripts/init-blog-schema.ts",
     "init:workflows": "tsx scripts/init-workflows.ts",
+    "init:loyalty": "tsx scripts/init-loyalty.ts",
     "cron:email-campaigns": "tsx scripts/process-email-campaigns.ts",
     "cron:process-subscriptions": "tsx scripts/process-subscriptions.ts",
     "cron:subscription-reminders": "tsx scripts/process-subscriptions.ts reminders",
