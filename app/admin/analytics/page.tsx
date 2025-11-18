@@ -10,8 +10,8 @@ import {
   LineChart,
   DataTable,
 } from '@/components/admin/AnalyticsCharts';
-import { formatCurrency, formatNumber, calculatePercentageChange } from '@/lib/analytics-utils';
-import { TrendingUp, DollarSign, ShoppingCart, Users, Calendar, ListOrdered } from 'lucide-react';
+import { formatCurrency, formatNumber, calculatePercentageChange, formatPercentage, exportToCSV } from '@/lib/analytics-utils';
+import { TrendingUp, DollarSign, ShoppingCart, Users, Calendar, ListOrdered, Search, Heart, Workflow, BarChart3, Clock, TrendingDown } from 'lucide-react';
 import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 import Button from '@/components/ui/Button';
 
@@ -32,6 +32,15 @@ export default function AnalyticsPage() {
   const [revenueByPeriod, setRevenueByPeriod] = useState<any[]>([]);
   const [ordersByStatus, setOrdersByStatus] = useState<any[]>([]);
   const [customerMetrics, setCustomerMetrics] = useState<any>({ newCustomers: 0, returningCustomers: 0, repeatPurchaseRate: 0 });
+  
+  // Advanced analytics state
+  const [periodComparison, setPeriodComparison] = useState<any>(null);
+  const [searchInsights, setSearchInsights] = useState<any>(null);
+  const [wishlistMetrics, setWishlistMetrics] = useState<any>(null);
+  const [workflowMetrics, setWorkflowMetrics] = useState<any>(null);
+  const [salesByCategory, setSalesByCategory] = useState<any[]>([]);
+  const [customerLTV, setCustomerLTV] = useState<any>(null);
+  const [hourlySales, setHourlySales] = useState<any[]>([]);
 
   // Fetch analytics data
   const fetchAnalytics = async () => {
@@ -47,6 +56,7 @@ export default function AnalyticsPage() {
       });
 
       // Fetch all analytics data in parallel
+      // OWASP: Handle errors gracefully without exposing sensitive information
       const [
         summaryRes,
         dailySalesRes,
@@ -55,14 +65,28 @@ export default function AnalyticsPage() {
         revenueRes,
         statusRes,
         customerRes,
+        periodComparisonRes,
+        searchInsightsRes,
+        wishlistMetricsRes,
+        workflowMetricsRes,
+        salesByCategoryRes,
+        customerLTVRes,
+        hourlySalesRes,
       ] = await Promise.all([
-        fetch(`/api/admin/analytics/summary?${params}`).then(r => r.json()),
-        fetch(`/api/admin/analytics/daily-sales?${params}`).then(r => r.json()),
-        fetch(`/api/admin/analytics/top-products?${params}&sortBy=revenue&limit=10`).then(r => r.json()),
-        fetch(`/api/admin/analytics/top-customers?${params}&sortBy=revenue&limit=10`).then(r => r.json()),
-        fetch(`/api/admin/analytics/revenue-by-period?${params}&groupBy=day`).then(r => r.json()),
-        fetch(`/api/admin/analytics/order-status?${params}`).then(r => r.json()),
-        fetch(`/api/admin/analytics/customer-acquisition?${params}`).then(r => r.json()),
+        fetch(`/api/admin/analytics/summary?${params}`).then(r => r.ok ? r.json() : { summary: null, error: 'Failed to load summary' }).catch(() => ({ summary: null })),
+        fetch(`/api/admin/analytics/daily-sales?${params}`).then(r => r.ok ? r.json() : { dailySales: [] }).catch(() => ({ dailySales: [] })),
+        fetch(`/api/admin/analytics/top-products?${params}&sortBy=revenue&limit=10`).then(r => r.ok ? r.json() : { topProducts: [] }).catch(() => ({ topProducts: [] })),
+        fetch(`/api/admin/analytics/top-customers?${params}&sortBy=revenue&limit=10`).then(r => r.ok ? r.json() : { topCustomers: [] }).catch(() => ({ topCustomers: [] })),
+        fetch(`/api/admin/analytics/revenue-by-period?${params}&groupBy=day`).then(r => r.ok ? r.json() : { revenueData: [] }).catch(() => ({ revenueData: [] })),
+        fetch(`/api/admin/analytics/order-status?${params}`).then(r => r.ok ? r.json() : { ordersByStatus: [] }).catch(() => ({ ordersByStatus: [] })),
+        fetch(`/api/admin/analytics/customer-acquisition?${params}`).then(r => r.ok ? r.json() : { metrics: null }).catch(() => ({ metrics: null })),
+        fetch(`/api/admin/analytics/period-comparison?${params}`).then(r => r.ok ? r.json() : { comparison: null }).catch(() => ({ comparison: null })),
+        fetch(`/api/admin/analytics/search-insights?${params}`).then(r => r.ok ? r.json() : { stats: null }).catch(() => ({ stats: null })),
+        fetch(`/api/admin/analytics/wishlist-metrics?${params}`).then(r => r.ok ? r.json() : { metrics: null }).catch(() => ({ metrics: null })),
+        fetch(`/api/admin/analytics/workflow-metrics?${params}`).then(r => r.ok ? r.json() : { metrics: null }).catch(() => ({ metrics: null })),
+        fetch(`/api/admin/analytics/sales-by-category?${params}`).then(r => r.ok ? r.json() : { salesByCategory: [] }).catch(() => ({ salesByCategory: [] })),
+        fetch(`/api/admin/analytics/customer-ltv?${params}`).then(r => r.ok ? r.json() : { ltvMetrics: null }).catch(() => ({ ltvMetrics: null })),
+        fetch(`/api/admin/analytics/hourly-sales?${params}`).then(r => r.ok ? r.json() : { hourlySales: [] }).catch(() => ({ hourlySales: [] })),
       ]);
 
       setSummary(summaryRes.summary || { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, totalCustomers: 0 });
@@ -72,8 +96,24 @@ export default function AnalyticsPage() {
       setRevenueByPeriod(revenueRes.revenueData || []);
       setOrdersByStatus(statusRes.ordersByStatus || []);
       setCustomerMetrics(customerRes.metrics || { newCustomers: 0, returningCustomers: 0, repeatPurchaseRate: 0 });
+      
+      // Advanced analytics
+      setPeriodComparison(periodComparisonRes.comparison || null);
+      setSearchInsights(searchInsightsRes.stats ? {
+        ...searchInsightsRes.stats,
+        topSearches: searchInsightsRes.topSearches || [],
+        failedSearches: searchInsightsRes.failedSearches || [],
+        conversions: searchInsightsRes.conversions || [],
+      } : null);
+      setWishlistMetrics(wishlistMetricsRes.metrics || null);
+      setWorkflowMetrics(workflowMetricsRes.metrics || null);
+      setSalesByCategory(salesByCategoryRes.salesByCategory || []);
+      setCustomerLTV(customerLTVRes.ltvMetrics || null);
+      setHourlySales(hourlySalesRes.hourlySales || []);
+      
       setStatusMessage('Analytics data loaded successfully');
     } catch (error) {
+      // OWASP: Don't expose error details to user, WCAG: Announce error to screen readers
       console.error('Error fetching analytics:', error);
       setStatusMessage('Error loading analytics data. Please try again.');
     } finally {
@@ -96,23 +136,28 @@ export default function AnalyticsPage() {
     }));
 
     if (csvData.length === 0) {
-      alert('No data to export');
+      // WCAG: Use accessible notification instead of alert()
+      setStatusMessage('No data available to export');
       return;
     }
 
-    // Convert to CSV
-    const headers = Object.keys(csvData[0] || {}).join(',');
-    const rows = csvData.map(row => Object.values(row).join(','));
-    const csv = [headers, ...rows].join('\n');
+    // OWASP: Use proper CSV escaping function
+    const csv = exportToCSV(csvData, `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`);
 
     // Download
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `analytics-${period}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.setAttribute('aria-label', 'Download analytics data as CSV file');
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    // WCAG: Announce success to screen readers
+    setStatusMessage('Analytics data exported successfully');
   };
 
   if (loading) {
@@ -137,6 +182,18 @@ export default function AnalyticsPage() {
         {statusMessage}
       </div>
       
+      {/* WCAG: Error alert region for accessibility */}
+      {statusMessage && statusMessage.includes('Error') && (
+        <div 
+          role="alert" 
+          aria-live="assertive" 
+          className="container-custom mb-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300"
+        >
+          <p className="font-semibold">Error</p>
+          <p className="text-sm mt-1">{statusMessage}</p>
+        </div>
+      )}
+      
       {/* Skip to main content link for keyboard users */}
       <a 
         href="#analytics-content" 
@@ -150,10 +207,10 @@ export default function AnalyticsPage() {
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Analytics & Reporting Dashboard
+              Advanced Analytics Dashboard
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              Comprehensive insights into your business performance
+              Comprehensive insights into your business performance with advanced metrics and analytics
             </p>
           </div>
           <Link href="/admin/analytics/top-300">
@@ -218,11 +275,119 @@ export default function AnalyticsPage() {
               onClick={handleExportData}
               className="ml-auto px-4 py-2 bg-[#054f97] hover:bg-[#043a6f] focus:bg-[#043a6f] text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#054f97] focus:ring-offset-2"
               aria-label="Export analytics data as CSV"
+              type="button"
             >
               Export Data
             </button>
           </div>
         </div>
+
+        {/* Period Comparison */}
+        {periodComparison && (
+          <section aria-labelledby="period-comparison-heading" className="mb-8">
+            <h2 id="period-comparison-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Period-over-Period Comparison
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="list">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6" role="listitem">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Revenue</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white" aria-label={`Current revenue: ${formatCurrency(periodComparison.revenue.current)}`}>
+                    {formatCurrency(periodComparison.revenue.current)}
+                  </p>
+                  <span 
+                    className={`text-sm font-medium ${
+                      periodComparison.revenue.changePercent >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                    aria-label={`${periodComparison.revenue.changePercent >= 0 ? 'Increased' : 'Decreased'} by ${formatPercentage(Math.abs(periodComparison.revenue.changePercent))}`}
+                  >
+                    <span aria-hidden="true">
+                      {periodComparison.revenue.changePercent >= 0 ? <TrendingUp className="inline w-4 h-4" /> : <TrendingDown className="inline w-4 h-4" />}
+                      {formatPercentage(periodComparison.revenue.changePercent)}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Previous: {formatCurrency(periodComparison.revenue.previous)}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6" role="listitem">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Orders</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white" aria-label={`Current orders: ${formatNumber(periodComparison.orders.current)}`}>
+                    {formatNumber(periodComparison.orders.current)}
+                  </p>
+                  <span 
+                    className={`text-sm font-medium ${
+                      periodComparison.orders.changePercent >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                    aria-label={`${periodComparison.orders.changePercent >= 0 ? 'Increased' : 'Decreased'} by ${formatPercentage(Math.abs(periodComparison.orders.changePercent))}`}
+                  >
+                    <span aria-hidden="true">
+                      {periodComparison.orders.changePercent >= 0 ? <TrendingUp className="inline w-4 h-4" /> : <TrendingDown className="inline w-4 h-4" />}
+                      {formatPercentage(periodComparison.orders.changePercent)}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Previous: {formatNumber(periodComparison.orders.previous)}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6" role="listitem">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Customers</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white" aria-label={`Current customers: ${formatNumber(periodComparison.customers.current)}`}>
+                    {formatNumber(periodComparison.customers.current)}
+                  </p>
+                  <span 
+                    className={`text-sm font-medium ${
+                      periodComparison.customers.changePercent >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                    aria-label={`${periodComparison.customers.changePercent >= 0 ? 'Increased' : 'Decreased'} by ${formatPercentage(Math.abs(periodComparison.customers.changePercent))}`}
+                  >
+                    <span aria-hidden="true">
+                      {periodComparison.customers.changePercent >= 0 ? <TrendingUp className="inline w-4 h-4" /> : <TrendingDown className="inline w-4 h-4" />}
+                      {formatPercentage(periodComparison.customers.changePercent)}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Previous: {formatNumber(periodComparison.customers.previous)}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6" role="listitem">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Avg Order Value</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white" aria-label={`Current average order value: ${formatCurrency(periodComparison.aov.current)}`}>
+                    {formatCurrency(periodComparison.aov.current)}
+                  </p>
+                  <span 
+                    className={`text-sm font-medium ${
+                      periodComparison.aov.changePercent >= 0 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                    aria-label={`${periodComparison.aov.changePercent >= 0 ? 'Increased' : 'Decreased'} by ${formatPercentage(Math.abs(periodComparison.aov.changePercent))}`}
+                  >
+                    <span aria-hidden="true">
+                      {periodComparison.aov.changePercent >= 0 ? <TrendingUp className="inline w-4 h-4" /> : <TrendingDown className="inline w-4 h-4" />}
+                      {formatPercentage(periodComparison.aov.changePercent)}
+                    </span>
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Previous: {formatCurrency(periodComparison.aov.previous)}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Summary Stats */}
         <section aria-labelledby="summary-heading" className="mb-8">
@@ -346,6 +511,209 @@ export default function AnalyticsPage() {
             title="Revenue by Period"
           />
         </section>
+
+        {/* Search Analytics Insights */}
+        {searchInsights && (
+          <section aria-labelledby="search-insights-heading" className="mb-8">
+            <h2 id="search-insights-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Search className="w-6 h-6 text-brand-orange" />
+              Search Analytics Insights
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Overview</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Total Searches</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(searchInsights.totalSearches || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Unique Searchers</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(searchInsights.uniqueSearchers || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Success Rate</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{searchInsights.successRate?.toFixed(1) || 0}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Mobile Searches</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{searchInsights.mobilePercentage?.toFixed(1) || 0}%</p>
+                  </div>
+                </div>
+              </div>
+              {searchInsights.topOutcomes && searchInsights.topOutcomes.length > 0 && (
+                <PieChart
+                  data={searchInsights.topOutcomes.map((o: any) => ({ label: o.outcome, value: o.count }))}
+                  title="Search Outcomes"
+                  valueFormatter={formatNumber}
+                />
+              )}
+            </div>
+            {searchInsights.topSearches && searchInsights.topSearches.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Top Searches</h3>
+                <div className="space-y-2">
+                  {searchInsights.topSearches.slice(0, 10).map((search: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-900 dark:text-white">{search.searchTerm}</span>
+                      <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <span>{formatNumber(search.searchCount)} searches</span>
+                        <span>{search.successfulSearches} successful</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Wishlist Metrics */}
+        {wishlistMetrics && (
+          <section aria-labelledby="wishlist-metrics-heading" className="mb-8">
+            <h2 id="wishlist-metrics-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Heart className="w-6 h-6 text-brand-orange" />
+              Wishlist Engagement
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <StatCard
+                title="Total Wishlists"
+                value={wishlistMetrics.totalWishlists || 0}
+                valueFormatter={formatNumber}
+                icon={<Heart className="w-8 h-8" />}
+              />
+              <StatCard
+                title="Total Items"
+                value={wishlistMetrics.totalItems || 0}
+                valueFormatter={formatNumber}
+              />
+              <StatCard
+                title="Unique Users"
+                value={wishlistMetrics.uniqueUsers || 0}
+                valueFormatter={formatNumber}
+              />
+              <StatCard
+                title="Avg Items/Wishlist"
+                value={wishlistMetrics.avgItemsPerWishlist || 0}
+                valueFormatter={(v) => v.toFixed(1)}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Workflow Performance */}
+        {workflowMetrics && workflowMetrics.totalWorkflows > 0 && (
+          <section aria-labelledby="workflow-metrics-heading" className="mb-8">
+            <h2 id="workflow-metrics-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Workflow className="w-6 h-6 text-brand-orange" />
+              Workflow Performance
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <StatCard
+                title="Total Workflows"
+                value={workflowMetrics.totalWorkflows || 0}
+                valueFormatter={formatNumber}
+                icon={<Workflow className="w-8 h-8" />}
+              />
+              <StatCard
+                title="Active Workflows"
+                value={workflowMetrics.activeWorkflows || 0}
+                valueFormatter={formatNumber}
+              />
+              <StatCard
+                title="Total Executions"
+                value={workflowMetrics.totalExecutions || 0}
+                valueFormatter={formatNumber}
+              />
+            </div>
+            {workflowMetrics.topWorkflows && workflowMetrics.topWorkflows.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Top Performing Workflows</h3>
+                <TopItemsChart
+                  items={workflowMetrics.topWorkflows.map((w: any) => ({
+                    name: w.workflowName,
+                    value: w.executionCount,
+                    label: `${w.successRate.toFixed(1)}% success`,
+                  }))}
+                  title=""
+                  valueFormatter={formatNumber}
+                />
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Sales by Category */}
+        {salesByCategory && salesByCategory.length > 0 && (
+          <section aria-labelledby="sales-category-heading" className="mb-8">
+            <h2 id="sales-category-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-brand-orange" />
+              Sales by Category
+            </h2>
+            <TopItemsChart
+              items={salesByCategory.map(c => ({
+                name: c.categoryName,
+                value: c.revenue,
+                label: `${formatNumber(c.quantitySold)} sold`,
+              }))}
+              title="Revenue by Category"
+              valueFormatter={formatCurrency}
+            />
+          </section>
+        )}
+
+        {/* Customer Lifetime Value */}
+        {customerLTV && (
+          <section aria-labelledby="customer-ltv-heading" className="mb-8">
+            <h2 id="customer-ltv-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Customer Lifetime Value
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <StatCard
+                title="Average LTV"
+                value={customerLTV.avgLTV || 0}
+                valueFormatter={formatCurrency}
+              />
+              <StatCard
+                title="Median LTV"
+                value={customerLTV.medianLTV || 0}
+                valueFormatter={formatCurrency}
+              />
+            </div>
+            {customerLTV.topCustomers && customerLTV.topCustomers.length > 0 && (
+              <DataTable
+                title="Top Customers by Lifetime Value"
+                columns={[
+                  { key: 'customerName', label: 'Customer' },
+                  { key: 'email', label: 'Email' },
+                  { key: 'totalSpent', label: 'Total Spent', formatter: formatCurrency },
+                  { key: 'orderCount', label: 'Orders', formatter: formatNumber },
+                  { key: 'avgOrderValue', label: 'Avg Order', formatter: formatCurrency },
+                ]}
+                data={customerLTV.topCustomers}
+              />
+            )}
+          </section>
+        )}
+
+        {/* Hourly Sales Distribution */}
+        {hourlySales && hourlySales.length > 0 && (
+          <section aria-labelledby="hourly-sales-heading" className="mb-8">
+            <h2 id="hourly-sales-heading" className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Clock className="w-6 h-6 text-brand-orange" />
+              Hourly Sales Distribution
+            </h2>
+            <LineChart
+              data={hourlySales.map(h => ({
+                date: `${h.hour}:00`,
+                value: h.revenue,
+              }))}
+              title="Revenue by Hour of Day"
+              valueFormatter={formatCurrency}
+              color="#054f97"
+            />
+          </section>
+        )}
       </div>
     </div>
   );

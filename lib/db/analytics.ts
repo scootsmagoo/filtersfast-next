@@ -579,3 +579,401 @@ export function getCustomerAcquisitionMetrics(
   };
 }
 
+/**
+ * Get period-over-period comparison metrics
+ */
+export function getPeriodComparison(
+  currentStartDate: string,
+  currentEndDate: string,
+  previousStartDate: string,
+  previousEndDate: string
+): {
+  revenue: { current: number; previous: number; change: number; changePercent: number };
+  orders: { current: number; previous: number; change: number; changePercent: number };
+  customers: { current: number; previous: number; change: number; changePercent: number };
+  aov: { current: number; previous: number; change: number; changePercent: number };
+} {
+  const db = new Database(dbPath);
+  
+  // Current period
+  const currentQuery = `
+    SELECT 
+      COUNT(*) as orders,
+      SUM(total) as revenue,
+      COUNT(DISTINCT user_id) as customers,
+      AVG(total) as aov
+    FROM orders
+    WHERE status IN ('paid', 'shipped', 'completed')
+      AND DATE(created_at) >= DATE(?)
+      AND DATE(created_at) <= DATE(?)
+  `;
+  
+  const current = db.prepare(currentQuery).get(currentStartDate, currentEndDate) as any;
+  
+  // Previous period
+  const previous = db.prepare(currentQuery).get(previousStartDate, previousEndDate) as any;
+  
+  db.close();
+  
+  const currentRevenue = current.revenue || 0;
+  const previousRevenue = previous.revenue || 0;
+  const currentOrders = current.orders || 0;
+  const previousOrders = previous.orders || 0;
+  const currentCustomers = current.customers || 0;
+  const previousCustomers = previous.customers || 0;
+  const currentAov = current.aov || 0;
+  const previousAov = previous.aov || 0;
+  
+  return {
+    revenue: {
+      current: currentRevenue,
+      previous: previousRevenue,
+      change: currentRevenue - previousRevenue,
+      changePercent: previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0,
+    },
+    orders: {
+      current: currentOrders,
+      previous: previousOrders,
+      change: currentOrders - previousOrders,
+      changePercent: previousOrders > 0 ? ((currentOrders - previousOrders) / previousOrders) * 100 : 0,
+    },
+    customers: {
+      current: currentCustomers,
+      previous: previousCustomers,
+      change: currentCustomers - previousCustomers,
+      changePercent: previousCustomers > 0 ? ((currentCustomers - previousCustomers) / previousCustomers) * 100 : 0,
+    },
+    aov: {
+      current: currentAov,
+      previous: previousAov,
+      change: currentAov - previousAov,
+      changePercent: previousAov > 0 ? ((currentAov - previousAov) / previousAov) * 100 : 0,
+    },
+  };
+}
+
+/**
+ * Get wishlist engagement metrics
+ */
+export function getWishlistMetrics(
+  startDate: string,
+  endDate: string
+): {
+  totalWishlists: number;
+  totalItems: number;
+  uniqueUsers: number;
+  avgItemsPerWishlist: number;
+  wishlistToOrderRate: number;
+} {
+  const db = new Database(dbPath);
+  
+  try {
+    // Check if wishlist tables exist
+    db.prepare('SELECT 1 FROM wishlists LIMIT 1').get();
+  } catch {
+    db.close();
+    return {
+      totalWishlists: 0,
+      totalItems: 0,
+      uniqueUsers: 0,
+      avgItemsPerWishlist: 0,
+      wishlistToOrderRate: 0,
+    };
+  }
+  
+  const query = `
+    SELECT 
+      COUNT(DISTINCT w.id) as total_wishlists,
+      COUNT(DISTINCT wi.id) as total_items,
+      COUNT(DISTINCT w.user_id) as unique_users,
+      CASE 
+        WHEN COUNT(DISTINCT w.id) > 0 
+        THEN CAST(COUNT(DISTINCT wi.id) AS REAL) / COUNT(DISTINCT w.id)
+        ELSE 0
+      END as avg_items_per_wishlist
+    FROM wishlists w
+    LEFT JOIN wishlist_items wi ON wi.wishlist_id = w.id
+    WHERE w.created_at >= ?
+      AND w.created_at <= ?
+  `;
+  
+  const result = db.prepare(query).get(
+    new Date(startDate).getTime(),
+    new Date(endDate).getTime() + 86400000 // Add 1 day to include end date
+  ) as any;
+  
+  // Calculate wishlist to order conversion rate
+  // This is a simplified version - would need order_items to track wishlist conversions
+  const wishlistToOrderRate = 0; // Placeholder - would need additional tracking
+  
+  db.close();
+  
+  return {
+    totalWishlists: result.total_wishlists || 0,
+    totalItems: result.total_items || 0,
+    uniqueUsers: result.unique_users || 0,
+    avgItemsPerWishlist: Math.round((result.avg_items_per_wishlist || 0) * 100) / 100,
+    wishlistToOrderRate,
+  };
+}
+
+/**
+ * Get workflow performance metrics
+ */
+export function getWorkflowMetrics(
+  startDate: string,
+  endDate: string
+): {
+  totalWorkflows: number;
+  activeWorkflows: number;
+  totalExecutions: number;
+  successfulExecutions: number;
+  failedExecutions: number;
+  avgExecutionTime: number;
+  topWorkflows: Array<{
+    workflowId: string;
+    workflowName: string;
+    executionCount: number;
+    successRate: number;
+  }>;
+} {
+  const db = new Database(dbPath);
+  
+  try {
+    // Check if workflow tables exist
+    db.prepare('SELECT 1 FROM workflows LIMIT 1').get();
+  } catch {
+    db.close();
+    return {
+      totalWorkflows: 0,
+      activeWorkflows: 0,
+      totalExecutions: 0,
+      successfulExecutions: 0,
+      failedExecutions: 0,
+      avgExecutionTime: 0,
+      topWorkflows: [],
+    };
+  }
+  
+  const startTime = new Date(startDate).getTime();
+  const endTime = new Date(endDate).getTime() + 86400000;
+  
+  // Get workflow counts
+  const workflowStats = db.prepare(`
+    SELECT 
+      COUNT(*) as total,
+      SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
+    FROM workflows
+  `).get() as any;
+  
+  // Get execution stats
+  const executionStats = db.prepare(`
+    SELECT 
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful,
+      SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
+      AVG(CASE 
+        WHEN completed_at IS NOT NULL AND started_at IS NOT NULL 
+        THEN completed_at - started_at 
+        ELSE NULL 
+      END) as avg_time
+    FROM workflow_executions
+    WHERE started_at >= ? AND started_at <= ?
+  `).get(startTime, endTime) as any;
+  
+  // Get top workflows by execution count
+  const topWorkflowsQuery = `
+    SELECT 
+      w.id as workflow_id,
+      w.name as workflow_name,
+      COUNT(we.id) as execution_count,
+      SUM(CASE WHEN we.status = 'completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(we.id) as success_rate
+    FROM workflows w
+    LEFT JOIN workflow_executions we ON we.workflow_id = w.id
+      AND we.started_at >= ? AND we.started_at <= ?
+    GROUP BY w.id, w.name
+    HAVING execution_count > 0
+    ORDER BY execution_count DESC
+    LIMIT 10
+  `;
+  
+  const topWorkflows = db.prepare(topWorkflowsQuery).all(startTime, endTime) as any[];
+  
+  db.close();
+  
+  return {
+    totalWorkflows: workflowStats.total || 0,
+    activeWorkflows: workflowStats.active || 0,
+    totalExecutions: executionStats.total || 0,
+    successfulExecutions: executionStats.successful || 0,
+    failedExecutions: executionStats.failed || 0,
+    avgExecutionTime: Math.round((executionStats.avg_time || 0) / 1000), // Convert to seconds
+    topWorkflows: topWorkflows.map(w => ({
+      workflowId: w.workflow_id,
+      workflowName: w.workflow_name,
+      executionCount: w.execution_count,
+      successRate: Math.round((w.success_rate || 0) * 100) / 100,
+    })),
+  };
+}
+
+/**
+ * Get sales by category
+ */
+export function getSalesByCategory(
+  startDate: string,
+  endDate: string
+): Array<{
+  categoryId: string;
+  categoryName: string;
+  orderCount: number;
+  revenue: number;
+  quantitySold: number;
+}> {
+  const db = new Database(dbPath);
+  
+  const query = `
+    SELECT 
+      c.id as category_id,
+      c.name as category_name,
+      COUNT(DISTINCT o.id) as order_count,
+      SUM(oi.total_price) as revenue,
+      SUM(oi.quantity) as quantity_sold
+    FROM order_items oi
+    JOIN orders o ON o.id = oi.order_id
+    LEFT JOIN products p ON p.id = oi.product_id
+    LEFT JOIN categories c ON c.id = p.category_id
+    WHERE o.status IN ('paid', 'shipped', 'completed')
+      AND DATE(o.created_at) >= DATE(?)
+      AND DATE(o.created_at) <= DATE(?)
+      AND c.id IS NOT NULL
+    GROUP BY c.id, c.name
+    ORDER BY revenue DESC
+  `;
+  
+  const results = db.prepare(query).all(startDate, endDate) as any[];
+  db.close();
+  
+  return results.map(r => ({
+    categoryId: r.category_id,
+    categoryName: r.category_name || 'Uncategorized',
+    orderCount: r.order_count || 0,
+    revenue: r.revenue || 0,
+    quantitySold: r.quantity_sold || 0,
+  }));
+}
+
+/**
+ * Get customer lifetime value metrics
+ */
+export function getCustomerLTVMetrics(
+  startDate: string,
+  endDate: string
+): {
+  avgLTV: number;
+  medianLTV: number;
+  topCustomers: Array<{
+    customerId: number;
+    customerName: string;
+    email: string;
+    totalSpent: number;
+    orderCount: number;
+    avgOrderValue: number;
+  }>;
+} {
+  const db = new Database(dbPath);
+  
+  // Get all customers who made purchases in the period
+  const ltvQuery = `
+    SELECT 
+      o.user_id as customer_id,
+      u.name as customer_name,
+      u.email as email,
+      SUM(o.total) as total_spent,
+      COUNT(*) as order_count,
+      AVG(o.total) as avg_order_value
+    FROM orders o
+    LEFT JOIN user u ON u.id = o.user_id
+    WHERE o.status IN ('paid', 'shipped', 'completed')
+      AND DATE(o.created_at) >= DATE(?)
+      AND DATE(o.created_at) <= DATE(?)
+      AND o.user_id IS NOT NULL
+    GROUP BY o.user_id, u.name, u.email
+    ORDER BY total_spent DESC
+  `;
+  
+  const customers = db.prepare(ltvQuery).all(startDate, endDate) as any[];
+  
+  if (customers.length === 0) {
+    db.close();
+    return {
+      avgLTV: 0,
+      medianLTV: 0,
+      topCustomers: [],
+    };
+  }
+  
+  const ltvValues = customers.map(c => c.total_spent || 0).sort((a, b) => a - b);
+  const sum = ltvValues.reduce((acc, val) => acc + val, 0);
+  const avgLTV = sum / ltvValues.length;
+  const medianLTV = ltvValues[Math.floor(ltvValues.length / 2)];
+  
+  db.close();
+  
+  return {
+    avgLTV: Math.round(avgLTV * 100) / 100,
+    medianLTV: Math.round(medianLTV * 100) / 100,
+    topCustomers: customers.slice(0, 10).map(c => ({
+      customerId: c.customer_id,
+      customerName: c.customer_name || 'Unknown',
+      email: c.email || '',
+      totalSpent: c.total_spent || 0,
+      orderCount: c.order_count || 0,
+      avgOrderValue: Math.round((c.avg_order_value || 0) * 100) / 100,
+    })),
+  };
+}
+
+/**
+ * Get hourly sales distribution
+ */
+export function getHourlySalesDistribution(
+  startDate: string,
+  endDate: string
+): Array<{
+  hour: number;
+  orderCount: number;
+  revenue: number;
+}> {
+  const db = new Database(dbPath);
+  
+  const query = `
+    SELECT 
+      CAST(strftime('%H', created_at) AS INTEGER) as hour,
+      COUNT(*) as order_count,
+      SUM(total) as revenue
+    FROM orders
+    WHERE status IN ('paid', 'shipped', 'completed')
+      AND DATE(created_at) >= DATE(?)
+      AND DATE(created_at) <= DATE(?)
+    GROUP BY hour
+    ORDER BY hour
+  `;
+  
+  const results = db.prepare(query).all(startDate, endDate) as any[];
+  db.close();
+  
+  // Fill in missing hours with 0
+  const hourlyData: Array<{ hour: number; orderCount: number; revenue: number }> = [];
+  for (let hour = 0; hour < 24; hour++) {
+    const existing = results.find(r => r.hour === hour);
+    hourlyData.push({
+      hour,
+      orderCount: existing?.order_count || 0,
+      revenue: existing?.revenue || 0,
+    });
+  }
+  
+  return hourlyData;
+}
+

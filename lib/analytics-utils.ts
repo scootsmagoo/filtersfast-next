@@ -267,20 +267,40 @@ export function validateDateRange(startDate: string, endDate: string): { valid: 
 
 /**
  * Export data to CSV format
+ * OWASP: Properly escapes CSV injection characters and special characters
  */
 export function exportToCSV(data: any[], filename: string): string {
   if (data.length === 0) return '';
   
+  // OWASP: Sanitize filename to prevent path traversal
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  
   const headers = Object.keys(data[0]);
+  
+  // OWASP: Escape CSV injection characters (=, +, -, @, tab, carriage return)
+  const escapeCSVValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    
+    const str = String(value);
+    
+    // OWASP: Prevent CSV injection by escaping dangerous characters at start
+    const dangerousStartChars = ['=', '+', '-', '@', '\t', '\r'];
+    const needsEscaping = dangerousStartChars.some(char => str.startsWith(char));
+    
+    // Escape quotes by doubling them, wrap in quotes if contains comma, quote, or newline
+    let escaped = str.replace(/"/g, '""');
+    
+    if (needsEscaping || escaped.includes(',') || escaped.includes('"') || escaped.includes('\n') || escaped.includes('\r')) {
+      escaped = `"${escaped}"`;
+    }
+    
+    return escaped;
+  };
+  
   const csvRows = [
-    headers.join(','),
+    headers.map(escapeCSVValue).join(','),
     ...data.map(row => 
-      headers.map(header => {
-        const value = row[header];
-        return typeof value === 'string' && value.includes(',') 
-          ? `"${value}"` 
-          : value;
-      }).join(',')
+      headers.map(header => escapeCSVValue(row[header])).join(',')
     ),
   ];
   
