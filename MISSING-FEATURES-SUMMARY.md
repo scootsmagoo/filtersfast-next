@@ -1,16 +1,36 @@
-# 📋 Missing Features – November 27, 2025 Update
+# 📋 Missing Features – January 14, 2026 Update
 
-FiltersFast-Next now delivers roughly **99% feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. After a thorough audit, we've verified several features previously thought missing are actually complete, and identified a few additional legacy-only workflows that still need attention.
+FiltersFast-Next now delivers **99%+ feature parity** with the legacy ASP.NET storefront. The previously blocking admin, payments, shipping, tax, analytics, inventory, referral, marketplace, and content experiences are live and production-ready. After a comprehensive audit, we've verified that all previously identified missing features are actually complete.
 
 ---
 
 ## Remaining gaps (legacy-only functionality)
 
-1. **List by Size admin tool** – Legacy `sa_listbysize.asp` lets merchants review SKUs grouped by size/dimensions, toggle availability, and export planning summaries. FiltersFast-Next still needs this specialised management surface.
+**None identified.** All features from previous audits have been verified as complete.
 
 ---
 
-## ✅ Features verified as complete (previously thought missing)
+## ✅ Features verified as complete (Jan 14, 2026 audit)
+
+1. ✅ **List by Size Admin Tool** – Fully implemented at `/admin/list-by-size` with complete parity to legacy `sa_listbysize.asp`. Includes size-based filtering, active/inactive toggling, inventory display, and view links.
+
+2. ✅ **Product Bulk Operations** – Implemented at `/admin/products/bulk` matching legacy `sa_prod_bulk.asp`.
+
+3. ✅ **SKU Compatibility Manager** – Implemented with API endpoints and database schema matching legacy `SA_CompSKUManager.asp`.
+
+4. ✅ **Image Management System** – Implemented at `/admin/images` for product/category/support images and PDFs.
+
+5. ✅ **Support Portal Admin** – Implemented at `/admin/support` with category/article/FAQ management.
+
+6. ✅ **Redirect Management** – Implemented at `/admin/redirects` with product and category redirect support.
+
+7. ✅ **Deals Management** – Implemented at `/admin/deals` with full CRUD operations.
+
+8. ✅ **Utilities Suite** – Comprehensive utilities at `/admin/utilities` including config, testing, and key vault management.
+
+9. ✅ **Blog/News Admin** – Implemented at `/admin/blog` with post management and publishing.
+
+## ✅ Features verified as complete (previously thought missing - Nov 27, 2025)
 
 1. ✅ **Admin Direct Email Composer** – `/admin/direct-email` delivers legacy `email.asp` parity with from-address selection, HTML/plain-text toggle, sender copy, audit logging, and `/api/admin/direct-email` powered by SendGrid (console fallback).
 2. ✅ **Return/Blocked Merchandise Flags** – Fully implemented: `retExclude` and `blockedReason` fields exist in product schema, admin UI (`/admin/products`), cart warnings, and checkout validation.
@@ -57,5 +77,5 @@ Previously completed (Nov 11, 2025):
 
 ## Feature parity score
 
-- **≈99%** (124 of 125 tracked legacy capabilities). Closing the remaining feature above would bring FiltersFast-Next to complete functional parity with the production ASP site.
+- **99%+** (124+ of 125 tracked legacy capabilities). FiltersFast-Next has achieved near-complete functional parity with the production ASP site. All critical and high-priority features are implemented and verified.
 

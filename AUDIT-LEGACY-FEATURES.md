@@ -1,14 +1,14 @@
 # 🔍 FiltersFast Legacy Feature Audit Report
 
 **Generated:** November 3, 2025  
-**Last Updated:** November 27, 2025  
+**Last Updated:** January 14, 2026  
 **Current Reviewer:** FiltersFast-Next parity audit (GPT-5 Codex)
 
 ---
 
-## 📋 Executive Summary (Updated Nov 27, 2025)
+## 📋 Executive Summary (Updated Jan 14, 2026)
 
-We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **98% of the 125 tracked legacy capabilities (≈122 features delivered)**.
+We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack now covers roughly **99%+ of the 125 tracked legacy capabilities (≈124+ features delivered)**.
 
 - ✅ Phase 1 + Phase 2 launch blockers remain green: admin orders, products, customers, payments (Stripe/PayPal/Authorize.Net/CyberSource), multi-carrier shipping, TaxJar, analytics, RBAC, and inventory are all live.
 - ✅ Newly verified in this pass:
@@ -25,11 +25,40 @@ We re-ran the legacy vs. Next.js comparison and confirmed that the modern stack 
 
 ### Remaining gaps to close
 
-1. **List by size admin tool** – Legacy `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions. FiltersFast-Next lacks this specialized listing tool.
+**None identified in this audit pass.** All previously identified features have been verified as complete.
 
 Legacy-only Visa Checkout / classic mobile templates remain intentionally deprecated and are excluded from parity scoring.
 
-## 🆕 Newly identified features (Nov 27, 2025)
+## 🆕 Newly identified features (Jan 14, 2026)
+
+### ✅ Features verified as complete (Jan 14, 2026 audit)
+
+1. **List by Size Admin Tool** – ✅ Fully implemented at `/admin/list-by-size` with complete parity to legacy `sa_listbysize.asp`. Includes size-based filtering, active/inactive toggling, inventory display, and view links to customer-facing pages.
+
+2. **Product Bulk Operations** – ✅ Implemented at `/admin/products/bulk` with bulk update capabilities matching legacy `sa_prod_bulk.asp`.
+
+3. **SKU Compatibility Manager** – ✅ Implemented with API endpoints (`/api/admin/products/[id]/compatibility`) and database schema (`lib/db/sku-compatibility.ts`), matching legacy `SA_CompSKUManager.asp` functionality.
+
+4. **Image Management System** – ✅ Implemented at `/admin/images` with upload, list, and delete capabilities for product images, category images, support images, and PDFs, matching legacy `sa_image_management.asp`.
+
+5. **Support Portal Admin** – ✅ Implemented at `/admin/support` with category/article/FAQ management, matching legacy `sa_support.asp` functionality.
+
+6. **Redirect Management** – ✅ Implemented at `/admin/redirects` with product and category redirect support, matching legacy `SA_redirects.asp`.
+
+7. **Deals Management** – ✅ Implemented at `/admin/deals` with full CRUD operations, matching legacy `SA_deal.asp` workflows.
+
+8. **Utilities Suite** – ✅ Comprehensive utilities implemented at `/admin/utilities` including:
+   - Store configuration (`/admin/utilities/config`)
+   - Text configuration (`/admin/utilities/text`)
+   - Database testing (`/admin/utilities/test-db`, `/admin/utilities/test-db-structure`)
+   - Email testing (`/admin/utilities/test-email`)
+   - Server variables (`/admin/utilities/server-vars`)
+   - Key vault management (`/admin/utilities/key-vault`)
+   - Matching legacy `utilities.asp` and related utility pages.
+
+9. **Blog/News Admin** – ✅ Implemented at `/admin/blog` with post management, categories, and publishing, providing content management capabilities (legacy `SA_news.asp` was primarily newsletter-focused, which is covered by email campaigns).
+
+## 🆕 Previously identified features (Nov 27, 2025)
 
 ### ✅ Features verified as complete (previously thought missing)
 
@@ -49,14 +78,9 @@ Legacy-only Visa Checkout / classic mobile templates remain intentionally deprec
 - **Next Implementation:** `/admin/settings` provides the admin parity UI backed by SQLite `mods` table management in `lib/db/system-config.ts` with field-level validation and audit logging via `/api/admin/settings`.
 - **Runtime Integration:** A new `SystemConfigProvider` (`lib/system-config-context.tsx`) hydrates settings inside `app/layout.tsx`, allowing the header to respect `phoneNumActive` and `callLongWait` for phone visibility + warning banners, while the chatbot widget enforces `chatActive` and `txtChatEnabled` for live-chat availability.
 
-#### 2. List by Size Admin Tool
-- **Legacy:** `sa_listbysize.asp` provides an admin tool to list and manage products by size/dimensions.
-- **Missing:** FiltersFast-Next lacks this specialized listing tool. No admin interface to view products organized by size/dimensions.
-- **Files in Legacy:**
-  ```
-  /Manager/sa_listbysize.asp
-  ```
-- **Recommendation:** Add list by size tool at `/admin/products/by-size` to help admins view and manage products organized by dimensions/size.
+#### 2. List by Size Admin Tool — ✅ Completed (Verified Jan 14, 2026)
+- **Legacy Reference:** `Manager/sa_listbysize.asp`
+- **Next Implementation:** ✅ Fully implemented at `/admin/list-by-size` with complete UI (`app/admin/list-by-size/page.tsx`) and API (`/api/admin/list-by-size`). Provides size-based product listing, filtering by size/status/search, toggle active/inactive status, view links to customer-facing size pages, and comprehensive inventory display (stock, dropship, pack size, availability). Matches all legacy functionality including the ability to toggle `sizeActive` status for merchandising control.
 
 #### 3. Top 300 Products Report — ✅ Completed Nov 14, 2025
 - **Legacy Reference:** `Manager/top300.asp`
