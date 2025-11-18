@@ -18,6 +18,8 @@ import ProductOptions from '@/components/products/ProductOptions';
 import type { ProductOptionGroupWithOptions, ProductOptionWithInventory } from '@/lib/types/product';
 import BackorderNotify from '@/components/products/BackorderNotify';
 import GiftCardPurchaseForm from '@/components/gift-card/GiftCardPurchaseForm';
+import ProductRecommendations from '@/components/products/ProductRecommendations';
+import FrequentlyBoughtTogether from '@/components/products/FrequentlyBoughtTogether';
 
 // Mock product data (in production, this would come from an API)
 type ProductDetailProduct = SearchableProduct & {
@@ -870,8 +872,29 @@ export default function ProductDetailPage() {
     if (productId) {
       loadProduct(productId);
       loadProductOptions(productId);
+      trackProductView(productId);
     }
   }, [productId]);
+
+  // Track product view for recommendations
+  const trackProductView = async (id: string) => {
+    try {
+      const referrer = typeof window !== 'undefined' ? document.referrer : null;
+      const sourceType = referrer ? 'referral' : 'direct';
+      
+      await fetch('/api/recommendations/track-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: id,
+          referrerUrl: referrer || undefined,
+          sourceType,
+        }),
+      });
+    } catch (error) {
+      console.error('Error tracking product view:', error);
+    }
+  };
 
   useEffect(() => {
     const blogParam = searchParams.get('blog');
@@ -1602,6 +1625,21 @@ export default function ProductDetailPage() {
               </Card>
             )}
           </div>
+        </div>
+
+        {/* Frequently Bought Together */}
+        <div className="mt-16">
+          <FrequentlyBoughtTogether productId={(product.productId || product.id).toString()} />
+        </div>
+
+        {/* Product Recommendations */}
+        <div className="mt-12">
+          <ProductRecommendations
+            productId={(product.productId || product.id).toString()}
+            title="You May Also Like"
+            limit={8}
+            layout="grid"
+          />
         </div>
 
         {/* Customer Reviews Section */}

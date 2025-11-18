@@ -35,6 +35,7 @@
     "init:analytics": "tsx scripts/init-analytics.ts",
     "init:search-analytics": "tsx scripts/init-search-analytics.ts",
     "init:subscriptions": "tsx scripts/init-subscriptions.ts",
+    "init:product-recommendations": "tsx scripts/init-product-recommendations.ts",
     "init:partners": "tsx scripts/init-partners.ts",
     "init:admin-roles": "tsx scripts/init-admin-roles.ts",
     "init:inventory": "tsx scripts/init-inventory-simple.ts",

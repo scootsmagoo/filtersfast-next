@@ -213,6 +213,20 @@ export function createOrder(data: CreateOrderRequest): Order {
     performed_by_name: data.is_guest ? 'Guest' : data.customer_name,
   })
 
+  // Track co-purchases for recommendations (only if order has multiple products)
+  if (data.items.length > 1) {
+    try {
+      const { recordCoPurchase } = require('./product-recommendations')
+      const productIds = data.items.map(item => item.product_id).filter(Boolean)
+      if (productIds.length > 1) {
+        recordCoPurchase(productIds)
+      }
+    } catch (error) {
+      // Silently fail - recommendations are not critical for order creation
+      console.error('Error recording co-purchases:', error)
+    }
+  }
+
   const order = getOrder(order_id)
   if (!order) {
     throw new Error('Failed to create order')
