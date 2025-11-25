@@ -19,20 +19,25 @@ const IMAGE_TYPE_LABELS: Record<ImageType, string> = {
 export default function ImageManagementPage() {
   const [activeTab, setActiveTab] = useState<ImageType>('product')
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
+  const [uploadCount, setUploadCount] = useState(0)
   const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0)
 
   const handleUploadSuccess = (filename: string, url: string) => {
     setUploadSuccess(filename)
-    // Refresh gallery after a short delay
+    setUploadCount(prev => prev + 1)
+    // Refresh gallery after a short delay (debounce multiple uploads)
     setTimeout(() => {
       setUploadSuccess(null)
+      setUploadCount(0)
       setGalleryRefreshTrigger(prev => prev + 1)
-    }, 1500)
+    }, 2000)
   }
 
   const handleUploadError = (error: string) => {
-    // Note: Using alert() for simplicity. In production, consider a toast notification component
-    window.alert(`Upload failed: ${error}`)
+    // WCAG: Better error handling - don't use alert() as it's not accessible
+    // Error is already displayed in the ImageUploader component with proper ARIA
+    // This callback can be used for logging or other side effects
+    console.error('Upload error:', error)
   }
 
   return (
@@ -87,7 +92,10 @@ export default function ImageManagementPage() {
           <Check className="w-5 h-5 text-green-600 dark:text-green-400" aria-hidden="true" />
           <div>
             <p className="text-green-800 dark:text-green-200 font-medium">
-              Successfully uploaded {uploadSuccess}
+              {uploadCount > 1 
+                ? `Successfully uploaded ${uploadCount} files (latest: ${uploadSuccess})`
+                : `Successfully uploaded ${uploadSuccess}`
+              }
             </p>
             <p className="text-sm text-green-600 dark:text-green-400">
               The image gallery will refresh automatically

@@ -31,6 +31,45 @@ const IMAGE_TYPES = {
 
 type ImageType = keyof typeof IMAGE_TYPES
 
+// OWASP: Magic byte validation function to detect file type by content
+function validateFileMagicBytes(buffer: Buffer, extension: string): boolean {
+  if (buffer.length < 4) return false
+  
+  // JPEG: FF D8 FF (minimum 3 bytes)
+  if (extension === '.jpg' || extension === '.jpeg') {
+    return buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF
+  }
+  
+  // PNG: 89 50 4E 47 0D 0A 1A 0A (minimum 8 bytes)
+  if (extension === '.png') {
+    return buffer.length >= 8 &&
+           buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47 &&
+           buffer[4] === 0x0D && buffer[5] === 0x0A && buffer[6] === 0x1A && buffer[7] === 0x0A
+  }
+  
+  // GIF: 47 49 46 38 (GIF8) or 47 49 46 39 (GIF9) (minimum 4 bytes)
+  if (extension === '.gif') {
+    return buffer.length >= 4 &&
+           buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 &&
+           (buffer[3] === 0x38 || buffer[3] === 0x39)
+  }
+  
+  // WebP: RIFF...WEBP (minimum 12 bytes)
+  if (extension === '.webp') {
+    if (buffer.length < 12) return false
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+           buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50
+  }
+  
+  // PDF: %PDF (minimum 4 bytes)
+  if (extension === '.pdf') {
+    return buffer.length >= 4 &&
+           buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46
+  }
+  
+  return false
+}
+
 export const POST = requirePermissionWithAudit(
   'ProductImages',
   PERMISSION_LEVEL.FULL_CONTROL,
@@ -143,6 +182,15 @@ export const POST = requirePermissionWithAudit(
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     
+    // OWASP: Validate file content using magic bytes (file signature)
+    const isValidFileType = validateFileMagicBytes(buffer, fileExtension)
+    if (!isValidFileType) {
+      return NextResponse.json(
+        { error: 'Invalid file type. File content does not match extension.' },
+        { status: 400 }
+      )
+    }
+    
     // Security: Validate file content matches extension (basic MIME type check)
     const fileType = file.type.toLowerCase()
     
@@ -185,9 +233,17 @@ export const POST = requirePermissionWithAudit(
 
   } catch (error: any) {
     console.error('Error uploading image:', error)
-    // Don't expose internal error details to client
+    // OWASP: Don't expose internal error details to client
+    // Log full error server-side but return generic message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    if (errorMessage.includes('ENOSPC') || errorMessage.includes('space')) {
+      return NextResponse.json(
+        { error: 'Insufficient storage space. Please contact administrator.' },
+        { status: 507 }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+      { error: 'Failed to upload image. Please try again.' },
       { status: 500 }
     )
   }
