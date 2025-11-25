@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Button from '@/components/ui/Button'
-import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw } from 'lucide-react'
+import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ImageFile {
   name: string
@@ -21,6 +21,15 @@ interface ImageGalleryProps {
   refreshTrigger?: number // Trigger refresh when this changes
 }
 
+interface PaginationInfo {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
 export default function ImageGallery({
   type,
   onSelect,
@@ -34,21 +43,69 @@ export default function ImageGallery({
   const [deleting, setDeleting] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [deleteStatus, setDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [page, setPage] = useState(0)
+  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo | null>(null)
+  const [isSearchMode, setIsSearchMode] = useState(false)
   const deleteButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
 
   useEffect(() => {
-    loadImages()
+    // Reset to page 0 when type changes
+    setPage(0)
+    setIsSearchMode(false)
+    // Use preview mode for initial load (faster)
+    loadImages(0, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, refreshTrigger])
 
-  const loadImages = async () => {
+  // Load images when page changes (but not in search mode)
+  useEffect(() => {
+    if (!isSearchMode && page > 0) {
+      // Use full pagination when navigating pages
+      loadImages(page, false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
+
+  const loadImages = async (pageNum: number = page, usePreview: boolean = false) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/admin/images/list?type=${type}&preview=1`)
+      // Use preview mode for initial load (page 0), full pagination otherwise
+      const url = usePreview && pageNum === 0
+        ? `/api/admin/images/list?type=${type}&preview=1`
+        : `/api/admin/images/list?type=${type}&page=${pageNum}&limit=300`
+      
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.success) {
         setImages(data.images || [])
+        
+        // Set pagination info (API always provides it now)
+        const newPaginationInfo = {
+          total: data.total || 0,
+          page: data.page ?? pageNum,
+          limit: data.limit || 300,
+          totalPages: data.totalPages || 1,
+          hasNextPage: data.hasNextPage || false,
+          hasPreviousPage: data.hasPreviousPage || false
+        }
+        setPaginationInfo(newPaginationInfo)
+        
+        // WCAG: Announce page change to screen readers
+        if (pageNum > 0 || !usePreview) {
+          setTimeout(() => {
+            const statusEl = document.getElementById('pagination-status')
+            if (statusEl) {
+              statusEl.textContent = `Page ${newPaginationInfo.page + 1} of ${newPaginationInfo.totalPages}`
+            }
+          }, 100)
+        }
+      } else {
+        // Handle API errors
+        setDeleteStatus({ 
+          type: 'error', 
+          message: data.error || 'Failed to load images. Please try again.' 
+        })
       }
     } catch (error) {
       console.error('Error loading images:', error)
@@ -84,7 +141,7 @@ export default function ImageGallery({
         setDeleteStatus({ type: 'success', message: `Successfully deleted ${filename}` })
         
         // Reload images to ensure consistency
-        await loadImages()
+        await loadImages(page, isSearchMode ? false : (page === 0))
         
         if (selectedImage === filename) {
           setSelectedImage(null)
@@ -149,9 +206,172 @@ export default function ImageGallery({
     })
   }
 
+  // Load all images for search (matching legacy behavior)
+  // OWASP: Limit to max 10 pages (3000 images) to prevent DoS
+  const MAX_SEARCH_PAGES = 10
+  const loadAllImages = async () => {
+    try {
+      setLoading(true)
+      // Load first page to get total count
+      const firstPageResponse = await fetch(`/api/admin/images/list?type=${type}&page=0&limit=300`)
+      const firstPageData = await firstPageResponse.json()
+      
+      if (firstPageData.success) {
+        if (firstPageData.totalPages > 1 && firstPageData.totalPages <= MAX_SEARCH_PAGES) {
+          // Load all pages in parallel (limited to prevent DoS)
+          const pagePromises = []
+          for (let p = 0; p < firstPageData.totalPages; p++) {
+            pagePromises.push(
+              fetch(`/api/admin/images/list?type=${type}&page=${p}&limit=300`)
+                .then(res => {
+                  if (!res.ok) {
+                    throw new Error(`Failed to load page ${p}`)
+                  }
+                  return res.json()
+                })
+                .catch(error => {
+                  console.error(`Error loading page ${p}:`, error)
+                  return { success: false, images: [] }
+                })
+            )
+          }
+          
+          const allPagesData = await Promise.all(pagePromises)
+          const allImages: ImageFile[] = []
+          allPagesData.forEach(pageData => {
+            if (pageData.success) {
+              allImages.push(...(pageData.images || []))
+            }
+          })
+          
+          setImages(allImages)
+        } else if (firstPageData.totalPages > MAX_SEARCH_PAGES) {
+          // Too many pages - show warning and limit to first MAX_SEARCH_PAGES
+          console.warn(`Too many images for search. Limiting to first ${MAX_SEARCH_PAGES * 300} images.`)
+          const pagePromises = []
+          for (let p = 0; p < MAX_SEARCH_PAGES; p++) {
+            pagePromises.push(
+              fetch(`/api/admin/images/list?type=${type}&page=${p}&limit=300`)
+                .then(res => res.json())
+                .catch(() => ({ success: false, images: [] }))
+            )
+          }
+          const limitedPagesData = await Promise.all(pagePromises)
+          const limitedImages: ImageFile[] = []
+          limitedPagesData.forEach(pageData => {
+            if (pageData.success) {
+              limitedImages.push(...(pageData.images || []))
+            }
+          })
+          setImages(limitedImages)
+        } else {
+          // Only one page, use that
+          setImages(firstPageData.images || [])
+        }
+      }
+    } catch (error) {
+      console.error('Error loading all images:', error)
+      setDeleteStatus({ 
+        type: 'error', 
+        message: 'Failed to load images for search. Please try again.' 
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle search - when searching, show all results (no pagination like legacy)
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+    setIsSearchMode(query.length > 0)
+    if (query.length > 0) {
+      // Load all images for search (matching legacy behavior)
+      loadAllImages()
+    } else {
+      // Return to paginated view
+      setPage(0)
+      loadImages(0, true) // Use preview mode for faster initial load
+    }
+  }
+
   const filteredImages = images.filter(img =>
     img.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  // Pagination handlers with WCAG improvements
+  const handlePreviousPage = () => {
+    if (paginationInfo?.hasPreviousPage) {
+      const newPage = Math.max(0, page - 1)
+      setPage(newPage)
+      // WCAG: Focus management - scroll and focus on gallery
+      setTimeout(() => {
+        const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+        if (gallery) {
+          gallery.focus()
+          gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (paginationInfo?.hasNextPage) {
+      const newPage = page + 1
+      setPage(newPage)
+      // WCAG: Focus management - scroll and focus on gallery
+      setTimeout(() => {
+        const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+        if (gallery) {
+          gallery.focus()
+          gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  // WCAG: Keyboard shortcuts for pagination
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not typing in input
+      if (e.target instanceof HTMLInputElement) return
+      
+      if (e.key === 'ArrowLeft' && paginationInfo?.hasPreviousPage) {
+        e.preventDefault()
+        const newPage = Math.max(0, page - 1)
+        setPage(newPage)
+        setTimeout(() => {
+          const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+          if (gallery) {
+            gallery.focus()
+            gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      } else if (e.key === 'ArrowRight' && paginationInfo?.hasNextPage) {
+        e.preventDefault()
+        const newPage = page + 1
+        setPage(newPage)
+        setTimeout(() => {
+          const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+          if (gallery) {
+            gallery.focus()
+            gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      }
+    }
+
+    if (!isSearchMode && paginationInfo && paginationInfo.totalPages > 1) {
+      window.addEventListener('keydown', handleKeyDown)
+      return () => window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [page, paginationInfo, isSearchMode])
+
+  const handleReturnToListings = () => {
+    setSearchQuery('')
+    setIsSearchMode(false)
+    setPage(0)
+    loadImages(0, true) // Use preview mode for faster load
+  }
 
   if (loading) {
     return (
@@ -176,7 +396,7 @@ export default function ImageGallery({
             type="text"
             placeholder="Search images..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Search images by filename"
           />
@@ -206,7 +426,12 @@ export default function ImageGallery({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" role="list" aria-label="Image gallery">
+        <div 
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" 
+          role="list" 
+          aria-label="Image gallery"
+          tabIndex={-1}
+        >
           {filteredImages.map((image, index) => (
             <div
               key={image.name}
@@ -333,10 +558,89 @@ export default function ImageGallery({
         </div>
       )}
 
+      {/* Pagination Controls (matching legacy FileManager behavior) */}
+      {!isSearchMode && paginationInfo && paginationInfo.totalPages > 1 && (
+        <nav 
+          className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4" 
+          role="navigation" 
+          aria-label="Pagination navigation"
+        >
+          <div className="flex items-center gap-2">
+            {/* WCAG: Use disabled button instead of span for better accessibility */}
+            <Button
+              onClick={handlePreviousPage}
+              variant="outline"
+              size="sm"
+              disabled={!paginationInfo.hasPreviousPage}
+              aria-label={`Previous page${paginationInfo.hasPreviousPage ? '' : ' (disabled)'}`}
+              aria-disabled={!paginationInfo.hasPreviousPage}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" aria-hidden="true" />
+              Previous Page
+            </Button>
+          </div>
+          
+          {/* WCAG: Update aria-live when page changes */}
+          <div 
+            className="text-sm text-gray-600 dark:text-gray-400" 
+            role="status" 
+            aria-live="polite"
+            aria-atomic="true"
+            id="pagination-status"
+          >
+            Page {paginationInfo.page + 1} of {paginationInfo.totalPages}
+            {paginationInfo.total > 0 && (
+              <span className="ml-2" aria-label={`Total of ${paginationInfo.total} images`}>
+                ({paginationInfo.total} total images)
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* WCAG: Use disabled button instead of span for better accessibility */}
+            <Button
+              onClick={handleNextPage}
+              variant="outline"
+              size="sm"
+              disabled={!paginationInfo.hasNextPage}
+              aria-label={`Next page${paginationInfo.hasNextPage ? '' : ' (disabled)'}`}
+              aria-disabled={!paginationInfo.hasNextPage}
+            >
+              Next Page
+              <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
+            </Button>
+          </div>
+          
+          {/* WCAG: Keyboard shortcut hint for screen readers */}
+          <div className="sr-only" aria-live="polite">
+            Use left and right arrow keys to navigate pages
+          </div>
+        </nav>
+      )}
+
+      {/* Return to Listings (when in search mode, matching legacy) */}
+      {isSearchMode && (
+        <div className="mt-6 flex items-center justify-center border-t border-gray-200 dark:border-gray-700 pt-4">
+          <Button
+            onClick={handleReturnToListings}
+            variant="outline"
+            size="sm"
+            aria-label="Return to paginated listings"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" aria-hidden="true" />
+            Return to Listings
+          </Button>
+        </div>
+      )}
+
       {/* Image Count */}
       {filteredImages.length > 0 && (
         <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center" role="status" aria-live="polite">
-          Showing {filteredImages.length} of {images.length} images
+          {isSearchMode ? (
+            <>Showing {filteredImages.length} {filteredImages.length === 1 ? 'result' : 'results'}</>
+          ) : (
+            <>Showing {filteredImages.length} of {paginationInfo?.total || images.length} images</>
+          )}
         </div>
       )}
     </div>
