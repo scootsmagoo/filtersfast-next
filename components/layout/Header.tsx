@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle, Heart } from 'lucide-react';
+import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle, Heart, Scale } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
 import { useWishlist } from '@/lib/wishlist-context';
+import { useComparison } from '@/lib/comparison-context';
 import { useSession } from '@/lib/auth-client';
 import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
@@ -22,6 +23,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
+  const { comparisonProducts } = useComparison();
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
   const router = useRouter();
@@ -213,6 +215,21 @@ export default function Header() {
                 Sign In
               </Link>
             )}
+            <Link 
+              href="/compare" 
+              className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-label={`Compare ${comparisonProducts.length} products`}
+            >
+              <Scale className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors" />
+              {comparisonProducts.length > 0 && (
+                <span 
+                  className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  aria-label={`${comparisonProducts.length} products in comparison`}
+                >
+                  {comparisonProducts.length}
+                </span>
+              )}
+            </Link>
             <Link 
               href="/wishlist" 
               className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"

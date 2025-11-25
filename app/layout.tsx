@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import ScrollToTopOnMount from "@/components/layout/ScrollToTopOnMount";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
+import { ComparisonProvider } from "@/lib/comparison-context";
 import ScreenReaderAnnouncements from "@/components/ui/ScreenReaderAnnouncements";
 import { StatusAnnouncementProvider } from "@/components/ui/StatusAnnouncementProvider";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
@@ -148,42 +149,44 @@ export default async function RootLayout({
                 <CurrencyProvider initialCurrency={initialCurrency}>
                   <CartProvider>
                     <WishlistProvider>
-              <CurrencyDetectionNotice
-                serverHint={serverCurrencyHint}
-                serverCountry={serverCountry}
-              />
-              {/* Skip Links */}
-              <a 
-                href="#main-content" 
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-orange text-white px-4 py-2 rounded z-50"
-              >
-                Skip to main content
-              </a>
-              <a 
-                href="#main-navigation" 
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-32 bg-brand-orange text-white px-4 py-2 rounded z-50"
-              >
-                Skip to navigation
-              </a>
-              
-              <ScrollToTopOnMount />
-              <Suspense fallback={null}>
-                <ReferralTracker />
-              </Suspense>
-              <Header />
-              <main id="main-content" className="min-h-screen bg-white dark:bg-gray-900 transition-colors" role="main">
-                {children}
-              </main>
-              <Footer />
-              <CookieBanner
-                initialConsent={
-                  consentCookie === 'all' || consentCookie === 'necessary' ? consentCookie : null
-                }
-              />
-              <ScreenReaderAnnouncements />
-              <ChatbotWidget />
-              <PWAServiceWorker />
-              <PWAInstallPrompt />
+                      <ComparisonProvider>
+                        <CurrencyDetectionNotice
+                          serverHint={serverCurrencyHint}
+                          serverCountry={serverCountry}
+                        />
+                        {/* Skip Links */}
+                        <a 
+                          href="#main-content" 
+                          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-brand-orange text-white px-4 py-2 rounded z-50"
+                        >
+                          Skip to main content
+                        </a>
+                        <a 
+                          href="#main-navigation" 
+                          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-32 bg-brand-orange text-white px-4 py-2 rounded z-50"
+                        >
+                          Skip to navigation
+                        </a>
+                        
+                        <ScrollToTopOnMount />
+                        <Suspense fallback={null}>
+                          <ReferralTracker />
+                        </Suspense>
+                        <Header />
+                        <main id="main-content" className="min-h-screen bg-white dark:bg-gray-900 transition-colors" role="main">
+                          {children}
+                        </main>
+                        <Footer />
+                        <CookieBanner
+                          initialConsent={
+                            consentCookie === 'all' || consentCookie === 'necessary' ? consentCookie : null
+                          }
+                        />
+                        <ScreenReaderAnnouncements />
+                        <ChatbotWidget />
+                        <PWAServiceWorker />
+                        <PWAInstallPrompt />
+                      </ComparisonProvider>
                     </WishlistProvider>
                   </CartProvider>
                 </CurrencyProvider>

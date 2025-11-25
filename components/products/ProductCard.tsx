@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Price, Savings } from './Price';
 import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
 import SocialProofBadge from './SocialProofBadge';
+import ComparisonButton from './ComparisonButton';
 
 interface Product {
   id: number;
@@ -27,6 +28,11 @@ interface Product {
   retExclude?: 0 | 1 | 2;
   blockedReason?: string | null;
   isBlocked?: boolean;
+  category?: string;
+  description?: string;
+  specifications?: Record<string, string>;
+  compatibility?: string[];
+  partNumbers?: string[];
 }
 
 interface ProductCardProps {
@@ -121,6 +127,28 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                   -{discount}%
                 </div>
               )}
+              <div className="absolute top-2 left-2 z-10">
+                <ComparisonButton
+                  product={{
+                    id: product.id.toString(),
+                    name: product.name,
+                    brand: product.brand,
+                    sku: product.sku,
+                    price: product.price,
+                    originalPrice: product.originalPrice,
+                    rating: product.rating,
+                    reviewCount: product.reviewCount,
+                    image: product.image,
+                    inStock: product.inStock,
+                    category: product.category || 'other',
+                    description: product.description,
+                    specifications: product.specifications,
+                    compatibility: product.compatibility,
+                    partNumbers: product.partNumbers,
+                  }}
+                  variant="icon"
+                />
+              </div>
               <img
                 src={product.image}
                 alt={`${product.name} - ${product.brand} filter`}
@@ -247,11 +275,6 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
     <Card className="group overflow-hidden flex flex-col h-full">
       {/* Image */}
       <div className="aspect-square bg-brand-gray-100 dark:bg-gray-700 relative overflow-hidden flex-shrink-0 transition-colors">
-        {discount > 0 && (
-          <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full font-bold text-sm z-10">
-            -{discount}%
-          </div>
-        )}
         {product.badges && (
           <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
             {product.badges.slice(0, 2).map((badge) => (
@@ -264,6 +287,34 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
             ))}
           </div>
         )}
+        {/* Right side: Discount badge and Comparison button stacked */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 items-end z-10">
+          {discount > 0 && (
+            <div className="bg-red-500 text-white px-3 py-1 rounded-full font-bold text-sm">
+              -{discount}%
+            </div>
+          )}
+          <ComparisonButton
+            product={{
+              id: product.id.toString(),
+              name: product.name,
+              brand: product.brand,
+              sku: product.sku,
+              price: product.price,
+              originalPrice: product.originalPrice,
+              rating: product.rating,
+              reviewCount: product.reviewCount,
+              image: product.image,
+              inStock: product.inStock,
+              category: product.category || 'other',
+              description: product.description,
+              specifications: product.specifications,
+              compatibility: product.compatibility,
+              partNumbers: product.partNumbers,
+            }}
+            variant="icon"
+          />
+        </div>
         <div className="absolute inset-0 flex items-center justify-center text-brand-gray-400 dark:text-gray-500 transition-colors">
           Product Image
         </div>

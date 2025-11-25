@@ -22,6 +22,7 @@ import ProductRecommendations from '@/components/products/ProductRecommendations
 import FrequentlyBoughtTogether from '@/components/products/FrequentlyBoughtTogether';
 import WishlistButton from '@/components/wishlist/WishlistButton';
 import SocialProofBadge from '@/components/products/SocialProofBadge';
+import ComparisonButton from '@/components/products/ComparisonButton';
 
 // Mock product data (in production, this would come from an API)
 type ProductDetailProduct = SearchableProduct & {
@@ -1388,11 +1389,35 @@ export default function ProductDetailPage() {
                     </div>
                   )}
                 </div>
-                <WishlistButton
-                  productId={product.productId ? product.productId.toString() : product.id.toString()}
-                  variant="icon"
-                  size="lg"
-                />
+                <div className="flex items-center gap-2">
+                  <WishlistButton
+                    productId={product.productId ? product.productId.toString() : product.id.toString()}
+                    variant="icon"
+                    size="lg"
+                  />
+                  <ComparisonButton
+                    product={{
+                      id: product.productId ? product.productId.toString() : product.id.toString(),
+                      productId: product.productId ? product.productId.toString() : undefined,
+                      name: product.name,
+                      brand: product.brand,
+                      sku: product.sku,
+                      price: product.price,
+                      originalPrice: product.originalPrice,
+                      rating: product.rating,
+                      reviewCount: product.reviewCount,
+                      image: product.image,
+                      inStock: product.inStock,
+                      category: product.category,
+                      description: product.description,
+                      specifications: product.specifications,
+                      compatibility: product.compatibility,
+                      partNumbers: product.partNumbers,
+                    }}
+                    variant="icon"
+                    size="lg"
+                  />
+                </div>
               </div>
             </div>
 
