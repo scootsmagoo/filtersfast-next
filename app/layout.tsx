@@ -21,6 +21,8 @@ import { isValidCurrency, parseCurrencyFromHeaders } from "@/lib/currency-utils"
 import type { CurrencyCode } from "@/lib/types/currency";
 import CurrencyDetectionNotice from "@/components/layout/CurrencyDetectionNotice";
 import CookieBanner from "@/components/layout/CookieBanner";
+import PWAServiceWorker from "@/components/pwa/PWAServiceWorker";
+import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 
 const lato = Lato({ 
   weight: ['400', '700', '900'],
@@ -35,7 +37,20 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    apple: '/touch-icon-114x114.png',
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FiltersFast',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'FiltersFast',
+    'theme-color': '#ff6600',
   },
   openGraph: {
     title: "FiltersFast - America's Top Online Filtration Retailer",
@@ -98,6 +113,12 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ff6600" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="FiltersFast" />
+        <link rel="apple-touch-icon" href="/touch-icon-114x114.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -161,6 +182,8 @@ export default async function RootLayout({
               />
               <ScreenReaderAnnouncements />
               <ChatbotWidget />
+              <PWAServiceWorker />
+              <PWAInstallPrompt />
                     </WishlistProvider>
                   </CartProvider>
                 </CurrencyProvider>

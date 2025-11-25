@@ -12,6 +12,7 @@ import {
   Loader2, Eye, EyeOff, ArrowLeft, ShieldAlert, Bell, Moon, Sun, Monitor
 } from 'lucide-react';
 import Link from 'next/link';
+import PushNotificationToggle from '@/components/pwa/PushNotificationToggle';
 
 type TabType = 'profile' | 'password' | 'notifications' | 'appearance' | 'danger';
 
@@ -865,6 +866,21 @@ export default function AccountSettingsPage() {
                       >
                         Manage SMS preferences →
                       </Link>
+                    </div>
+                  </div>
+
+                  {/* Push Notifications */}
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Push Notifications
+                      </label>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                        Receive browser push notifications for order updates, deals, and abandoned cart reminders
+                      </p>
+                      {session?.user && (
+                        <PushNotificationToggle userId={session.user.id} />
+                      )}
                     </div>
                   </div>
 
