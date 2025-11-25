@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Button from '@/components/ui/Button'
-import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Edit2, X } from 'lucide-react'
 
 interface ImageFile {
   name: string
@@ -41,12 +41,21 @@ export default function ImageGallery({
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [renameModalOpen, setRenameModalOpen] = useState(false)
+  const [renameFilename, setRenameFilename] = useState('')
+  const [renameNewFilename, setRenameNewFilename] = useState('')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [deleteStatus, setDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [renameStatus, setRenameStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [page, setPage] = useState(0)
   const [paginationInfo, setPaginationInfo] = useState<PaginationInfo | null>(null)
   const [isSearchMode, setIsSearchMode] = useState(false)
   const deleteButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const renameInputRef = useRef<HTMLInputElement>(null)
+  const renameModalRef = useRef<HTMLDivElement>(null)
+  const renameTriggerButtonRef = useRef<HTMLButtonElement | null>(null)
+  const previousActiveElementRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     // Reset to page 0 when type changes
@@ -182,6 +191,173 @@ export default function ImageGallery({
       setTimeout(() => setDeleteStatus(null), 5000)
     }
   }
+
+  const handleRenameClick = (filename: string, event?: React.MouseEvent<HTMLButtonElement>) => {
+    // WCAG: Store reference to trigger button for focus return
+    if (event?.currentTarget) {
+      renameTriggerButtonRef.current = event.currentTarget
+      previousActiveElementRef.current = document.activeElement as HTMLElement
+    }
+    
+    setRenameFilename(filename)
+    // Extract filename without extension for editing
+    const lastDotIndex = filename.lastIndexOf('.')
+    const nameWithoutExt = lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename
+    setRenameNewFilename(nameWithoutExt)
+    setRenameStatus(null)
+    setRenameModalOpen(true)
+    
+    // WCAG: Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden'
+    
+    // Focus input after modal opens
+    setTimeout(() => {
+      renameInputRef.current?.focus()
+      renameInputRef.current?.select()
+    }, 100)
+  }
+
+  const handleRename = async () => {
+    const trimmedName = renameNewFilename.trim()
+    
+    if (!trimmedName) {
+      setRenameStatus({ type: 'error', message: 'New filename cannot be empty' })
+      return
+    }
+
+    // Client-side validation
+    if (trimmedName.startsWith('.') || trimmedName.endsWith('.')) {
+      setRenameStatus({ type: 'error', message: 'Filename cannot start or end with a dot' })
+      return
+    }
+
+    if (trimmedName.length > 200) {
+      setRenameStatus({ type: 'error', message: 'Filename must be 200 characters or less' })
+      return
+    }
+
+    // Validate characters (alphanumeric, dots, hyphens, underscores)
+    const validFilenamePattern = /^[a-zA-Z0-9._-]+$/
+    if (!validFilenamePattern.test(trimmedName)) {
+      setRenameStatus({ type: 'error', message: 'Filename contains invalid characters. Only letters, numbers, dots, hyphens, and underscores are allowed.' })
+      return
+    }
+
+    // Get file extension from original filename
+    const lastDotIndex = renameFilename.lastIndexOf('.')
+    const extension = lastDotIndex > 0 ? renameFilename.substring(lastDotIndex) : ''
+    const newFullFilename = trimmedName + extension
+
+    // Basic validation - check if name actually changed
+    if (newFullFilename === renameFilename) {
+      setRenameModalOpen(false)
+      return
+    }
+
+    try {
+      setRenaming(renameFilename)
+      setRenameStatus(null)
+
+      const response = await fetch('/api/admin/images/rename', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filename: renameFilename,
+          newFilename: newFullFilename,
+          type
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setRenameStatus({ type: 'success', message: `Successfully renamed to ${newFullFilename}` })
+        setRenameModalOpen(false)
+        
+        // Reload images to ensure consistency
+        await loadImages(page, isSearchMode ? false : (page === 0))
+        
+        if (selectedImage === renameFilename) {
+          setSelectedImage(newFullFilename)
+        }
+      } else {
+        setRenameStatus({ type: 'error', message: data.error || 'Failed to rename image' })
+      }
+    } catch (error) {
+      console.error('Error renaming image:', error)
+      setRenameStatus({ type: 'error', message: 'Failed to rename image. Please try again.' })
+    } finally {
+      setRenaming(null)
+      // Clear status message after 5 seconds
+      setTimeout(() => setRenameStatus(null), 5000)
+    }
+  }
+
+  const handleRenameModalClose = () => {
+    setRenameModalOpen(false)
+    setRenameFilename('')
+    setRenameNewFilename('')
+    setRenameStatus(null)
+    
+    // WCAG: Restore body scroll
+    document.body.style.overflow = ''
+    
+    // WCAG: Return focus to trigger button or previous active element
+    setTimeout(() => {
+      if (renameTriggerButtonRef.current) {
+        renameTriggerButtonRef.current.focus()
+        renameTriggerButtonRef.current = null
+      } else if (previousActiveElementRef.current) {
+        previousActiveElementRef.current.focus()
+        previousActiveElementRef.current = null
+      }
+    }, 100)
+  }
+
+  // WCAG: Focus trap for modal - keep focus within modal
+  useEffect(() => {
+    if (!renameModalOpen) {
+      // WCAG: Ensure body scroll is restored when modal closes
+      document.body.style.overflow = ''
+      return
+    }
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      const modal = renameModalRef.current
+      if (!modal) return
+
+      const focusableElements = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleTabKey)
+    return () => {
+      document.removeEventListener('keydown', handleTabKey)
+      // WCAG: Cleanup - restore body scroll on unmount
+      document.body.style.overflow = ''
+    }
+  }, [renameModalOpen])
 
   const handleImageClick = (image: ImageFile) => {
     if (selectMode) {
@@ -480,9 +656,32 @@ export default function ImageGallery({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
+                      handleRenameClick(image.name, e)
+                    }}
+                    disabled={renaming === image.name || deleting === image.name}
+                    aria-label={`Rename ${image.name}`}
+                    aria-busy={renaming === image.name}
+                    className="inline-flex items-center justify-center rounded px-2 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {renaming === image.name ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <span className="sr-only">Renaming {image.name}...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Edit2 className="w-4 h-4" aria-hidden="true" />
+                        <span className="sr-only">Rename {image.name}</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       handleDelete(image.name, index)
                     }}
-                    disabled={deleting === image.name}
+                    disabled={deleting === image.name || renaming === image.name}
                     aria-label={`Delete ${image.name}`}
                     aria-busy={deleting === image.name}
                     className="inline-flex items-center justify-center rounded px-2 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
@@ -555,6 +754,159 @@ export default function ImageGallery({
           aria-atomic="true"
         >
           <p>{deleteStatus.message}</p>
+        </div>
+      )}
+
+      {/* Rename Status Message */}
+      {renameStatus && (
+        <div 
+          className={`mt-4 p-3 rounded-lg ${
+            renameStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <p>{renameStatus.message}</p>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {renameModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-modal-title"
+          aria-describedby="rename-modal-description"
+          onClick={(e) => {
+            // WCAG: Close modal when clicking backdrop (but not modal content)
+            if (e.target === e.currentTarget) {
+              handleRenameModalClose()
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={handleRenameModalClose}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          
+          {/* Modal Content */}
+          <div 
+            ref={renameModalRef}
+            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 
+                id="rename-modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
+                Rename File
+              </h2>
+              <button
+                type="button"
+                onClick={handleRenameModalClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                aria-label="Close rename dialog"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            
+            <p 
+              id="rename-modal-description"
+              className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+            >
+              Rename <strong className="text-gray-900 dark:text-gray-100">{renameFilename}</strong>
+            </p>
+            
+            <div className="mb-4">
+              <label 
+                htmlFor="rename-input"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                New filename (without extension)
+              </label>
+              <input
+                id="rename-input"
+                ref={renameInputRef}
+                type="text"
+                value={renameNewFilename}
+                onChange={(e) => {
+                  setRenameNewFilename(e.target.value)
+                  // Clear error when user starts typing
+                  if (renameStatus?.type === 'error') {
+                    setRenameStatus(null)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleRename()
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault()
+                    handleRenameModalClose()
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter new filename"
+                aria-describedby={renameStatus?.type === 'error' ? 'rename-error rename-extension-hint' : 'rename-extension-hint'}
+                aria-invalid={renameStatus?.type === 'error' ? 'true' : 'false'}
+                aria-required="true"
+              />
+              <p 
+                id="rename-extension-hint"
+                className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              >
+                {renameFilename.lastIndexOf('.') > 0 
+                  ? `Extension will be preserved: ${renameFilename.substring(renameFilename.lastIndexOf('.'))}`
+                  : 'No file extension to preserve'}
+              </p>
+            </div>
+            
+            {renameStatus && renameStatus.type === 'error' && (
+              <div 
+                id="rename-error"
+                className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                {renameStatus.message}
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={handleRenameModalClose}
+                variant="outline"
+                aria-label="Cancel rename"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRename}
+                disabled={!renameNewFilename.trim() || renaming === renameFilename}
+                aria-busy={renaming === renameFilename}
+                aria-label="Confirm rename"
+              >
+                {renaming === renameFilename ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Renaming...
+                  </>
+                ) : (
+                  'Rename'
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
