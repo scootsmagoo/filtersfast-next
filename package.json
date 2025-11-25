@@ -52,7 +52,8 @@
     "cleanup:referrals": "tsx scripts/cleanup-referrals.ts",
     "reset:sms": "tsx scripts/reset-sms.ts",
     "init:marketplaces": "tsx scripts/init-marketplaces.ts",
-    "sync:marketplaces": "tsx scripts/sync-marketplace-orders.ts"
+    "sync:marketplaces": "tsx scripts/sync-marketplace-orders.ts",
+    "init:social-proof": "tsx scripts/init-social-proof.ts"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",

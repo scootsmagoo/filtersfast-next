@@ -96,6 +96,7 @@ function rowToProduct(row: any): Product {
     isBestSeller: Boolean(row.is_best_seller),
     madeInUSA: Boolean(row.made_in_usa),
     freeShipping: Boolean(row.free_shipping),
+    socialProofEnabled: row.social_proof_enabled === null || row.social_proof_enabled === undefined ? true : Boolean(row.social_proof_enabled),
     badges: safeJsonParse(row.badges, []),
     retExclude: Number(row.ret_exclude ?? 0) as ReturnRestrictionLevel,
     blockedReason: row.blocked_reason ? String(row.blocked_reason).trim() || null : null,
@@ -539,6 +540,7 @@ export function updateProduct(id: string, data: Partial<ProductFormData>, userId
     if (data.isBestSeller !== undefined) addUpdate('isBestSeller', data.isBestSeller ? 1 : 0, 'is_best_seller', existing.isBestSeller);
     if (data.madeInUSA !== undefined) addUpdate('madeInUSA', data.madeInUSA ? 1 : 0, 'made_in_usa', existing.madeInUSA);
     if (data.freeShipping !== undefined) addUpdate('freeShipping', data.freeShipping ? 1 : 0, 'free_shipping', existing.freeShipping);
+    if (data.socialProofEnabled !== undefined) addUpdate('socialProofEnabled', data.socialProofEnabled ? 1 : 0, 'social_proof_enabled', existing.socialProofEnabled);
     if (data.retExclude !== undefined) {
       const normalizedRetExclude =
         typeof data.retExclude === 'number' && [0, 1, 2].includes(data.retExclude)

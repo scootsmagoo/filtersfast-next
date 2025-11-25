@@ -9,6 +9,7 @@ import ReviewStars from './ReviewStars';
 import { useState } from 'react';
 import { Price, Savings } from './Price';
 import SubscriptionWidget from '@/components/subscriptions/SubscriptionWidget';
+import SocialProofBadge from './SocialProofBadge';
 
 interface Product {
   id: number;
@@ -151,6 +152,13 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
                 ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
               </a>
             </div>
+            {/* Social Proof Badge - Compact */}
+            <div className="mb-2">
+              <SocialProofBadge
+                productId={product.id.toString()}
+                variant="minimal"
+              />
+            </div>
             {product.badges && (
               <div className="flex gap-2 flex-wrap" role="list" aria-label="Product badges">
                 {product.badges.map((badge) => (
@@ -281,6 +289,14 @@ export default function ProductCard({ product, viewMode }: ProductCardProps) {
           >
             ({product.reviewCount})
           </a>
+        </div>
+        
+        {/* Social Proof Badge - Minimal */}
+        <div className="mb-3">
+          <SocialProofBadge
+            productId={product.id.toString()}
+            variant="minimal"
+          />
         </div>
 
         {/* Price */}

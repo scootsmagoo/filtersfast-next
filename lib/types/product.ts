@@ -129,6 +129,7 @@ export interface Product {
   isBestSeller: boolean
   madeInUSA: boolean
   freeShipping: boolean
+  socialProofEnabled: boolean  // Enable/disable social proof badges
   badges: string[]  // Custom badges like "NSF Certified", "Top Rated"
   retExclude: ReturnRestrictionLevel
   blockedReason: string | null
@@ -219,6 +220,7 @@ export interface ProductFormData {
   isBestSeller: boolean
   madeInUSA: boolean
   freeShipping: boolean
+  socialProofEnabled: boolean
   subscriptionEligible: boolean
   subscriptionDiscount: number
 

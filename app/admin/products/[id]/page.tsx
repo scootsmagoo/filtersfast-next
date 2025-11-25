@@ -75,6 +75,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     madeInUSA: false,
     freeShipping: false,
     subscriptionEligible: true,
+    socialProofEnabled: true,
     subscriptionDiscount: 5,
     giftWithPurchaseProductId: null,
     giftWithPurchaseQuantity: 1,
@@ -185,6 +186,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         madeInUSA: p.madeInUSA,
         freeShipping: p.freeShipping,
         subscriptionEligible: p.subscriptionEligible,
+        socialProofEnabled: p.socialProofEnabled !== false, // Default to true if not set
         subscriptionDiscount: p.subscriptionDiscount,
         giftWithPurchaseProductId: p.giftWithPurchaseProductId,
         giftWithPurchaseQuantity: p.giftWithPurchaseQuantity,
@@ -1251,6 +1253,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                       className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
                     />
                     <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">Subscribe & Save</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.socialProofEnabled}
+                      onChange={(e) => updateField('socialProofEnabled', e.target.checked)}
+                      className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 transition-colors">Enable Social Proof (show viewing/purchase badges)</span>
                   </label>
                 </div>
               </Card>

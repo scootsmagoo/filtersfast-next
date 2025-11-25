@@ -228,6 +228,21 @@ export function createOrder(data: CreateOrderRequest): Order {
     }
   }
 
+  // Track purchases for social proof
+  try {
+    const { trackOrderPurchases } = require('./social-proof')
+    const orderItems = data.items.map(item => ({
+      productId: item.product_id,
+      quantity: item.quantity || 1,
+    }))
+    if (orderItems.length > 0) {
+      trackOrderPurchases(order_id, orderItems)
+    }
+  } catch (error) {
+    // Silently fail - social proof is not critical for order creation
+    console.error('Error tracking social proof purchases:', error)
+  }
+
   const order = getOrder(order_id)
   if (!order) {
     throw new Error('Failed to create order')

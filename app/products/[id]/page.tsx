@@ -21,6 +21,7 @@ import GiftCardPurchaseForm from '@/components/gift-card/GiftCardPurchaseForm';
 import ProductRecommendations from '@/components/products/ProductRecommendations';
 import FrequentlyBoughtTogether from '@/components/products/FrequentlyBoughtTogether';
 import WishlistButton from '@/components/wishlist/WishlistButton';
+import SocialProofBadge from '@/components/products/SocialProofBadge';
 
 // Mock product data (in production, this would come from an API)
 type ProductDetailProduct = SearchableProduct & {
@@ -1394,6 +1395,12 @@ export default function ProductDetailPage() {
                 />
               </div>
             </div>
+
+            {/* Social Proof Badge */}
+            <SocialProofBadge
+              productId={product.productId ? product.productId.toString() : product.id.toString()}
+              variant="default"
+            />
 
             {/* Stock Status */}
             <div className="flex items-center gap-2" role="status" aria-live="polite">
