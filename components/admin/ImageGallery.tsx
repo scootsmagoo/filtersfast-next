@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Button from '@/components/ui/Button'
-import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Edit2, X } from 'lucide-react'
+import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Edit2, X, CheckSquare, Square } from 'lucide-react'
 
 interface ImageFile {
   name: string
@@ -46,8 +46,14 @@ export default function ImageGallery({
   const [renameFilename, setRenameFilename] = useState('')
   const [renameNewFilename, setRenameNewFilename] = useState('')
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [deleteStatus, setDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [renameStatus, setRenameStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [bulkDeleteStatus, setBulkDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false)
+  const bulkDeleteModalRef = useRef<HTMLDivElement>(null)
+  const bulkDeleteConfirmButtonRef = useRef<HTMLButtonElement>(null)
   const [page, setPage] = useState(0)
   const [paginationInfo, setPaginationInfo] = useState<PaginationInfo | null>(null)
   const [isSearchMode, setIsSearchMode] = useState(false)
@@ -56,11 +62,13 @@ export default function ImageGallery({
   const renameModalRef = useRef<HTMLDivElement>(null)
   const renameTriggerButtonRef = useRef<HTMLButtonElement | null>(null)
   const previousActiveElementRef = useRef<HTMLElement | null>(null)
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     // Reset to page 0 when type changes
     setPage(0)
     setIsSearchMode(false)
+    setSelectedImages(new Set()) // Clear selections when type changes
     // Use preview mode for initial load (faster)
     loadImages(0, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -316,6 +324,214 @@ export default function ImageGallery({
     }, 100)
   }
 
+  // Bulk delete handlers
+  const handleImageSelect = (filename: string, checked: boolean) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev)
+      if (checked) {
+        newSet.add(filename)
+      } else {
+        newSet.delete(filename)
+      }
+      return newSet
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allFilenames = new Set(filteredImages.map(img => img.name))
+      setSelectedImages(allFilenames)
+    } else {
+      setSelectedImages(new Set())
+    }
+  }
+
+  const isAllSelected = filteredImages.length > 0 && filteredImages.every(img => selectedImages.has(img.name))
+  const isSomeSelected = selectedImages.size > 0 && selectedImages.size < filteredImages.length
+
+  // Update indeterminate state when selection changes
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate = isSomeSelected
+    }
+  }, [isSomeSelected, selectedImages.size, filteredImages.length])
+
+  // WCAG: Announce selection count changes to screen readers
+  useEffect(() => {
+    if (selectedImages.size > 0 && !selectMode) {
+      const announcement = `${selectedImages.size} ${selectedImages.size === 1 ? 'file' : 'files'} selected`
+      const statusEl = document.getElementById('selection-status')
+      if (statusEl) {
+        statusEl.textContent = announcement
+      }
+    } else {
+      const statusEl = document.getElementById('selection-status')
+      if (statusEl) {
+        statusEl.textContent = ''
+      }
+    }
+  }, [selectedImages.size, selectMode])
+
+  const handleBulkDeleteCancel = () => {
+    setBulkDeleteModalOpen(false)
+    document.body.style.overflow = ''
+    // WCAG: Return focus to bulk delete button
+    setTimeout(() => {
+      const bulkDeleteButton = document.querySelector('[aria-label*="Delete"]') as HTMLButtonElement
+      if (bulkDeleteButton) {
+        bulkDeleteButton.focus()
+      }
+    }, 100)
+  }
+
+  // WCAG: Focus trap for bulk delete modal
+  useEffect(() => {
+    if (!bulkDeleteModalOpen) {
+      document.body.style.overflow = ''
+      return
+    }
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      const modal = bulkDeleteModalRef.current
+      if (!modal) return
+
+      const focusableElements = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && bulkDeleteModalOpen) {
+        e.preventDefault()
+        handleBulkDeleteCancel()
+      }
+    }
+
+    document.addEventListener('keydown', handleTabKey)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleTabKey)
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = ''
+    }
+  }, [bulkDeleteModalOpen])
+
+  const handleBulkDeleteClick = () => {
+    if (selectedImages.size === 0) {
+      return
+    }
+    setBulkDeleteModalOpen(true)
+    // Focus confirm button after modal opens
+    setTimeout(() => {
+      bulkDeleteConfirmButtonRef.current?.focus()
+    }, 100)
+    // WCAG: Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden'
+  }
+
+  const handleBulkDeleteConfirm = async () => {
+    if (selectedImages.size === 0) {
+      setBulkDeleteModalOpen(false)
+      document.body.style.overflow = ''
+      return
+    }
+
+    setBulkDeleteModalOpen(false)
+    document.body.style.overflow = ''
+
+    try {
+      setBulkDeleting(true)
+      setBulkDeleteStatus(null)
+      
+      // OWASP: Remove duplicates (shouldn't happen, but safety check)
+      const filenames = Array.from(new Set(Array.from(selectedImages)))
+      
+      const response = await fetch('/api/admin/images/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filenames,
+          type
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const deletedCount = data.deleted || 0
+        const failedCount = data.failed || 0
+        
+        if (failedCount === 0) {
+          setBulkDeleteStatus({ 
+            type: 'success', 
+            message: `Successfully deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}` 
+          })
+        } else {
+          setBulkDeleteStatus({ 
+            type: 'error', 
+            message: `Deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}, ${failedCount} ${failedCount === 1 ? 'file' : 'files'} failed` 
+          })
+        }
+        
+        // Clear selections
+        setSelectedImages(new Set())
+        
+        // WCAG: Announce success to screen readers
+        const announcement = failedCount === 0
+          ? `Successfully deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}`
+          : `Deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}, ${failedCount} ${failedCount === 1 ? 'file' : 'files'} failed`
+        
+        // Reload images to ensure consistency
+        await loadImages(page, isSearchMode ? false : (page === 0))
+        
+        // WCAG: Focus management - focus on first image or search input after deletion
+        setTimeout(() => {
+          const firstImage = document.querySelector('[role="listitem"]') as HTMLElement
+          if (firstImage) {
+            firstImage.focus()
+          } else {
+            const searchInput = document.getElementById('image-search') as HTMLInputElement
+            if (searchInput) {
+              searchInput.focus()
+            }
+          }
+        }, 200)
+        
+        // Clear selected image if it was deleted
+        if (selectedImage && filenames.includes(selectedImage)) {
+          setSelectedImage(null)
+        }
+      } else {
+        setBulkDeleteStatus({ type: 'error', message: data.error || 'Failed to delete files' })
+      }
+    } catch (error) {
+      console.error('Error bulk deleting images:', error)
+      setBulkDeleteStatus({ type: 'error', message: 'Failed to delete files. Please try again.' })
+    } finally {
+      setBulkDeleting(false)
+      // Clear status message after 5 seconds
+      setTimeout(() => setBulkDeleteStatus(null), 5000)
+    }
+  }
+
   // WCAG: Focus trap for modal - keep focus within modal
   useEffect(() => {
     if (!renameModalOpen) {
@@ -561,8 +777,8 @@ export default function ImageGallery({
   return (
     <div className={className}>
       {/* Search and Actions */}
-      <div className="mb-4 flex gap-2">
-        <div className="relative flex-1">
+      <div className="mb-4 flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <label htmlFor="image-search" className="sr-only">
             Search images
@@ -577,6 +793,85 @@ export default function ImageGallery({
             aria-label="Search images by filename"
           />
         </div>
+        {!selectMode && (
+          <>
+            {/* Select All Checkbox */}
+            {filteredImages.length > 0 && (
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    ref={(el) => {
+                      selectAllCheckboxRef.current = el
+                      if (el) {
+                        el.indeterminate = isSomeSelected
+                      }
+                    }}
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={(e) => {
+                      handleSelectAll(e.target.checked)
+                      // WCAG: Announce select all action
+                      const statusEl = document.getElementById('selection-status')
+                      if (statusEl) {
+                        statusEl.textContent = e.target.checked 
+                          ? `All ${filteredImages.length} files selected`
+                          : 'No files selected'
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // WCAG: Allow Space to toggle checkbox
+                      if (e.key === ' ') {
+                        e.preventDefault()
+                        const checkbox = e.target as HTMLInputElement
+                        checkbox.click()
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    aria-label="Select all images"
+                    aria-describedby="select-all-desc"
+                  />
+                  <span id="select-all-desc" className="sr-only">
+                    Checkbox to select or deselect all images for bulk deletion
+                  </span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Select All
+                  </span>
+                </label>
+              </div>
+            )}
+            {/* Selection Status (WCAG: Screen reader announcement) */}
+            <div 
+              id="selection-status"
+              className="sr-only"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            />
+            {/* Bulk Delete Button */}
+            {selectedImages.size > 0 && (
+              <Button
+                variant="outline"
+                onClick={handleBulkDeleteClick}
+                disabled={bulkDeleting || deleting !== null || renaming !== null}
+                aria-label={`Delete ${selectedImages.size} selected ${selectedImages.size === 1 ? 'file' : 'files'}`}
+                aria-busy={bulkDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+              >
+                {bulkDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Delete Selected ({selectedImages.size})
+                  </>
+                )}
+              </Button>
+            )}
+          </>
+        )}
         <Button
           variant="outline"
           onClick={loadImages}
@@ -614,13 +909,16 @@ export default function ImageGallery({
               className={`relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 ${
                 selectMode && selectedImage === image.name
                   ? 'ring-2 ring-blue-500 border-blue-500'
+                  : selectedImages.has(image.name)
+                  ? 'ring-2 ring-blue-500 border-blue-500'
                   : 'border-gray-200 dark:border-gray-700'
               } ${selectMode ? 'cursor-pointer hover:border-blue-400' : ''}`}
-              onClick={() => handleImageClick(image)}
+              onClick={() => !selectMode ? undefined : handleImageClick(image)}
               role={selectMode ? "button" : "listitem"}
               tabIndex={selectMode ? 0 : -1}
               aria-label={selectMode ? `Select image ${image.name}` : `Image ${image.name}`}
               aria-pressed={selectMode && selectedImage === image.name ? "true" : "false"}
+              aria-selected={!selectMode && selectedImages.has(image.name) ? "true" : undefined}
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (selectMode && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault()
@@ -628,6 +926,43 @@ export default function ImageGallery({
                 }
               }}
             >
+              {/* Bulk Selection Checkbox */}
+              {!selectMode && (
+                <div 
+                  className="absolute top-2 left-2 z-20"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.has(image.name)}
+                      onChange={(e) => {
+                        handleImageSelect(image.name, e.target.checked)
+                        // WCAG: Announce selection change
+                        const statusEl = document.getElementById('selection-status')
+                        if (statusEl) {
+                          const newCount = e.target.checked ? selectedImages.size + 1 : selectedImages.size - 1
+                          statusEl.textContent = `${newCount} ${newCount === 1 ? 'file' : 'files'} selected`
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // WCAG: Allow Space to toggle checkbox
+                        if (e.key === ' ') {
+                          e.preventDefault()
+                          const checkbox = e.target as HTMLInputElement
+                          checkbox.click()
+                        }
+                      }}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 bg-white dark:bg-gray-800"
+                      aria-label={`Select ${image.name} for deletion`}
+                      aria-describedby={`checkbox-desc-${image.name}`}
+                    />
+                    <span id={`checkbox-desc-${image.name}`} className="sr-only">
+                      Checkbox to select {image.name} for bulk deletion
+                    </span>
+                  </label>
+                </div>
+              )}
               {type === 'pdf' ? (
                 <div className="aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-700">
                   <div className="text-center p-4">
@@ -770,6 +1105,119 @@ export default function ImageGallery({
           aria-atomic="true"
         >
           <p>{renameStatus.message}</p>
+        </div>
+      )}
+
+      {/* Bulk Delete Status Message */}
+      {bulkDeleteStatus && (
+        <div 
+          className={`mt-4 p-3 rounded-lg ${
+            bulkDeleteStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <p>{bulkDeleteStatus.message}</p>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bulk-delete-modal-title"
+          aria-describedby="bulk-delete-modal-description"
+          onClick={(e) => {
+            // WCAG: Close modal when clicking backdrop (but not modal content)
+            if (e.target === e.currentTarget) {
+              handleBulkDeleteCancel()
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={handleBulkDeleteCancel}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          
+          {/* Modal Content */}
+          <div 
+            ref={bulkDeleteModalRef}
+            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 
+                id="bulk-delete-modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
+                Confirm Bulk Delete
+              </h2>
+              <button
+                type="button"
+                onClick={handleBulkDeleteCancel}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                aria-label="Close confirmation dialog"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            
+            <p 
+              id="bulk-delete-modal-description"
+              className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+            >
+              Are you sure you want to delete <strong className="text-gray-900 dark:text-gray-100">{selectedImages.size}</strong> {selectedImages.size === 1 ? 'file' : 'files'}? This action cannot be undone.
+            </p>
+            
+            {selectedImages.size <= 10 && (
+              <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Files to be deleted:</p>
+                <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  {Array.from(selectedImages).slice(0, 10).map((filename) => (
+                    <li key={filename} className="truncate">{filename}</li>
+                  ))}
+                  {selectedImages.size > 10 && (
+                    <li className="text-gray-500 dark:text-gray-500">... and {selectedImages.size - 10} more</li>
+                  )}
+                </ul>
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={handleBulkDeleteCancel}
+                variant="outline"
+                aria-label="Cancel bulk delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                ref={bulkDeleteConfirmButtonRef}
+                onClick={handleBulkDeleteConfirm}
+                disabled={bulkDeleting}
+                aria-busy={bulkDeleting}
+                aria-label="Confirm bulk delete"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {bulkDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Files'
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
