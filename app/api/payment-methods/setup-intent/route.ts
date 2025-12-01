@@ -78,8 +78,15 @@ export async function POST(request: NextRequest) {
     
     // OWASP A04: Generic error messages to prevent information disclosure
     if (error.message && error.message.includes('Stripe is not configured')) {
+      const isDevelopment = process.env.NODE_ENV === 'development';
       return NextResponse.json(
-        { error: 'Payment processing is currently unavailable. Please contact support.' },
+        { 
+          error: isDevelopment 
+            ? 'Stripe API is not configured. Please set STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY environment variables.'
+            : 'Payment processing is currently unavailable. Please contact support.',
+          error_code: 'STRIPE_NOT_CONFIGURED',
+          requires_setup: true
+        },
         { status: 503 }
       );
     }

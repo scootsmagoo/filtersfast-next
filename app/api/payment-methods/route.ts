@@ -28,9 +28,11 @@ import type { PaymentMethodResponse } from '@/lib/types/payment-methods';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting
+    // Rate limiting - more lenient in development
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    const rateLimitResult = await rateLimit(ip, 20, 60); // 20 requests per minute
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const maxRequests = isDevelopment ? 60 : 20; // 60 req/min in dev, 20 in prod
+    const rateLimitResult = await rateLimit(ip, maxRequests, 60);
     
     if (!rateLimitResult.success) {
       return NextResponse.json(

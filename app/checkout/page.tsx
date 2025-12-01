@@ -16,6 +16,7 @@ import AddPaymentMethod from '@/components/payments/AddPaymentMethod';
 import PayPalButton from '@/components/payments/PayPalButton';
 import ShippingRateSelector from '@/components/checkout/ShippingRateSelector';
 import LoyaltyPointsRedeem from '@/components/checkout/LoyaltyPointsRedeem';
+import OneClickCheckout, { OneClickCheckoutEligibility } from '@/components/checkout/OneClickCheckout';
 import { DonationSelection } from '@/lib/types/charity';
 import { InsuranceSelection } from '@/lib/types/insurance';
 import type { ShippingRate } from '@/lib/types/shipping';
@@ -32,7 +33,8 @@ import {
   Heart,
   Shield,
   Gift,
-  Plus
+  Plus,
+  Zap
 } from 'lucide-react';
 import { useCurrency } from '@/lib/currency-context';
 import { Tag, AlertCircle } from 'lucide-react';
@@ -122,18 +124,15 @@ export default function CheckoutPage() {
     country: 'US',
   });
 
-  // Auto-populate email if logged in
+  // Auto-populate email if logged in, but don't auto-advance to allow one-click checkout
   useEffect(() => {
     if (session?.user?.email) {
       setShippingAddress(prev => ({
         ...prev,
         email: session.user.email,
       }));
-      setCurrentStep(prev =>
-        prev === 'account'
-          ? (hasShippableItems ? 'shipping' : 'payment')
-          : prev
-      );
+      // Don't auto-advance - let user see one-click checkout option on account step
+      // They can proceed manually or use one-click checkout
     }
   }, [session, hasShippableItems]);
 
@@ -606,6 +605,45 @@ export default function CheckoutPage() {
             <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 transition-colors">
               <p className="text-sm text-red-800 dark:text-red-300 transition-colors">{error}</p>
             </div>
+          )}
+
+          {/* One-Click Checkout Section - Show on account step */}
+          {session && currentStep === 'account' && items.length > 0 && (
+            <Card className="mb-6 p-6 border-2 border-brand-orange bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-brand-orange" />
+                    One-Click Checkout
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors mb-2">
+                    Complete your purchase instantly using your saved payment method and default address.
+                  </p>
+                  <OneClickCheckoutEligibility />
+                </div>
+                <div className="md:ml-4 flex-shrink-0">
+                  <OneClickCheckout variant="primary" size="lg" />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* One-Click Checkout Option - Also show on shipping step for convenience */}
+          {session && currentStep === 'shipping' && items.length > 0 && (
+            <Card className="mb-6 p-4 border-2 border-brand-orange">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 transition-colors flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-brand-orange" />
+                    Quick Checkout Available
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-300 transition-colors">
+                    Skip the forms and checkout instantly with one-click
+                  </p>
+                </div>
+                <OneClickCheckout variant="primary" size="md" />
+              </div>
+            </Card>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

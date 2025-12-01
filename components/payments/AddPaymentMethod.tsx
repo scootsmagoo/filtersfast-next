@@ -255,6 +255,13 @@ export default function AddPaymentMethod({ onSuccess, onCancel }: AddPaymentMeth
       .then(async (response) => {
         if (!response.ok) {
           const data = await response.json();
+          // Provide helpful error message for Stripe configuration issues
+          if (response.status === 503 && data.error_code === 'STRIPE_NOT_CONFIGURED') {
+            throw new Error(
+              data.error + 
+              (data.requires_setup ? '\n\nTo enable payment methods:\n1. Get your Stripe API keys from https://dashboard.stripe.com/apikeys\n2. Add STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY to your .env.local file' : '')
+            );
+          }
           throw new Error(data.error || 'Failed to initialize');
         }
         return response.json();
