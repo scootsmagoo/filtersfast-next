@@ -76,7 +76,7 @@ const PERMISSION_SEED_CONFIG: Record<string, {
   ProductOptions: {
     description: 'Manage product option groups and linked options',
     group: 'Products & Catalog',
-    sortOrder: 36,
+    sortOrder: 37,
     roleDefaults: {
       Admin: 1,
       Manager: 1,
@@ -87,7 +87,7 @@ const PERMISSION_SEED_CONFIG: Record<string, {
   ListBySize: {
     description: 'Manage size-by-dimension merchandising matrix',
     group: 'Products & Catalog',
-    sortOrder: 37,
+    sortOrder: 38,
     roleDefaults: {
       Admin: 1,
       Manager: 1,

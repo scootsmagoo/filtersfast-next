@@ -30,6 +30,7 @@ type ProductDetailProduct = SearchableProduct & {
   retExclude?: 0 | 1 | 2;
   blockedReason?: string | null;
   isBlocked?: boolean;
+  allowBackorder?: boolean;
 };
 
 const mockProducts: ProductDetailProduct[] = [
@@ -981,6 +982,7 @@ export default function ProductDetailPage() {
             reviewCount: data.product.reviewCount || 0,
             image: data.product.primaryImage || '/images/product-placeholder.jpg',
             inStock: (data.product.inventoryQuantity > 0 || !data.product.trackInventory) && !isBlocked,
+            allowBackorder: data.product.allowBackorder || false,
             badges: [
               ...(data.product.isBestSeller ? ['bestseller'] : []),
               ...(data.product.isFeatured ? ['featured'] : []),
@@ -1253,8 +1255,9 @@ export default function ProductDetailPage() {
 
   const primaryOptionOutOfStock = Boolean(primaryOptionDetails && !primaryOptionDetails.available);
   const backorderProductId = (product.productId || product.id)?.toString();
+  const isOutOfStock = !product.inStock || primaryOptionOutOfStock;
   const showBackorderCta = Boolean(
-    backorderProductId && (!product.inStock || primaryOptionOutOfStock)
+    backorderProductId && isOutOfStock && product.allowBackorder
   );
   const backorderReason: 'product' | 'option' = primaryOptionOutOfStock ? 'option' : 'product';
 
@@ -1601,6 +1604,7 @@ export default function ProductDetailPage() {
                 reason={backorderReason}
               />
             )}
+
 
             {/* Social Sharing */}
             <Card className="p-4">

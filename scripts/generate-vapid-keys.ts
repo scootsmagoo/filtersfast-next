@@ -18,3 +18,11 @@ console.log(`VAPID_PRIVATE_KEY=${vapidKeys.privateKey}`);
 console.log(`VAPID_EMAIL=mailto:notifications@filtersfast.com\n`);
 console.log('⚠️  Keep VAPID_PRIVATE_KEY secret! Never commit it to version control.\n');
 
+
+
+
+
+
+
+
+

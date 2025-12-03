@@ -20,6 +20,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchPreview, setShowSearchPreview] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
@@ -28,6 +29,11 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const systemConfig = useSystemConfig();
+
+  // Prevent hydration mismatch by only using pathname after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const phoneEnabled = systemConfig.phoneNumActive === 1;
   const callWaitState = systemConfig.callLongWait ?? 0;
@@ -320,74 +326,74 @@ export default function Header() {
           <div className="hidden md:flex items-center justify-center gap-4 py-2.5">
             <Link 
               href="/model-lookup" 
-              className={`${pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              className={`${mounted && pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Find filter by appliance model"
-              aria-current={pathname === '/model-lookup' ? 'page' : undefined}
+              aria-current={mounted && pathname === '/model-lookup' ? 'page' : undefined}
             >
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter
             </Link>
             <Link 
               href="/auto-delivery" 
-              className={`${pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              className={`${mounted && pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Home Filter Club - Subscribe and save"
-              aria-current={pathname === '/auto-delivery' ? 'page' : undefined}
+              aria-current={mounted && pathname === '/auto-delivery' ? 'page' : undefined}
             >
               <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
             </Link>
             <Link 
               href="/store-locator" 
-              className={`${pathname === '/store-locator' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              className={`${mounted && pathname === '/store-locator' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Find nearby retail locations and dealer partners"
-              aria-current={pathname === '/store-locator' ? 'page' : undefined}
+              aria-current={mounted && pathname === '/store-locator' ? 'page' : undefined}
             >
               <span role="img" aria-label="Map icon">🗺️</span> Store Locator
             </Link>
             <Link 
               href="/refrigerator-filters" 
-              className={`${pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/refrigerator-filters' ? 'page' : undefined}
+              className={`${mounted && pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/refrigerator-filters' ? 'page' : undefined}
             >
               Refrigerator Filters
             </Link>
             <Link 
               href="/air-filters" 
-              className={`${pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/air-filters' ? 'page' : undefined}
+              className={`${mounted && pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/air-filters' ? 'page' : undefined}
             >
               Air Filters
             </Link>
             <Link 
               href="/water-filters" 
-              className={`${pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/water-filters' ? 'page' : undefined}
+              className={`${mounted && pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/water-filters' ? 'page' : undefined}
             >
               Water Filters
             </Link>
             <Link 
               href="/pool-filters" 
-              className={`${pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/pool-filters' ? 'page' : undefined}
+              className={`${mounted && pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/pool-filters' ? 'page' : undefined}
             >
               Pool & Spa
             </Link>
             <Link 
               href="/humidifier-filters" 
-              className={`${pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/humidifier-filters' ? 'page' : undefined}
+              className={`${mounted && pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/humidifier-filters' ? 'page' : undefined}
             >
               Humidifier Filters
             </Link>
             <Link 
               href="/sale" 
-              className={`${pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/sale' ? 'page' : undefined}
+              className={`${mounted && pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/sale' ? 'page' : undefined}
             >
               Sale
             </Link>
             <Link 
               href="/deals" 
-              className={`${pathname === '/deals' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
-              aria-current={pathname === '/deals' ? 'page' : undefined}
+              className={`${mounted && pathname === '/deals' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/deals' ? 'page' : undefined}
             >
               Offers
             </Link>

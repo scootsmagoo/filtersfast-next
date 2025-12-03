@@ -8,10 +8,11 @@ import { POOL_FILTER_CATALOG } from '@/lib/data/pool-filter-wizard';
 import { PoolWizardResult } from '@/lib/types/pool-filter';
 
 interface ActiveFilters {
-  brands?: string[];
-  price?: string;
-  rating?: number | null;
-  mervRatings?: number[];
+  brands?: string[] | null;
+  priceRange?: [number, number] | null;
+  ratings?: number[] | null;
+  mervRatings?: number[] | null;
+  features?: string[] | null;
 }
 
 interface GridProduct {
@@ -28,11 +29,14 @@ interface GridProduct {
   badges?: string[];
 }
 
-const priceRangeFromFilter = (price?: string): [number, number] | null => {
-  if (!price) return null;
-  const [low, high] = price.split('-').map(Number);
-  if (Number.isNaN(low) || Number.isNaN(high)) return null;
-  return [low, high];
+// Calculate price range from products
+const calculatePriceRange = (products: GridProduct[]): [number, number] => {
+  if (products.length === 0) return [0, 150];
+  const prices = products.map(p => p.price || 0).filter(p => p > 0);
+  if (prices.length === 0) return [0, 150];
+  const min = Math.floor(Math.min(...prices));
+  const max = Math.ceil(Math.max(...prices));
+  return [min, max];
 };
 
 export default function PoolFiltersPage() {
@@ -65,24 +69,76 @@ export default function PoolFiltersPage() {
     [catalog]
   );
 
+  // Calculate price range from base products
+  const calculatedPriceRange = useMemo(() => calculatePriceRange(baseProducts), [baseProducts]);
+
   const applyFilters = (filters: ActiveFilters, wizardIds: number[]) => {
     const matchSet = new Set(wizardIds);
-    const priceRange = priceRangeFromFilter(filters.price);
 
     let filtered = baseProducts.filter((product) => {
-      if (filters.brands && filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
-        return false;
-      }
-
-      if (priceRange) {
-        const [min, max] = priceRange;
-        if (product.price < min || product.price > max) {
+      // OWASP: Validate and sanitize brand filter
+      if (filters.brands && Array.isArray(filters.brands) && filters.brands.length > 0) {
+        const validBrands = filters.brands.filter((b: any) => 
+          typeof b === 'string' && b.length > 0 && b.length <= 100
+        );
+        if (validBrands.length > 0 && !validBrands.includes(product.brand)) {
           return false;
         }
       }
 
-      if (filters.rating && product.rating < filters.rating) {
-        return false;
+      // OWASP: Validate and sanitize price filter
+      if (filters.priceRange && Array.isArray(filters.priceRange) && filters.priceRange.length === 2) {
+        const [min, max] = filters.priceRange;
+        if (typeof min === 'number' && typeof max === 'number' && 
+            isFinite(min) && isFinite(max) && 
+            min >= 0 && max >= 0 && min <= max) {
+          if (typeof product.price !== 'number' || product.price < min || product.price > max) {
+            return false;
+          }
+        }
+      }
+
+      // OWASP: Validate and sanitize rating filter
+      if (filters.ratings && Array.isArray(filters.ratings) && filters.ratings.length > 0) {
+        const validRatings = filters.ratings.filter((r: any) => 
+          Number.isInteger(r) && r >= 1 && r <= 5
+        );
+        if (validRatings.length > 0) {
+          if (typeof product.rating !== 'number' || !isFinite(product.rating)) return false;
+          const matches = validRatings.some((minRating: number) => product.rating >= minRating);
+          if (!matches) {
+            return false;
+          }
+        }
+      }
+
+      // OWASP: Validate features filter (whitelist approach)
+      const allowedFeatures = ['Genuine OEM', 'NSF Certified', 'Free Shipping', 'On Sale', 'In Stock'];
+      if (filters.features && Array.isArray(filters.features) && filters.features.length > 0) {
+        const validFeatures = filters.features.filter((f: any) => 
+          typeof f === 'string' && allowedFeatures.includes(f)
+        );
+        if (validFeatures.length > 0) {
+          const matches = validFeatures.some((feature: string) => {
+            switch (feature) {
+              case 'Genuine OEM':
+                return product.brand && !product.brand.toLowerCase().includes('filtersfast') && !product.brand.toLowerCase().includes('filters fast');
+              case 'NSF Certified':
+                return Array.isArray(product.badges) && product.badges.includes('NSF Certified');
+              case 'Free Shipping':
+                return typeof product.price === 'number' && product.price >= 50;
+              case 'On Sale':
+                return product.originalPrice && typeof product.price === 'number' && product.originalPrice > product.price;
+              case 'In Stock':
+                return product.inStock;
+              default:
+                return false;
+            }
+          });
+          if (!matches) {
+            return false;
+          }
+        }
       }
 
       return true;
@@ -161,7 +217,8 @@ export default function PoolFiltersPage() {
             <FilterSidebar
               onFilterChange={handleFilterChange}
               availableBrands={brandOptions}
-              priceRange={[0, 150]}
+              priceRange={calculatedPriceRange}
+              products={baseProducts}
             />
           </aside>
 

@@ -342,7 +342,7 @@ function AccountPageContent() {
                   Payment Methods
                 </Link>
                 <Link href="/account/newsletter" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
-                  <Bell className="w-5 h-5" />
+                  <Mail className="w-5 h-5" />
                   Newsletter Preferences
                 </Link>
                 <Link href="/account/sms" className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">

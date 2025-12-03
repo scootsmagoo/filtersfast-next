@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import FilterSidebar from '@/components/products/FilterSidebar';
 import ProductGrid from '@/components/products/ProductGrid';
 
@@ -108,37 +108,86 @@ export default function SalePage() {
   const [activeFilters, setActiveFilters] = useState<any>({});
   const [filteredProducts, setFilteredProducts] = useState(saleProducts);
 
+  // Calculate price range from products
+  const calculatedPriceRange = useMemo(() => {
+    const prices = saleProducts.map(p => p.price || 0).filter(p => p > 0);
+    if (prices.length === 0) return [0, 200];
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+    return [min, max];
+  }, []);
+
   const handleFilterChange = (filters: any) => {
     setActiveFilters(filters);
     
     // Apply filters
     let filtered = [...saleProducts];
     
-    // Brand filter
-    if (filters.brands?.length > 0) {
-      filtered = filtered.filter(product => 
-        filters.brands.includes(product.brand)
+    // OWASP: Validate and sanitize brand filter
+    if (filters.brands && Array.isArray(filters.brands) && filters.brands.length > 0) {
+      const validBrands = filters.brands.filter((b: any) => 
+        typeof b === 'string' && b.length > 0 && b.length <= 100
       );
+      if (validBrands.length > 0) {
+        filtered = filtered.filter(product => 
+          validBrands.includes(product.brand)
+        );
+      }
     }
     
-    // Price filter
-    if (filters.priceRange) {
-      filtered = filtered.filter(product => 
-        product.price >= filters.priceRange[0] && 
-        product.price <= filters.priceRange[1]
-      );
+    // OWASP: Validate and sanitize price filter
+    if (filters.priceRange && Array.isArray(filters.priceRange) && filters.priceRange.length === 2) {
+      const [min, max] = filters.priceRange;
+      if (typeof min === 'number' && typeof max === 'number' && 
+          isFinite(min) && isFinite(max) && 
+          min >= 0 && max >= 0 && min <= max) {
+        filtered = filtered.filter(product => 
+          typeof product.price === 'number' &&
+          product.price >= min && 
+          product.price <= max
+        );
+      }
     }
     
-    // Rating filter
-    if (filters.minRating) {
-      filtered = filtered.filter(product => 
-        product.rating >= filters.minRating
+    // OWASP: Validate and sanitize rating filter
+    if (filters.ratings && Array.isArray(filters.ratings) && filters.ratings.length > 0) {
+      const validRatings = filters.ratings.filter((r: any) => 
+        Number.isInteger(r) && r >= 1 && r <= 5
       );
+      if (validRatings.length > 0) {
+        filtered = filtered.filter(product => {
+          if (typeof product.rating !== 'number' || !isFinite(product.rating)) return false;
+          return validRatings.some((minRating: number) => product.rating >= minRating);
+        });
+      }
     }
     
-    // In stock filter
-    if (filters.inStock) {
-      filtered = filtered.filter(product => product.inStock);
+    // OWASP: Validate features filter (whitelist approach)
+    const allowedFeatures = ['Genuine OEM', 'NSF Certified', 'Free Shipping', 'On Sale', 'In Stock'];
+    if (filters.features && Array.isArray(filters.features) && filters.features.length > 0) {
+      const validFeatures = filters.features.filter((f: any) => 
+        typeof f === 'string' && allowedFeatures.includes(f)
+      );
+      if (validFeatures.length > 0) {
+        filtered = filtered.filter(product => {
+          return validFeatures.some((feature: string) => {
+            switch (feature) {
+              case 'Genuine OEM':
+                return product.brand && !product.brand.toLowerCase().includes('filtersfast') && !product.brand.toLowerCase().includes('filters fast');
+              case 'NSF Certified':
+                return product.nsfCertified || product.attributes?.certifications?.includes('NSF');
+              case 'Free Shipping':
+                return product.freeShipping || (typeof product.price === 'number' && product.price >= 50);
+              case 'On Sale':
+                return product.badge && typeof product.badge === 'string' && (product.badge.includes('Save') || product.badge.includes('Clearance'));
+              case 'In Stock':
+                return product.inStock;
+              default:
+                return false;
+            }
+          });
+        });
+      }
     }
     
     setFilteredProducts(filtered);
@@ -165,7 +214,8 @@ export default function SalePage() {
             <FilterSidebar
               onFilterChange={handleFilterChange}
               availableBrands={['Whirlpool', 'Filters Fast', 'LG', 'Aprilaire', 'Filtrete', 'Samsung']}
-              priceRange={[0, 200]}
+              priceRange={calculatedPriceRange}
+              products={saleProducts}
             />
           </aside>
 
