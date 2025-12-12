@@ -119,10 +119,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       return initialState;
     
     case 'LOAD_CART':
+      // Safety check: ensure payload is an array
+      const cartItems = Array.isArray(action.payload) ? action.payload : [];
       return {
-        items: action.payload,
-        total: action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        itemCount: action.payload.reduce((sum, item) => sum + item.quantity, 0),
+        items: cartItems,
+        total: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
       };
     
     default:
@@ -159,7 +161,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: cartItems });
+        // Safety check: ensure parsed data is an array
+        if (Array.isArray(cartItems)) {
+          dispatch({ type: 'LOAD_CART', payload: cartItems });
+        } else {
+          console.warn('Invalid cart data in localStorage, clearing cart');
+          dispatch({ type: 'CLEAR_CART' });
+        }
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
         dispatch({ type: 'CLEAR_CART' });

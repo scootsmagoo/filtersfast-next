@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getMFAFactor } from '@/lib/db/mfa';
 import { sanitizeInput } from '@/lib/sanitize';
 import { rateLimit } from '@/lib/rate-limit';
+import Database from 'better-sqlite3';
 
 /**
  * POST /api/mfa/check-required
@@ -32,13 +33,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has MFA enabled
-    // Note: We don't reveal if the user exists, just return false if not found
-    const factor = getMFAFactor(email);
+    // Look up user by email to get userId
+    const dbPath = process.env.DATABASE_URL || "./auth.db";
+    const db = new Database(dbPath);
+    
+    try {
+      const user = db.prepare('SELECT id FROM user WHERE email = ?').get(email) as { id: string } | undefined;
+      
+      if (!user) {
+        // User doesn't exist - return false without revealing
+        return NextResponse.json({ required: false });
+      }
 
-    return NextResponse.json({
-      required: !!factor,
-    });
+      // Check if user has MFA enabled using userId
+      const factor = getMFAFactor(user.id);
+
+      return NextResponse.json({
+        required: !!factor,
+      });
+    } finally {
+      db.close();
+    }
   } catch (error) {
     console.error('MFA check-required error:', error);
     // Security: Don't reveal errors, just return false
