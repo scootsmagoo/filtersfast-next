@@ -1,0 +1,58 @@
+{
+  "name": "FiltersFast - America's Top Online Filtration Retailer",
+  "short_name": "FiltersFast",
+  "description": "Huge Selection. Unbeatable Quality. 365-Day Returns. Shop refrigerator water filters, air filters, pool filters, and more from trusted brands.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6600",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/touch-icon-114x114.png",
+      "sizes": "114x114",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["shopping", "ecommerce"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Shop Air Filters",
+      "short_name": "Air Filters",
+      "description": "Browse air filters",
+      "url": "/air-filters",
+      "icons": [{ "src": "/touch-icon-114x114.png", "sizes": "114x114" }]
+    },
+    {
+      "name": "Shop Water Filters",
+      "short_name": "Water Filters",
+      "description": "Browse water filters",
+      "url": "/water-filters",
+      "icons": [{ "src": "/touch-icon-114x114.png", "sizes": "114x114" }]
+    },
+    {
+      "name": "My Cart",
+      "short_name": "Cart",
+      "description": "View shopping cart",
+      "url": "/cart",
+      "icons": [{ "src": "/touch-icon-114x114.png", "sizes": "114x114" }]
+    },
+    {
+      "name": "My Account",
+      "short_name": "Account",
+      "description": "View account",
+      "url": "/account",
+      "icons": [{ "src": "/touch-icon-114x114.png", "sizes": "114x114" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
+

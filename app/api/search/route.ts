@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SearchableProduct, SearchResult, SearchResponse, SearchFilters } from '@/lib/types';
+import { listProducts } from '@/lib/db/products';
 import { 
   normalizeQuery, 
   calculateScore, 
@@ -8,9 +9,99 @@ import {
   applyFilters,
   generateSuggestions 
 } from '@/lib/search-utils';
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit';
+import { sanitizeText, sanitizeNumber } from '@/lib/sanitize';
+import { logSearch } from '@/lib/db/search-analytics';
 
-// Mock enhanced product data (in production, this would come from a database)
-const searchableProducts: SearchableProduct[] = [
+// Helper to convert database Product to SearchableProduct
+function productToSearchable(product: any): SearchableProduct {
+  const categoryMap: Record<string, SearchableProduct['category']> = {
+    'air-filter': 'air',
+    'water-filter': 'water',
+    'refrigerator-filter': 'refrigerator',
+    'humidifier-filter': 'humidifier',
+    'pool-filter': 'pool',
+  };
+  
+  // Get the original product ID - should be a string like "prod-xxx" from database
+  const originalId = product.id;
+  
+  // Calculate numeric ID for backward compatibility
+  const numericId = typeof originalId === 'string' 
+    ? parseInt(originalId.replace(/\D/g, '')) || 0
+    : (typeof originalId === 'number' ? originalId : 0);
+  
+  // ALWAYS preserve the original ID as productId for database products
+  // This is critical for proper linking to product detail pages
+  // If originalId is a string (database product), use it as productId
+  // If it's a number (legacy/mock), convert to string
+  const productIdValue: string | undefined = typeof originalId === 'string' && originalId.trim().length > 0
+    ? originalId 
+    : (typeof originalId === 'number' ? String(originalId) : undefined);
+  
+  // Build the searchable product - ALWAYS include productId when we have originalId
+  const retExcludeRaw = Number(product.retExclude);
+  const retExclude = [0, 1, 2].includes(retExcludeRaw) ? (retExcludeRaw as 0 | 1 | 2) : 0;
+  const blockedReason = product.blockedReason?.trim() ? product.blockedReason.trim() : null;
+  const isBlocked = Boolean(blockedReason);
+
+  const searchable: any = {
+    id: numericId, // Keep numeric for backward compatibility with mock data
+    name: product.name,
+    brand: product.brand,
+    sku: product.sku,
+    price: product.price,
+    originalPrice: product.compareAtPrice || undefined,
+    rating: product.rating || 0,
+    reviewCount: product.reviewCount || 0,
+    image: product.primaryImage || '/images/product-placeholder.jpg',
+    inStock: (product.inventoryQuantity > 0 || !product.trackInventory) && !isBlocked,
+    badges: [
+      ...(product.isBestSeller ? ['bestseller'] : []),
+      ...(product.isFeatured ? ['featured'] : []),
+      ...(product.isNew ? ['new'] : []),
+      ...(product.madeInUSA ? ['made-in-usa'] : []),
+    ],
+    category: categoryMap[product.type] || 'other',
+    description: product.description || '',
+    searchKeywords: [
+      product.name.toLowerCase(),
+      product.brand.toLowerCase(),
+      product.sku.toLowerCase(),
+      ...(product.description || '').toLowerCase().split(/\s+/),
+      ...(product.tags || []),
+    ],
+    partNumbers: [product.sku, ...(product.tags || [])],
+    compatibility: product.compatibleModels || [],
+    specifications: product.specifications || {},
+    maxCartQty: product.maxCartQty ?? null,
+    retExclude,
+    blockedReason,
+    isBlocked,
+  };
+  
+  // CRITICAL: Explicitly set productId AFTER building the object to ensure it's included
+  // This is the most important field for proper product linking
+  if (productIdValue) {
+    searchable.productId = productIdValue;
+  }
+  
+  // Verify productId is set (for database products starting with "prod-")
+  if (typeof originalId === 'string' && originalId.startsWith('prod-') && !searchable.productId) {
+    console.error('[productToSearchable] ERROR: productId not set for database product!', {
+      originalId,
+      productIdValue,
+      searchableKeys: Object.keys(searchable)
+    });
+    // Force set it as a fallback
+    searchable.productId = originalId;
+  }
+  
+  return searchable as SearchableProduct;
+}
+
+// Mock enhanced product data (fallback if database is empty)
+const mockSearchableProducts: SearchableProduct[] = [
   // Refrigerator Filters
   {
     id: 1,
@@ -170,21 +261,155 @@ const searchableProducts: SearchableProduct[] = [
       'Pack Quantity': '6',
       'Filter Life': '3 months'
     }
+  },
+  {
+    id: 501,
+    name: 'Aprilaire 35 Humidifier Filter',
+    brand: 'Aprilaire',
+    sku: 'APR-35',
+    price: 16.99,
+    rating: 4.8,
+    reviewCount: 1234,
+    image: '/images/humidifier-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'humidifier',
+    description: 'Aprilaire 35 replacement humidifier filter pad.',
+    searchKeywords: ['aprilaire', '35', 'humidifier', 'filter', 'pad', 'replacement'],
+    partNumbers: ['APR-35', '35'],
+    compatibility: ['Aprilaire 350', 'Aprilaire 360'],
+    specifications: {
+      'Filter Life': '1 year',
+      'Dimensions': '10" x 13" x 1.75"',
+      'Material': 'Evaporative Pad'
+    }
+  },
+  {
+    id: 502,
+    name: 'Honeywell HC-14 Replacement Filter',
+    brand: 'Honeywell',
+    sku: 'HON-HC14',
+    price: 14.99,
+    rating: 4.7,
+    reviewCount: 892,
+    image: '/images/humidifier-filter-2.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Honeywell HC-14 replacement humidifier filter.',
+    searchKeywords: ['honeywell', 'hc-14', 'hc14', 'humidifier', 'filter', 'replacement'],
+    partNumbers: ['HON-HC14', 'HC-14', 'HC14'],
+    compatibility: ['Honeywell HCM Series'],
+    specifications: {
+      'Filter Life': '1-3 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 503,
+    name: 'Essick Air HDC-12 Humidifier Wick',
+    brand: 'Essick Air',
+    sku: 'ESS-HDC12',
+    price: 11.99,
+    rating: 4.6,
+    reviewCount: 567,
+    image: '/images/humidifier-filter-3.jpg',
+    inStock: true,
+    badges: [],
+    category: 'humidifier',
+    description: 'Essick Air HDC-12 humidifier wick filter.',
+    searchKeywords: ['essick', 'air', 'hdc-12', 'hdc12', 'humidifier', 'wick', 'filter'],
+    partNumbers: ['ESS-HDC12', 'HDC-12', 'HDC12'],
+    compatibility: ['Essick Air Humidifiers'],
+    specifications: {
+      'Filter Life': '1-2 months',
+      'Type': 'Wicking Filter',
+      'Material': 'Paper'
+    }
+  },
+  {
+    id: 401,
+    name: 'Pool Filter Cartridge - Hayward C-225',
+    brand: 'Filters Fast',
+    sku: 'FF-HC225',
+    price: 39.99,
+    rating: 4.7,
+    reviewCount: 567,
+    image: '/images/pool-filter-1.jpg',
+    inStock: true,
+    badges: ['bestseller'],
+    category: 'pool',
+    description: 'Replacement cartridge for Hayward C-225 pool filters.',
+    searchKeywords: ['pool', 'filter', 'cartridge', 'hayward', 'c-225', 'replacement'],
+    partNumbers: ['FF-HC225', 'C-225'],
+    compatibility: ['Hayward C-225'],
+    specifications: {
+      'Filter Life': '1 season',
+      'Dimensions': '4.5" x 8.25"',
+      'Material': 'Polyester'
+    }
   }
 ];
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting - prevent abuse
+    const clientId = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(clientId, rateLimitPresets.generous);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.reset - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(rateLimitPresets.generous.maxRequests),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q') || '';
-    const category = searchParams.get('category') || '';
-    const brand = searchParams.get('brand') || '';
-    const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined;
-    const maxPrice = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined;
+    
+    // Sanitize and validate input parameters
+    // Strip HTML tags and limit length (React will escape on render, but we sanitize for safety)
+    const rawQuery = searchParams.get('q') || '';
+    const query = rawQuery.replace(/<[^>]*>/g, '').trim().slice(0, 200); // Limit to 200 chars, strip HTML
+    const category = (searchParams.get('category') || '').replace(/[^a-zA-Z0-9-]/g, '').slice(0, 50);
+    const brand = (searchParams.get('brand') || '').replace(/<[^>]*>/g, '').trim().slice(0, 100);
+    
+    // Validate and sanitize numeric inputs
+    const minPriceParam = searchParams.get('minPrice');
+    const maxPriceParam = searchParams.get('maxPrice');
+    const rawMinPrice = minPriceParam ? sanitizeNumber(minPriceParam, 0, 100000) : undefined;
+    const rawMaxPrice = maxPriceParam ? sanitizeNumber(maxPriceParam, 0, 100000) : undefined;
+    const minPrice = typeof rawMinPrice === 'number' ? rawMinPrice : undefined;
+    const maxPrice = typeof rawMaxPrice === 'number' ? rawMaxPrice : undefined;
+    
+    // Validate price range
+    if (typeof minPrice === 'number' && typeof maxPrice === 'number') {
+      if (minPrice > maxPrice) {
+        return NextResponse.json(
+          { error: 'Invalid price range. Minimum price cannot be greater than maximum price.' },
+          { status: 400 }
+        );
+      }
+    }
+    
     const inStock = searchParams.get('inStock') === 'true';
-    const minRating = searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined;
-    const page = Number(searchParams.get('page')) || 1;
-    const limit = Number(searchParams.get('limit')) || 20;
+    const minRatingParam = searchParams.get('minRating');
+    const rawMinRating = minRatingParam ? sanitizeNumber(minRatingParam, 0, 5) : undefined;
+    const minRating = typeof rawMinRating === 'number' ? rawMinRating : undefined;
+    
+    // Validate pagination parameters
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('limit');
+    const page = pageParam ? Math.max(1, Math.min(1000, Math.floor(sanitizeNumber(pageParam, 1, 1000) || 1))) : 1;
+    const limit = limitParam ? Math.max(1, Math.min(100, Math.floor(sanitizeNumber(limitParam, 1, 100) || 20))) : 20;
 
     // If no query, return empty results
     if (!query.trim()) {
@@ -202,6 +427,49 @@ export async function GET(request: NextRequest) {
         }
       });
     }
+
+    // Map category filter to product type
+    const categoryToType: Record<string, string> = {
+      'air': 'air-filter',
+      'water': 'water-filter',
+      'refrigerator': 'refrigerator-filter',
+      'humidifier': 'humidifier-filter',
+      'pool': 'pool-filter',
+    };
+
+    // Fetch products from database
+    const productFilters = {
+      status: 'active' as const, // Only search active products
+      type: category ? (categoryToType[category] as any) : undefined,
+      brand: brand || undefined,
+      search: query,
+      minPrice,
+      maxPrice,
+      inStock: inStock || undefined,
+      limit: 1000, // Get more products for better search results
+      offset: 0,
+    };
+
+    const dbResult = listProducts(productFilters);
+    
+    // Convert database products to searchable format, ensuring productId is preserved
+    // Note: React automatically escapes rendered content, so we don't need to HTML-encode product data
+    const dbProducts = dbResult.products.map(product => {
+      const searchable = productToSearchable(product);
+      
+      // Warn if productId should be set but isn't (only in development)
+      if (process.env.NODE_ENV === 'development' && !searchable.productId && product.id && typeof product.id === 'string' && product.id.startsWith('prod-')) {
+        console.error('[Search API] ERROR: productId not set for database product!', {
+          productId: product.id,
+          searchableKeys: Object.keys(searchable),
+          searchableId: searchable.id
+        });
+      }
+      return searchable;
+    });
+
+    // Use database products, fallback to mock if empty
+    const searchableProducts = dbProducts.length > 0 ? dbProducts : mockSearchableProducts;
 
     const normalizedQuery = normalizeQuery(query);
 
@@ -227,7 +495,7 @@ export async function GET(request: NextRequest) {
     // Sort by score (highest first)
     searchResults.sort((a, b) => b.score - a.score);
 
-    // Apply filters
+    // Apply additional filters (category filter already applied at DB level, but check again for consistency)
     const filters: SearchFilters = {
       category: category || undefined,
       brand: brand || undefined,
@@ -257,10 +525,10 @@ export async function GET(request: NextRequest) {
         acc[product.brand] = (acc[product.brand] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      priceRange: {
+      priceRange: searchableProducts.length > 0 ? {
         min: Math.min(...searchableProducts.map(p => p.price)),
         max: Math.max(...searchableProducts.map(p => p.price))
-      }
+      } : { min: 0, max: 0 }
     };
 
     const response: SearchResponse = {
@@ -273,7 +541,78 @@ export async function GET(request: NextRequest) {
       filters: filterOptions
     };
 
-    return NextResponse.json(response);
+    // Log search for analytics (async, don't block response)
+    try {
+      const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+                       request.headers.get('x-real-ip') || 
+                       'unknown';
+      const userAgent = request.headers.get('user-agent') || 'unknown';
+      const referrer = request.headers.get('referer') || null;
+      const sessionId = request.cookies.get('sessionId')?.value || 
+                       request.headers.get('x-session-id') || 
+                       null;
+
+      // Determine search type based on query patterns
+      let searchType: 'product' | 'size' | 'sku' | 'model' | 'custom' | undefined;
+      const normalizedQuery = query.toLowerCase().trim();
+      if (/^\d+x\d+x\d+/.test(normalizedQuery) || /^\d+\s*x\s*\d+\s*x\s*\d+/.test(normalizedQuery)) {
+        searchType = 'size';
+      } else if (/^[a-z0-9-]+$/i.test(normalizedQuery) && normalizedQuery.length <= 20) {
+        searchType = 'sku';
+      } else if (/^[a-z]+\s*\d+$/i.test(normalizedQuery)) {
+        searchType = 'model';
+      } else {
+        searchType = 'product';
+      }
+
+      // Determine outcome
+      const outcome = filteredResults.length > 0 ? 'results_found' : 'no_results';
+
+      // Extract filters
+      const filtersApplied: Record<string, any> = {};
+      if (category) filtersApplied.category = category;
+      if (brand) filtersApplied.brand = brand;
+      if (minPrice !== undefined) filtersApplied.minPrice = minPrice;
+      if (maxPrice !== undefined) filtersApplied.maxPrice = maxPrice;
+      if (inStock) filtersApplied.inStock = true;
+      if (minRating !== undefined) filtersApplied.minRating = minRating;
+
+      // Get product IDs from results
+      const resultProductIds = paginatedResults
+        .map(r => r.product.productId || String(r.product.id))
+        .filter(Boolean)
+        .slice(0, 100); // OWASP: Limit to prevent DoS
+
+      // OWASP: Sanitize search term before logging (query is already sanitized above)
+      // Log the search (function will further sanitize inputs)
+      logSearch({
+        searchTerm: query, // Already sanitized above
+        searchTermNormalized: normalizedQuery,
+        sessionId: sessionId || undefined,
+        ipAddress: ipAddress.slice(0, 45), // OWASP: Limit IP address length
+        userAgent: userAgent.slice(0, 500), // OWASP: Limit user agent length
+        outcome,
+        resultCount: filteredResults.length,
+        searchType,
+        filtersApplied: Object.keys(filtersApplied).length > 0 ? filtersApplied : undefined,
+        resultProductIds: resultProductIds.length > 0 ? resultProductIds : undefined,
+        mobile: /mobile|android|iphone|ipad/i.test(userAgent),
+        referrer: referrer ? referrer.slice(0, 500) : undefined // OWASP: Limit referrer length
+      });
+    } catch (error) {
+      // Log search errors but don't fail the request
+      console.error('Error logging search:', error);
+    }
+
+    // Return response with security headers
+    return NextResponse.json(response, {
+      headers: {
+        'X-RateLimit-Limit': String(rateLimitPresets.generous.maxRequests),
+        'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+        'X-RateLimit-Reset': String(rateLimitResult.reset),
+        'X-Content-Type-Options': 'nosniff',
+      }
+    });
 
   } catch (error) {
     console.error('Search API error:', error);

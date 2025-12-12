@@ -7,15 +7,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import {
-  getSubscriptionMock,
-  pauseSubscriptionMock
-} from '@/lib/db/subscriptions-mock'
+  getSubscription,
+  pauseSubscription
+} from '@/lib/db/subscriptions'
+import { checkRateLimit, getClientIdentifier, rateLimitPresets } from '@/lib/rate-limit'
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const identifier = getClientIdentifier(req)
+    const rateLimit = await checkRateLimit(identifier, rateLimitPresets.strict)
+    
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const session = await auth.api.getSession({
       headers: await headers()
     })
@@ -28,7 +40,7 @@ export async function POST(
     }
     
     const { id } = await params
-    const subscription = getSubscriptionMock(id)
+    const subscription = await getSubscription(id)
     
     if (!subscription) {
       return NextResponse.json(
@@ -55,7 +67,7 @@ export async function POST(
     const body = await req.json().catch(() => ({}))
     const pausedUntil = body.pausedUntil ? new Date(body.pausedUntil) : undefined
     
-    const paused = pauseSubscriptionMock(id, pausedUntil)
+    const paused = await pauseSubscription(id, pausedUntil)
     
     if (!paused) {
       return NextResponse.json(
@@ -72,8 +84,9 @@ export async function POST(
     })
   } catch (error) {
     console.error('Error pausing subscription:', error)
+    // Don't expose internal errors
     return NextResponse.json(
-      { error: 'Failed to pause subscription' },
+      { error: 'An error occurred while pausing subscription' },
       { status: 500 }
     )
   }

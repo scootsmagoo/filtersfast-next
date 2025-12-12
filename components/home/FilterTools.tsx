@@ -32,13 +32,13 @@ export default function FilterTools() {
   };
 
   return (
-    <section className="py-16 bg-brand-gray-50">
+    <section className="py-16 bg-brand-gray-50 dark:bg-gray-800 transition-colors">
       <div className="container-custom">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-gray-100 mb-4 transition-colors">
             Find Your Perfect Filter
           </h2>
-          <p className="text-lg text-brand-gray-600">
+          <p className="text-lg text-brand-gray-600 dark:text-gray-300 transition-colors">
             Search by part number, brand, or custom size
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function FilterTools() {
         {/* Tab Switcher */}
         <div className="flex justify-center mb-8">
           <div 
-            className="inline-flex rounded-lg border border-brand-gray-300 bg-white p-1" 
+            className="inline-flex rounded-lg border border-brand-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-1 transition-colors" 
             role="tablist"
             aria-label="Filter search methods"
           >
@@ -55,7 +55,7 @@ export default function FilterTools() {
               className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
                 activeTab === 'model'
                   ? 'bg-brand-orange text-white'
-                  : 'text-brand-gray-600 hover:text-brand-orange'
+                  : 'text-brand-gray-600 dark:text-gray-300 hover:text-brand-orange'
               }`}
               role="tab"
               aria-selected={activeTab === 'model'}
@@ -71,7 +71,7 @@ export default function FilterTools() {
               className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
                 activeTab === 'water'
                   ? 'bg-brand-blue text-white'
-                  : 'text-brand-gray-600 hover:text-brand-blue'
+                  : 'text-brand-gray-600 dark:text-gray-300 hover:text-brand-blue'
               }`}
               role="tab"
               aria-selected={activeTab === 'water'}
@@ -88,7 +88,7 @@ export default function FilterTools() {
               className={`flex items-center gap-2 px-6 py-3 rounded-md font-semibold transition-all ${
                 activeTab === 'air'
                   ? 'bg-brand-blue text-white'
-                  : 'text-brand-gray-600 hover:text-brand-blue'
+                  : 'text-brand-gray-600 dark:text-gray-300 hover:text-brand-blue'
               }`}
               role="tab"
               aria-selected={activeTab === 'air'}
@@ -106,7 +106,7 @@ export default function FilterTools() {
         {/* Model Lookup */}
         {activeTab === 'model' && (
           <div 
-            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-colors"
             role="tabpanel"
             id="model-panel"
             aria-labelledby="model-tab"
@@ -114,14 +114,14 @@ export default function FilterTools() {
             <div className="flex items-center gap-3 mb-6">
               <Bookmark className="w-8 h-8 text-brand-orange" aria-hidden="true" />
               <div>
-                <h3 className="text-xl font-bold text-brand-gray-900">Find the Right Filter for Your Appliance</h3>
-                <p className="text-brand-gray-600">Search by model number or brand to find compatible filters</p>
+                <h3 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Find the Right Filter for Your Appliance</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Search by model number or brand to find compatible filters</p>
               </div>
             </div>
 
             <form onSubmit={handleModelSearch} className="space-y-6">
               <div>
-                <label htmlFor="model-search-home" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                <label htmlFor="model-search-home" className="block text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   Enter Your Appliance Model Number or Brand
                 </label>
                 <div className="flex gap-3">
@@ -146,17 +146,17 @@ export default function FilterTools() {
               </div>
 
               <div 
-                className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+                className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors"
                 role="note"
                 aria-label="Help finding your model number"
               >
-                <h4 className="font-semibold text-blue-900 mb-2">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 transition-colors">
                   <span role="img" aria-label="Light bulb">💡</span> Not sure what your model number is?
                 </h4>
-                <p className="text-sm text-blue-800 mb-3">
+                <p className="text-sm text-blue-800 dark:text-blue-200 mb-3 transition-colors">
                   Your appliance model number is usually found on a label or tag on the inside or back of your unit.
                 </p>
-                <ul className="text-sm text-blue-800 space-y-1 ml-4 list-none">
+                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 ml-4 list-none transition-colors">
                   <li>• <strong>Refrigerators:</strong> Inside the fridge, on the side wall</li>
                   <li>• <strong>HVAC/Furnace:</strong> On the unit's metal panel</li>
                   <li>• <strong>Humidifier:</strong> On the water panel or main unit</li>
@@ -164,7 +164,7 @@ export default function FilterTools() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <p className="col-span-2 md:col-span-4 text-sm font-semibold text-brand-gray-700 mb-1" id="popular-brands-label">
+                <p className="col-span-2 md:col-span-4 text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-1 transition-colors" id="popular-brands-label">
                   Popular Brands:
                 </p>
                 {['GE', 'Samsung', 'Whirlpool', 'LG', 'Honeywell', 'Carrier', 'Trane', 'Lennox'].map((brand) => (
@@ -175,7 +175,7 @@ export default function FilterTools() {
                       setModelSearch(brand);
                       router.push(`/model-lookup?q=${brand}`);
                     }}
-                    className="px-4 py-2 border-2 border-brand-gray-300 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 transition-all font-semibold text-brand-gray-700 text-sm focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                    className="px-4 py-2 border-2 border-brand-gray-300 dark:border-gray-600 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 dark:hover:bg-brand-orange/10 transition-all font-semibold text-brand-gray-700 dark:text-gray-300 text-sm focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
                     aria-label={`Search for ${brand} models`}
                   >
                     {brand}
@@ -189,7 +189,7 @@ export default function FilterTools() {
         {/* Water Filter Search */}
         {activeTab === 'water' && (
           <div 
-            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-colors"
             role="tabpanel"
             id="water-panel"
             aria-labelledby="water-tab"
@@ -197,14 +197,14 @@ export default function FilterTools() {
             <div className="flex items-center gap-3 mb-6">
               <Droplet className="w-8 h-8 text-brand-blue" />
               <div>
-                <h3 className="text-xl font-bold text-brand-gray-900">Replace Your Refrigerator Water Filter</h3>
-                <p className="text-brand-gray-600">Search by part number or select your brand</p>
+                <h3 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Replace Your Refrigerator Water Filter</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Search by part number or select your brand</p>
               </div>
             </div>
 
             <form onSubmit={handleWaterSearch} className="space-y-6">
               <div>
-                <label htmlFor="partNumber" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                <label htmlFor="partNumber" className="block text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   Search by Part #
                 </label>
                 <div className="flex gap-3">
@@ -225,15 +225,15 @@ export default function FilterTools() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-brand-gray-300"></div>
+                  <div className="w-full border-t border-brand-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-brand-gray-500 font-medium">OR</span>
+                  <span className="px-4 bg-white dark:bg-gray-800 text-brand-gray-500 dark:text-gray-400 font-medium transition-colors">OR</span>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="brand" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                <label htmlFor="brand" className="block text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   Search by Filter Brand
                 </label>
                 <div className="flex gap-3">
@@ -260,7 +260,7 @@ export default function FilterTools() {
                   <button
                     key={brand}
                     type="button"
-                    className="px-4 py-3 border-2 border-brand-gray-300 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 transition-all font-semibold text-brand-gray-700"
+                    className="px-4 py-3 border-2 border-brand-gray-300 dark:border-gray-600 rounded-lg hover:border-brand-orange hover:bg-brand-orange/5 dark:hover:bg-brand-orange/10 transition-all font-semibold text-brand-gray-700 dark:text-gray-300"
                   >
                     {brand}
                   </button>
@@ -273,7 +273,7 @@ export default function FilterTools() {
         {/* Air Filter Search */}
         {activeTab === 'air' && (
           <div 
-            className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 transition-colors"
             role="tabpanel"
             id="air-panel"
             aria-labelledby="air-tab"
@@ -281,19 +281,19 @@ export default function FilterTools() {
             <div className="flex items-center gap-3 mb-6">
               <Wind className="w-8 h-8 text-brand-blue" />
               <div>
-                <h3 className="text-xl font-bold text-brand-gray-900">Replace Your Air Filter</h3>
-                <p className="text-brand-gray-600">Select your filter by size</p>
+                <h3 className="text-xl font-bold text-brand-gray-900 dark:text-gray-100 transition-colors">Replace Your Air Filter</h3>
+                <p className="text-brand-gray-600 dark:text-gray-300 transition-colors">Select your filter by size</p>
               </div>
             </div>
 
             <form onSubmit={handleAirSearch} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-brand-gray-700 mb-3">
+                <label className="block text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-3 transition-colors">
                   Select Your Filter Size
                 </label>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label htmlFor="width" className="block text-xs text-brand-gray-600 mb-1">
+                    <label htmlFor="width" className="block text-xs text-brand-gray-600 dark:text-gray-400 mb-1 transition-colors">
                       Short side (W) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -308,7 +308,7 @@ export default function FilterTools() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="height" className="block text-xs text-brand-gray-600 mb-1">
+                    <label htmlFor="height" className="block text-xs text-brand-gray-600 dark:text-gray-400 mb-1 transition-colors">
                       Long side (H) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -323,7 +323,7 @@ export default function FilterTools() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="depth" className="block text-xs text-brand-gray-600 mb-1">
+                    <label htmlFor="depth" className="block text-xs text-brand-gray-600 dark:text-gray-400 mb-1 transition-colors">
                       Thick side (D) <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -340,7 +340,7 @@ export default function FilterTools() {
                     </select>
                   </div>
                 </div>
-                <p className="text-xs text-brand-gray-500 mt-2">
+                <p className="text-xs text-brand-gray-500 dark:text-gray-400 mt-2 transition-colors">
                   Enter dimensions in inches (e.g., 16 x 20 x 1)
                 </p>
               </div>
@@ -351,15 +351,15 @@ export default function FilterTools() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-brand-gray-300"></div>
+                  <div className="w-full border-t border-brand-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-brand-gray-500 font-medium">OR</span>
+                  <span className="px-4 bg-white dark:bg-gray-800 text-brand-gray-500 dark:text-gray-400 font-medium transition-colors">OR</span>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="airBrand" className="block text-sm font-semibold text-brand-gray-700 mb-2">
+                <label htmlFor="airBrand" className="block text-sm font-semibold text-brand-gray-700 dark:text-gray-300 mb-2 transition-colors">
                   Search by Air Filter Brand
                 </label>
                 <div className="flex gap-3">

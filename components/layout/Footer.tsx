@@ -3,9 +3,9 @@ import { Facebook, Twitter, Instagram, Youtube, Headset, UserCircle, Home, Key }
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-gray-800 text-white">
+    <footer className="bg-brand-gray-800 dark:bg-gray-950 text-white transition-colors">
       {/* Top Banner: Reorder, Home Filter Club, Additional Questions */}
-      <div className="bg-brand-gray-900 py-8 border-b border-brand-gray-700">
+      <div className="bg-brand-gray-900 dark:bg-black py-8 border-b border-brand-gray-700 dark:border-gray-800 transition-colors">
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Reorder Filters */}
@@ -89,12 +89,11 @@ export default function Footer() {
 
       {/* Main Footer */}
       <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">
-              <span className="text-brand-orange">Filters</span>
-              <span className="text-white">Fast</span>
+            <h3 className="text-xl font-bold mb-4 text-brand-orange">
+              FiltersFast
             </h3>
             <p className="text-brand-gray-300 mb-4">
               America&apos;s Top Online Filtration Retailer. Huge Selection. Unbeatable Quality. 365-Day Returns.
@@ -156,8 +155,11 @@ export default function Footer() {
             <h4 className="font-bold mb-4">Discounts &amp; Rewards</h4>
             <ul className="space-y-2 text-brand-gray-300">
               <li><Link href="/military-discount" className="hover:text-brand-orange transition-colors">Military &amp; First Responder Discount</Link></li>
+              <li><Link href="/partners/american-home-shield" className="hover:text-brand-orange transition-colors">American Home Shield</Link></li>
+              <li><Link href="/partners/frontdoor" className="hover:text-brand-orange transition-colors">Frontdoor Discount</Link></li>
               <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Home Filter Club</Link></li>
               <li><Link href="/sale" className="hover:text-brand-orange transition-colors">Shop Sale</Link></li>
+              <li><Link href="/deals" className="hover:text-brand-orange transition-colors">Special Offers</Link></li>
             </ul>
           </div>
 
@@ -168,7 +170,34 @@ export default function Footer() {
               <li><Link href="/support" className="hover:text-brand-orange transition-colors">Support Center</Link></li>
               <li><Link href="/track-order" className="hover:text-brand-orange transition-colors">Track Order</Link></li>
               <li><Link href="/returns" className="hover:text-brand-orange transition-colors">Returns & Exchanges</Link></li>
+              <li><Link href="/account/newsletter" className="hover:text-brand-orange transition-colors">Email Preferences</Link></li>
               <li><Link href="/contact" className="hover:text-brand-orange transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+
+          {/* Learn & Resources */}
+          <div>
+            <h4 className="font-bold mb-4">Learn &amp; Resources</h4>
+            <ul className="space-y-2 text-brand-gray-300">
+              <li>
+                <Link href="/blog" className="hover:text-brand-orange transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <a 
+                  href="https://forums.filtersfast.com/forums/" 
+                  className="hover:text-brand-orange transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Forums
+                </a>
+              </li>
+              <li><Link href="/links" className="hover:text-brand-orange transition-colors">Educational Resources</Link></li>
+              <li><Link href="/model-lookup" className="hover:text-brand-orange transition-colors">Model Lookup Tool</Link></li>
+              <li><Link href="/auto-delivery" className="hover:text-brand-orange transition-colors">Filter Club</Link></li>
+              <li><Link href="/custom-air-filters" className="hover:text-brand-orange transition-colors">Custom Filter Builder</Link></li>
             </ul>
           </div>
 
@@ -178,9 +207,21 @@ export default function Footer() {
             <ul className="space-y-2 text-brand-gray-300">
               <li><Link href="/our-story" className="hover:text-brand-orange transition-colors">Our Story</Link></li>
               <li><Link href="/our-brand" className="hover:text-brand-orange transition-colors">Our Brand</Link></li>
+              <li><Link href="/partners" className="hover:text-brand-orange transition-colors">Our Partners</Link></li>
+              <li><Link href="/affiliate" className="hover:text-brand-orange transition-colors">Affiliate Program</Link></li>
               <li><Link href="/reviews" className="hover:text-brand-orange transition-colors">Reviews</Link></li>
               <li><Link href="/business-services" className="hover:text-brand-orange transition-colors">Business Services</Link></li>
               <li><Link href="/careers" className="hover:text-brand-orange transition-colors">Careers</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 className="font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-brand-gray-300">
+              <li><Link href="/terms" className="hover:text-brand-orange transition-colors">Terms &amp; Conditions</Link></li>
+              <li><Link href="/privacy" className="hover:text-brand-orange transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/accessibility" className="hover:text-brand-orange transition-colors">Accessibility</Link></li>
             </ul>
           </div>
         </div>

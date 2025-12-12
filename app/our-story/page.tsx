@@ -2,19 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import Card from '@/components/ui/Card';
 
+// Server-side metadata is exported in layout.tsx or can be added via Metadata API
+
 export default function OurStoryPage() {
-  // Set page metadata
-  useEffect(() => {
-    document.title = 'Our Story | FiltersFast - America\'s Top Online Filtration Retailer';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', 'Learn about FiltersFast\'s journey from 2003 to becoming America\'s top online filtration retailer. Family-owned business based in Charlotte, NC.');
-    }
-  }, []);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const teamImages = [
     { src: '/images/our-story1.jpg', alt: 'FiltersFast team members collaborating in the office' },
@@ -36,8 +31,28 @@ export default function OurStoryPage() {
     setCurrentSlide(index);
   };
 
+  const toggleAutoPlay = () => {
+    setIsAutoPlaying((prev) => !prev);
+  };
+
+  // Auto-advance carousel (WCAG 2.2.2 compliant with pause control)
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % teamImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, teamImages.length]);
+
+  // Pause auto-play on user interaction
+  const handleUserInteraction = () => {
+    setIsAutoPlaying(false);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
       {/* Hero Section */}
       <section 
         className="relative h-[400px] bg-gradient-to-r from-brand-blue to-brand-blue-dark flex items-center justify-center"
@@ -54,17 +69,17 @@ export default function OurStoryPage() {
       {/* Introduction Section */}
       <section className="container-custom py-16" aria-labelledby="intro-heading">
         <div className="max-w-4xl mx-auto">
-          <h2 id="intro-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8">
+          <h2 id="intro-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8 transition-colors">
             In 2003, Ray Scardigno became frustrated trying to purchase his refrigerator filter online...
           </h2>
 
-          <Card className="p-8 mb-12 bg-brand-orange/5 border-l-4 border-brand-orange">
-            <blockquote className="text-lg text-gray-700 leading-relaxed">
+          <Card className="p-8 mb-12 bg-brand-orange/5 dark:bg-brand-orange/10 border-l-4 border-brand-orange transition-colors">
+            <blockquote className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed transition-colors">
               <p className="mb-4">
                 There were only a handful of small sites selling filters online. My refrigerator filter seemed like a common type and I didn&apos;t want to pay the mark up of the big box stores but I simply could not figure out how to buy filters online. I saw an opportunity to create a shopping experience where customers could find the filter they need fast and deliver their product for a great price!
               </p>
               <footer className="text-right">
-                <cite className="font-bold text-gray-900 not-italic">
+                <cite className="font-bold text-gray-900 dark:text-gray-100 not-italic transition-colors">
                   - Ray Scardigno, Founder/CEO Filters Fast
                 </cite>
               </footer>
@@ -82,12 +97,13 @@ export default function OurStoryPage() {
                 allowFullScreen
                 loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="no-referrer"
               />
             </div>
           </div>
 
           {/* Mission Text */}
-          <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
+          <div className="prose prose-lg max-w-none text-gray-700 dark:text-gray-300 space-y-6 transition-colors">
             <p>
               Since 2004, Filters Fast has grown to become the top filtration provider online in the United States and continues to grow rapidly. Though we have expanded to sell filters all over the world, Filters Fast still remains a family owned business located in Charlotte, NC.
             </p>
@@ -100,11 +116,11 @@ export default function OurStoryPage() {
 
       {/* Team Section */}
       <section 
-        className="bg-gray-50 py-16" 
+        className="bg-gray-50 dark:bg-gray-800 py-16 transition-colors" 
         aria-labelledby="team-heading"
       >
         <div className="container-custom">
-          <h2 id="team-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
+          <h2 id="team-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-12 transition-colors">
             The Faces Behind the Business
           </h2>
 
@@ -143,19 +159,39 @@ export default function OurStoryPage() {
               {/* Navigation Buttons */}
               <button
                 type="button"
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                onClick={() => {
+                  handleUserInteraction();
+                  prevSlide();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="w-6 h-6" aria-hidden="true" />
               </button>
               <button
                 type="button"
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                onClick={() => {
+                  handleUserInteraction();
+                  nextSlide();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-3 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2"
                 aria-label="Next image"
               >
                 <ChevronRight className="w-6 h-6" aria-hidden="true" />
+              </button>
+
+              {/* Play/Pause Button - WCAG 2.2.2 Compliance */}
+              <button
+                type="button"
+                onClick={toggleAutoPlay}
+                className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 rounded-full shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 z-10"
+                aria-label={isAutoPlaying ? 'Pause carousel auto-play' : 'Resume carousel auto-play'}
+              >
+                {isAutoPlaying ? (
+                  <Pause className="w-5 h-5" aria-hidden="true" />
+                ) : (
+                  <Play className="w-5 h-5" aria-hidden="true" />
+                )}
               </button>
 
               {/* Slide Indicators */}
@@ -164,14 +200,17 @@ export default function OurStoryPage() {
                   <button
                     key={index}
                     type="button"
-                    onClick={() => goToSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 ${
+                    onClick={() => {
+                      handleUserInteraction();
+                      goToSlide(index);
+                    }}
+                    className={`w-3 h-3 rounded-full transition-all focus:outline-none focus:ring-4 focus:ring-brand-orange focus:ring-offset-2 ${
                       index === currentSlide
                         ? 'bg-brand-orange w-8'
-                        : 'bg-gray-300 hover:bg-gray-400'
+                        : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                     }`}
                     aria-label={`Go to image ${index + 1}`}
-                    aria-current={index === currentSlide ? 'true' : 'false'}
+                    aria-current={index === currentSlide}
                   />
                 ))}
               </div>
@@ -185,7 +224,7 @@ export default function OurStoryPage() {
         className="container-custom py-16"
         aria-labelledby="awards-heading"
       >
-        <h2 id="awards-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
+        <h2 id="awards-heading" className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-12 transition-colors">
           Awards &amp; Associations
         </h2>
 

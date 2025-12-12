@@ -1,0 +1,1449 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import Button from '@/components/ui/Button'
+import { Trash2, Search, Loader2, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Edit2, X, CheckSquare, Square } from 'lucide-react'
+
+interface ImageFile {
+  name: string
+  url: string
+  size: number
+  modified: number
+  type: string
+}
+
+interface ImageGalleryProps {
+  type: 'product' | 'category' | 'support' | 'pdf'
+  onSelect?: (image: ImageFile) => void
+  selectMode?: boolean
+  className?: string
+  refreshTrigger?: number // Trigger refresh when this changes
+}
+
+interface PaginationInfo {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export default function ImageGallery({
+  type,
+  onSelect,
+  selectMode = false,
+  className = '',
+  refreshTrigger
+}: ImageGalleryProps) {
+  const [images, setImages] = useState<ImageFile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [renameModalOpen, setRenameModalOpen] = useState(false)
+  const [renameFilename, setRenameFilename] = useState('')
+  const [renameNewFilename, setRenameNewFilename] = useState('')
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
+  const [deleteStatus, setDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [renameStatus, setRenameStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [bulkDeleteStatus, setBulkDeleteStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false)
+  const bulkDeleteModalRef = useRef<HTMLDivElement>(null)
+  const bulkDeleteConfirmButtonRef = useRef<HTMLButtonElement>(null)
+  const [page, setPage] = useState(0)
+  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo | null>(null)
+  const [isSearchMode, setIsSearchMode] = useState(false)
+  const deleteButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const renameInputRef = useRef<HTMLInputElement>(null)
+  const renameModalRef = useRef<HTMLDivElement>(null)
+  const renameTriggerButtonRef = useRef<HTMLButtonElement | null>(null)
+  const previousActiveElementRef = useRef<HTMLElement | null>(null)
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    // Reset to page 0 when type changes
+    setPage(0)
+    setIsSearchMode(false)
+    setSelectedImages(new Set()) // Clear selections when type changes
+    // Use preview mode for initial load (faster)
+    loadImages(0, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, refreshTrigger])
+
+  // Load images when page changes (but not in search mode)
+  useEffect(() => {
+    if (!isSearchMode && page > 0) {
+      // Use full pagination when navigating pages
+      loadImages(page, false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
+
+  const loadImages = async (pageNum: number = page, usePreview: boolean = false) => {
+    try {
+      setLoading(true)
+      // Use preview mode for initial load (page 0), full pagination otherwise
+      const url = usePreview && pageNum === 0
+        ? `/api/admin/images/list?type=${type}&preview=1`
+        : `/api/admin/images/list?type=${type}&page=${pageNum}&limit=300`
+      
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (data.success) {
+        setImages(data.images || [])
+        
+        // Set pagination info (API always provides it now)
+        const newPaginationInfo = {
+          total: data.total || 0,
+          page: data.page ?? pageNum,
+          limit: data.limit || 300,
+          totalPages: data.totalPages || 1,
+          hasNextPage: data.hasNextPage || false,
+          hasPreviousPage: data.hasPreviousPage || false
+        }
+        setPaginationInfo(newPaginationInfo)
+        
+        // WCAG: Announce page change to screen readers
+        if (pageNum > 0 || !usePreview) {
+          setTimeout(() => {
+            const statusEl = document.getElementById('pagination-status')
+            if (statusEl) {
+              statusEl.textContent = `Page ${newPaginationInfo.page + 1} of ${newPaginationInfo.totalPages}`
+            }
+          }, 100)
+        }
+      } else {
+        // Handle API errors
+        setDeleteStatus({ 
+          type: 'error', 
+          message: data.error || 'Failed to load images. Please try again.' 
+        })
+      }
+    } catch (error) {
+      console.error('Error loading images:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (filename: string, currentIndex: number) => {
+    // Confirm deletion with accessible dialog
+    const confirmed = window.confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)
+    if (!confirmed) {
+      return
+    }
+
+    // Store current filtered images for focus management
+    const currentFilteredImages = images.filter(img =>
+      img.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    try {
+      setDeleting(filename)
+      setDeleteStatus(null)
+      
+      const response = await fetch(
+        `/api/admin/images/delete?filename=${encodeURIComponent(filename)}&type=${type}`,
+        { method: 'DELETE' }
+      )
+
+      const data = await response.json()
+
+      if (data.success) {
+        setDeleteStatus({ type: 'success', message: `Successfully deleted ${filename}` })
+        
+        // Reload images to ensure consistency
+        await loadImages(page, isSearchMode ? false : (page === 0))
+        
+        if (selectedImage === filename) {
+          setSelectedImage(null)
+        }
+        
+        // Focus management: focus on next available item after deletion
+        const remainingImages = currentFilteredImages.filter(img => img.name !== filename)
+        if (remainingImages.length > 0) {
+          const nextIndex = Math.min(currentIndex, remainingImages.length - 1)
+          const nextImageName = remainingImages[nextIndex]?.name
+          if (nextImageName) {
+            // Focus on next delete button after a short delay to allow DOM update
+            setTimeout(() => {
+              const nextButton = deleteButtonRefs.current.get(nextImageName)
+              if (nextButton) {
+                nextButton.focus()
+              }
+            }, 200)
+          }
+        } else {
+          // If no images remain, focus on search input
+          setTimeout(() => {
+            const searchInput = document.getElementById('image-search') as HTMLInputElement
+            if (searchInput) {
+              searchInput.focus()
+            }
+          }, 200)
+        }
+      } else {
+        setDeleteStatus({ type: 'error', message: data.error || 'Failed to delete image' })
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error)
+      setDeleteStatus({ type: 'error', message: 'Failed to delete image. Please try again.' })
+    } finally {
+      setDeleting(null)
+      // Clear status message after 5 seconds
+      setTimeout(() => setDeleteStatus(null), 5000)
+    }
+  }
+
+  const handleRenameClick = (filename: string, event?: React.MouseEvent<HTMLButtonElement>) => {
+    // WCAG: Store reference to trigger button for focus return
+    if (event?.currentTarget) {
+      renameTriggerButtonRef.current = event.currentTarget
+      previousActiveElementRef.current = document.activeElement as HTMLElement
+    }
+    
+    setRenameFilename(filename)
+    // Extract filename without extension for editing
+    const lastDotIndex = filename.lastIndexOf('.')
+    const nameWithoutExt = lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename
+    setRenameNewFilename(nameWithoutExt)
+    setRenameStatus(null)
+    setRenameModalOpen(true)
+    
+    // WCAG: Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden'
+    
+    // Focus input after modal opens
+    setTimeout(() => {
+      renameInputRef.current?.focus()
+      renameInputRef.current?.select()
+    }, 100)
+  }
+
+  const handleRename = async () => {
+    const trimmedName = renameNewFilename.trim()
+    
+    if (!trimmedName) {
+      setRenameStatus({ type: 'error', message: 'New filename cannot be empty' })
+      return
+    }
+
+    // Client-side validation
+    if (trimmedName.startsWith('.') || trimmedName.endsWith('.')) {
+      setRenameStatus({ type: 'error', message: 'Filename cannot start or end with a dot' })
+      return
+    }
+
+    if (trimmedName.length > 200) {
+      setRenameStatus({ type: 'error', message: 'Filename must be 200 characters or less' })
+      return
+    }
+
+    // Validate characters (alphanumeric, dots, hyphens, underscores)
+    const validFilenamePattern = /^[a-zA-Z0-9._-]+$/
+    if (!validFilenamePattern.test(trimmedName)) {
+      setRenameStatus({ type: 'error', message: 'Filename contains invalid characters. Only letters, numbers, dots, hyphens, and underscores are allowed.' })
+      return
+    }
+
+    // Get file extension from original filename
+    const lastDotIndex = renameFilename.lastIndexOf('.')
+    const extension = lastDotIndex > 0 ? renameFilename.substring(lastDotIndex) : ''
+    const newFullFilename = trimmedName + extension
+
+    // Basic validation - check if name actually changed
+    if (newFullFilename === renameFilename) {
+      setRenameModalOpen(false)
+      return
+    }
+
+    try {
+      setRenaming(renameFilename)
+      setRenameStatus(null)
+
+      const response = await fetch('/api/admin/images/rename', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filename: renameFilename,
+          newFilename: newFullFilename,
+          type
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setRenameStatus({ type: 'success', message: `Successfully renamed to ${newFullFilename}` })
+        setRenameModalOpen(false)
+        
+        // Reload images to ensure consistency
+        await loadImages(page, isSearchMode ? false : (page === 0))
+        
+        if (selectedImage === renameFilename) {
+          setSelectedImage(newFullFilename)
+        }
+      } else {
+        setRenameStatus({ type: 'error', message: data.error || 'Failed to rename image' })
+      }
+    } catch (error) {
+      console.error('Error renaming image:', error)
+      setRenameStatus({ type: 'error', message: 'Failed to rename image. Please try again.' })
+    } finally {
+      setRenaming(null)
+      // Clear status message after 5 seconds
+      setTimeout(() => setRenameStatus(null), 5000)
+    }
+  }
+
+  const handleRenameModalClose = () => {
+    setRenameModalOpen(false)
+    setRenameFilename('')
+    setRenameNewFilename('')
+    setRenameStatus(null)
+    
+    // WCAG: Restore body scroll
+    document.body.style.overflow = ''
+    
+    // WCAG: Return focus to trigger button or previous active element
+    setTimeout(() => {
+      if (renameTriggerButtonRef.current) {
+        renameTriggerButtonRef.current.focus()
+        renameTriggerButtonRef.current = null
+      } else if (previousActiveElementRef.current) {
+        previousActiveElementRef.current.focus()
+        previousActiveElementRef.current = null
+      }
+    }, 100)
+  }
+
+  // Bulk delete handlers
+  const handleImageSelect = (filename: string, checked: boolean) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev)
+      if (checked) {
+        newSet.add(filename)
+      } else {
+        newSet.delete(filename)
+      }
+      return newSet
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allFilenames = new Set(filteredImages.map(img => img.name))
+      setSelectedImages(allFilenames)
+    } else {
+      setSelectedImages(new Set())
+    }
+  }
+
+  const isAllSelected = filteredImages.length > 0 && filteredImages.every(img => selectedImages.has(img.name))
+  const isSomeSelected = selectedImages.size > 0 && selectedImages.size < filteredImages.length
+
+  // Update indeterminate state when selection changes
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate = isSomeSelected
+    }
+  }, [isSomeSelected, selectedImages.size, filteredImages.length])
+
+  // WCAG: Announce selection count changes to screen readers
+  useEffect(() => {
+    if (selectedImages.size > 0 && !selectMode) {
+      const announcement = `${selectedImages.size} ${selectedImages.size === 1 ? 'file' : 'files'} selected`
+      const statusEl = document.getElementById('selection-status')
+      if (statusEl) {
+        statusEl.textContent = announcement
+      }
+    } else {
+      const statusEl = document.getElementById('selection-status')
+      if (statusEl) {
+        statusEl.textContent = ''
+      }
+    }
+  }, [selectedImages.size, selectMode])
+
+  const handleBulkDeleteCancel = () => {
+    setBulkDeleteModalOpen(false)
+    document.body.style.overflow = ''
+    // WCAG: Return focus to bulk delete button
+    setTimeout(() => {
+      const bulkDeleteButton = document.querySelector('[aria-label*="Delete"]') as HTMLButtonElement
+      if (bulkDeleteButton) {
+        bulkDeleteButton.focus()
+      }
+    }, 100)
+  }
+
+  // WCAG: Focus trap for bulk delete modal
+  useEffect(() => {
+    if (!bulkDeleteModalOpen) {
+      document.body.style.overflow = ''
+      return
+    }
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      const modal = bulkDeleteModalRef.current
+      if (!modal) return
+
+      const focusableElements = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && bulkDeleteModalOpen) {
+        e.preventDefault()
+        handleBulkDeleteCancel()
+      }
+    }
+
+    document.addEventListener('keydown', handleTabKey)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('keydown', handleTabKey)
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = ''
+    }
+  }, [bulkDeleteModalOpen])
+
+  const handleBulkDeleteClick = () => {
+    if (selectedImages.size === 0) {
+      return
+    }
+    setBulkDeleteModalOpen(true)
+    // Focus confirm button after modal opens
+    setTimeout(() => {
+      bulkDeleteConfirmButtonRef.current?.focus()
+    }, 100)
+    // WCAG: Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden'
+  }
+
+  const handleBulkDeleteConfirm = async () => {
+    if (selectedImages.size === 0) {
+      setBulkDeleteModalOpen(false)
+      document.body.style.overflow = ''
+      return
+    }
+
+    setBulkDeleteModalOpen(false)
+    document.body.style.overflow = ''
+
+    try {
+      setBulkDeleting(true)
+      setBulkDeleteStatus(null)
+      
+      // OWASP: Remove duplicates (shouldn't happen, but safety check)
+      const filenames = Array.from(new Set(Array.from(selectedImages)))
+      
+      const response = await fetch('/api/admin/images/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          filenames,
+          type
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const deletedCount = data.deleted || 0
+        const failedCount = data.failed || 0
+        
+        if (failedCount === 0) {
+          setBulkDeleteStatus({ 
+            type: 'success', 
+            message: `Successfully deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}` 
+          })
+        } else {
+          setBulkDeleteStatus({ 
+            type: 'error', 
+            message: `Deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}, ${failedCount} ${failedCount === 1 ? 'file' : 'files'} failed` 
+          })
+        }
+        
+        // Clear selections
+        setSelectedImages(new Set())
+        
+        // WCAG: Announce success to screen readers
+        const announcement = failedCount === 0
+          ? `Successfully deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}`
+          : `Deleted ${deletedCount} ${deletedCount === 1 ? 'file' : 'files'}, ${failedCount} ${failedCount === 1 ? 'file' : 'files'} failed`
+        
+        // Reload images to ensure consistency
+        await loadImages(page, isSearchMode ? false : (page === 0))
+        
+        // WCAG: Focus management - focus on first image or search input after deletion
+        setTimeout(() => {
+          const firstImage = document.querySelector('[role="listitem"]') as HTMLElement
+          if (firstImage) {
+            firstImage.focus()
+          } else {
+            const searchInput = document.getElementById('image-search') as HTMLInputElement
+            if (searchInput) {
+              searchInput.focus()
+            }
+          }
+        }, 200)
+        
+        // Clear selected image if it was deleted
+        if (selectedImage && filenames.includes(selectedImage)) {
+          setSelectedImage(null)
+        }
+      } else {
+        setBulkDeleteStatus({ type: 'error', message: data.error || 'Failed to delete files' })
+      }
+    } catch (error) {
+      console.error('Error bulk deleting images:', error)
+      setBulkDeleteStatus({ type: 'error', message: 'Failed to delete files. Please try again.' })
+    } finally {
+      setBulkDeleting(false)
+      // Clear status message after 5 seconds
+      setTimeout(() => setBulkDeleteStatus(null), 5000)
+    }
+  }
+
+  // WCAG: Focus trap for modal - keep focus within modal
+  useEffect(() => {
+    if (!renameModalOpen) {
+      // WCAG: Ensure body scroll is restored when modal closes
+      document.body.style.overflow = ''
+      return
+    }
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      const modal = renameModalRef.current
+      if (!modal) return
+
+      const focusableElements = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleTabKey)
+    return () => {
+      document.removeEventListener('keydown', handleTabKey)
+      // WCAG: Cleanup - restore body scroll on unmount
+      document.body.style.overflow = ''
+    }
+  }, [renameModalOpen])
+
+  const handleImageClick = (image: ImageFile) => {
+    if (selectMode) {
+      setSelectedImage(image.name)
+      onSelect?.(image)
+    }
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  // Load all images for search (matching legacy behavior)
+  // OWASP: Limit to max 10 pages (3000 images) to prevent DoS
+  const MAX_SEARCH_PAGES = 10
+  const loadAllImages = async () => {
+    try {
+      setLoading(true)
+      // Load first page to get total count
+      const firstPageResponse = await fetch(`/api/admin/images/list?type=${type}&page=0&limit=300`)
+      const firstPageData = await firstPageResponse.json()
+      
+      if (firstPageData.success) {
+        if (firstPageData.totalPages > 1 && firstPageData.totalPages <= MAX_SEARCH_PAGES) {
+          // Load all pages in parallel (limited to prevent DoS)
+          const pagePromises = []
+          for (let p = 0; p < firstPageData.totalPages; p++) {
+            pagePromises.push(
+              fetch(`/api/admin/images/list?type=${type}&page=${p}&limit=300`)
+                .then(res => {
+                  if (!res.ok) {
+                    throw new Error(`Failed to load page ${p}`)
+                  }
+                  return res.json()
+                })
+                .catch(error => {
+                  console.error(`Error loading page ${p}:`, error)
+                  return { success: false, images: [] }
+                })
+            )
+          }
+          
+          const allPagesData = await Promise.all(pagePromises)
+          const allImages: ImageFile[] = []
+          allPagesData.forEach(pageData => {
+            if (pageData.success) {
+              allImages.push(...(pageData.images || []))
+            }
+          })
+          
+          setImages(allImages)
+        } else if (firstPageData.totalPages > MAX_SEARCH_PAGES) {
+          // Too many pages - show warning and limit to first MAX_SEARCH_PAGES
+          console.warn(`Too many images for search. Limiting to first ${MAX_SEARCH_PAGES * 300} images.`)
+          const pagePromises = []
+          for (let p = 0; p < MAX_SEARCH_PAGES; p++) {
+            pagePromises.push(
+              fetch(`/api/admin/images/list?type=${type}&page=${p}&limit=300`)
+                .then(res => res.json())
+                .catch(() => ({ success: false, images: [] }))
+            )
+          }
+          const limitedPagesData = await Promise.all(pagePromises)
+          const limitedImages: ImageFile[] = []
+          limitedPagesData.forEach(pageData => {
+            if (pageData.success) {
+              limitedImages.push(...(pageData.images || []))
+            }
+          })
+          setImages(limitedImages)
+        } else {
+          // Only one page, use that
+          setImages(firstPageData.images || [])
+        }
+      }
+    } catch (error) {
+      console.error('Error loading all images:', error)
+      setDeleteStatus({ 
+        type: 'error', 
+        message: 'Failed to load images for search. Please try again.' 
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle search - when searching, show all results (no pagination like legacy)
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+    setIsSearchMode(query.length > 0)
+    if (query.length > 0) {
+      // Load all images for search (matching legacy behavior)
+      loadAllImages()
+    } else {
+      // Return to paginated view
+      setPage(0)
+      loadImages(0, true) // Use preview mode for faster initial load
+    }
+  }
+
+  const filteredImages = images.filter(img =>
+    img.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Pagination handlers with WCAG improvements
+  const handlePreviousPage = () => {
+    if (paginationInfo?.hasPreviousPage) {
+      const newPage = Math.max(0, page - 1)
+      setPage(newPage)
+      // WCAG: Focus management - scroll and focus on gallery
+      setTimeout(() => {
+        const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+        if (gallery) {
+          gallery.focus()
+          gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (paginationInfo?.hasNextPage) {
+      const newPage = page + 1
+      setPage(newPage)
+      // WCAG: Focus management - scroll and focus on gallery
+      setTimeout(() => {
+        const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+        if (gallery) {
+          gallery.focus()
+          gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }
+
+  // WCAG: Keyboard shortcuts for pagination
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not typing in input
+      if (e.target instanceof HTMLInputElement) return
+      
+      if (e.key === 'ArrowLeft' && paginationInfo?.hasPreviousPage) {
+        e.preventDefault()
+        const newPage = Math.max(0, page - 1)
+        setPage(newPage)
+        setTimeout(() => {
+          const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+          if (gallery) {
+            gallery.focus()
+            gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      } else if (e.key === 'ArrowRight' && paginationInfo?.hasNextPage) {
+        e.preventDefault()
+        const newPage = page + 1
+        setPage(newPage)
+        setTimeout(() => {
+          const gallery = document.querySelector('[role="list"][aria-label="Image gallery"]') as HTMLElement
+          if (gallery) {
+            gallery.focus()
+            gallery.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }
+        }, 100)
+      }
+    }
+
+    if (!isSearchMode && paginationInfo && paginationInfo.totalPages > 1) {
+      window.addEventListener('keydown', handleKeyDown)
+      return () => window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [page, paginationInfo, isSearchMode])
+
+  const handleReturnToListings = () => {
+    setSearchQuery('')
+    setIsSearchMode(false)
+    setPage(0)
+    loadImages(0, true) // Use preview mode for faster load
+  }
+
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center h-64 ${className}`} role="status" aria-live="polite">
+        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading images...</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={className}>
+      {/* Search and Actions */}
+      <div className="mb-4 flex gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <label htmlFor="image-search" className="sr-only">
+            Search images
+          </label>
+          <input
+            id="image-search"
+            type="text"
+            placeholder="Search images..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Search images by filename"
+          />
+        </div>
+        {!selectMode && (
+          <>
+            {/* Select All Checkbox */}
+            {filteredImages.length > 0 && (
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    ref={(el) => {
+                      selectAllCheckboxRef.current = el
+                      if (el) {
+                        el.indeterminate = isSomeSelected
+                      }
+                    }}
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={(e) => {
+                      handleSelectAll(e.target.checked)
+                      // WCAG: Announce select all action
+                      const statusEl = document.getElementById('selection-status')
+                      if (statusEl) {
+                        statusEl.textContent = e.target.checked 
+                          ? `All ${filteredImages.length} files selected`
+                          : 'No files selected'
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // WCAG: Allow Space to toggle checkbox
+                      if (e.key === ' ') {
+                        e.preventDefault()
+                        const checkbox = e.target as HTMLInputElement
+                        checkbox.click()
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    aria-label="Select all images"
+                    aria-describedby="select-all-desc"
+                  />
+                  <span id="select-all-desc" className="sr-only">
+                    Checkbox to select or deselect all images for bulk deletion
+                  </span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Select All
+                  </span>
+                </label>
+              </div>
+            )}
+            {/* Selection Status (WCAG: Screen reader announcement) */}
+            <div 
+              id="selection-status"
+              className="sr-only"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            />
+            {/* Bulk Delete Button */}
+            {selectedImages.size > 0 && (
+              <Button
+                variant="outline"
+                onClick={handleBulkDeleteClick}
+                disabled={bulkDeleting || deleting !== null || renaming !== null}
+                aria-label={`Delete ${selectedImages.size} selected ${selectedImages.size === 1 ? 'file' : 'files'}`}
+                aria-busy={bulkDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+              >
+                {bulkDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Delete Selected ({selectedImages.size})
+                  </>
+                )}
+              </Button>
+            )}
+          </>
+        )}
+        <Button
+          variant="outline"
+          onClick={loadImages}
+          disabled={loading}
+          aria-label={loading ? "Refreshing image list..." : "Refresh image list"}
+          aria-busy={loading}
+          title="Refresh image list"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
+          {loading && <span className="sr-only">Refreshing...</span>}
+        </Button>
+      </div>
+
+      {/* Image Grid */}
+      {filteredImages.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400" role="status">
+          <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" aria-hidden="true" />
+          <p>No images found</p>
+          {searchQuery && (
+            <p className="text-sm mt-2">
+              Try a different search term
+            </p>
+          )}
+        </div>
+      ) : (
+        <div 
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" 
+          role="list" 
+          aria-label="Image gallery"
+          tabIndex={-1}
+        >
+          {filteredImages.map((image, index) => (
+            <div
+              key={image.name}
+              className={`relative group border rounded-lg overflow-hidden bg-white dark:bg-gray-800 ${
+                selectMode && selectedImage === image.name
+                  ? 'ring-2 ring-blue-500 border-blue-500'
+                  : selectedImages.has(image.name)
+                  ? 'ring-2 ring-blue-500 border-blue-500'
+                  : 'border-gray-200 dark:border-gray-700'
+              } ${selectMode ? 'cursor-pointer hover:border-blue-400' : ''}`}
+              onClick={() => !selectMode ? undefined : handleImageClick(image)}
+              role={selectMode ? "button" : "listitem"}
+              tabIndex={selectMode ? 0 : -1}
+              aria-label={selectMode ? `Select image ${image.name}` : `Image ${image.name}`}
+              aria-pressed={selectMode && selectedImage === image.name ? "true" : "false"}
+              aria-selected={!selectMode && selectedImages.has(image.name) ? "true" : undefined}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (selectMode && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault()
+                  handleImageClick(image)
+                }
+              }}
+            >
+              {/* Bulk Selection Checkbox */}
+              {!selectMode && (
+                <div 
+                  className="absolute top-2 left-2 z-20"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.has(image.name)}
+                      onChange={(e) => {
+                        handleImageSelect(image.name, e.target.checked)
+                        // WCAG: Announce selection change
+                        const statusEl = document.getElementById('selection-status')
+                        if (statusEl) {
+                          const newCount = e.target.checked ? selectedImages.size + 1 : selectedImages.size - 1
+                          statusEl.textContent = `${newCount} ${newCount === 1 ? 'file' : 'files'} selected`
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // WCAG: Allow Space to toggle checkbox
+                        if (e.key === ' ') {
+                          e.preventDefault()
+                          const checkbox = e.target as HTMLInputElement
+                          checkbox.click()
+                        }
+                      }}
+                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 bg-white dark:bg-gray-800"
+                      aria-label={`Select ${image.name} for deletion`}
+                      aria-describedby={`checkbox-desc-${image.name}`}
+                    />
+                    <span id={`checkbox-desc-${image.name}`} className="sr-only">
+                      Checkbox to select {image.name} for bulk deletion
+                    </span>
+                  </label>
+                </div>
+              )}
+              {type === 'pdf' ? (
+                <div className="aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                  <div className="text-center p-4">
+                    <div className="text-4xl mb-2">📄</div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                      {image.name}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="aspect-square relative bg-gray-100 dark:bg-gray-700">
+                  <Image
+                    src={image.url}
+                    alt={`${image.name} - ${formatFileSize(image.size)} - ${formatDate(image.modified)}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                  />
+                </div>
+              )}
+
+              {/* Action Buttons - Always visible in top-right corner */}
+              {!selectMode && (
+                <div className="absolute top-2 right-2 flex gap-2 z-10">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRenameClick(image.name, e)
+                    }}
+                    disabled={renaming === image.name || deleting === image.name}
+                    aria-label={`Rename ${image.name}`}
+                    aria-busy={renaming === image.name}
+                    className="inline-flex items-center justify-center rounded px-2 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {renaming === image.name ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <span className="sr-only">Renaming {image.name}...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Edit2 className="w-4 h-4" aria-hidden="true" />
+                        <span className="sr-only">Rename {image.name}</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(image.name, index)
+                    }}
+                    disabled={deleting === image.name || renaming === image.name}
+                    aria-label={`Delete ${image.name}`}
+                    aria-busy={deleting === image.name}
+                    className="inline-flex items-center justify-center rounded px-2 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    ref={(el) => {
+                      if (el) {
+                        deleteButtonRefs.current.set(image.name, el)
+                      } else {
+                        deleteButtonRefs.current.delete(image.name)
+                      }
+                    }}
+                  >
+                    {deleting === image.name ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <span className="sr-only">Deleting {image.name}...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        <span className="sr-only">Delete {image.name}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Hover overlay for better visual feedback */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity pointer-events-none" />
+
+              {/* Image Info */}
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 text-xs">
+                <p className="truncate font-medium">{image.name}</p>
+                <p className="text-gray-300">
+                  {formatFileSize(image.size)} • {formatDate(image.modified)}
+                </p>
+              </div>
+
+              {selectMode && selectedImage === image.name && (
+                <div className="absolute top-2 right-2">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Delete Status Message */}
+      {deleteStatus && (
+        <div 
+          className={`mt-4 p-3 rounded-lg ${
+            deleteStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <p>{deleteStatus.message}</p>
+        </div>
+      )}
+
+      {/* Rename Status Message */}
+      {renameStatus && (
+        <div 
+          className={`mt-4 p-3 rounded-lg ${
+            renameStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <p>{renameStatus.message}</p>
+        </div>
+      )}
+
+      {/* Bulk Delete Status Message */}
+      {bulkDeleteStatus && (
+        <div 
+          className={`mt-4 p-3 rounded-lg ${
+            bulkDeleteStatus.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+          }`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <p>{bulkDeleteStatus.message}</p>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bulk-delete-modal-title"
+          aria-describedby="bulk-delete-modal-description"
+          onClick={(e) => {
+            // WCAG: Close modal when clicking backdrop (but not modal content)
+            if (e.target === e.currentTarget) {
+              handleBulkDeleteCancel()
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={handleBulkDeleteCancel}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          
+          {/* Modal Content */}
+          <div 
+            ref={bulkDeleteModalRef}
+            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 
+                id="bulk-delete-modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
+                Confirm Bulk Delete
+              </h2>
+              <button
+                type="button"
+                onClick={handleBulkDeleteCancel}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                aria-label="Close confirmation dialog"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            
+            <p 
+              id="bulk-delete-modal-description"
+              className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+            >
+              Are you sure you want to delete <strong className="text-gray-900 dark:text-gray-100">{selectedImages.size}</strong> {selectedImages.size === 1 ? 'file' : 'files'}? This action cannot be undone.
+            </p>
+            
+            {selectedImages.size <= 10 && (
+              <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Files to be deleted:</p>
+                <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  {Array.from(selectedImages).slice(0, 10).map((filename) => (
+                    <li key={filename} className="truncate">{filename}</li>
+                  ))}
+                  {selectedImages.size > 10 && (
+                    <li className="text-gray-500 dark:text-gray-500">... and {selectedImages.size - 10} more</li>
+                  )}
+                </ul>
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={handleBulkDeleteCancel}
+                variant="outline"
+                aria-label="Cancel bulk delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                ref={bulkDeleteConfirmButtonRef}
+                onClick={handleBulkDeleteConfirm}
+                disabled={bulkDeleting}
+                aria-busy={bulkDeleting}
+                aria-label="Confirm bulk delete"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {bulkDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Files'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {renameModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-modal-title"
+          aria-describedby="rename-modal-description"
+          onClick={(e) => {
+            // WCAG: Close modal when clicking backdrop (but not modal content)
+            if (e.target === e.currentTarget) {
+              handleRenameModalClose()
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={handleRenameModalClose}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          
+          {/* Modal Content */}
+          <div 
+            ref={renameModalRef}
+            className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 
+                id="rename-modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+              >
+                Rename File
+              </h2>
+              <button
+                type="button"
+                onClick={handleRenameModalClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                aria-label="Close rename dialog"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
+            
+            <p 
+              id="rename-modal-description"
+              className="text-sm text-gray-600 dark:text-gray-400 mb-4"
+            >
+              Rename <strong className="text-gray-900 dark:text-gray-100">{renameFilename}</strong>
+            </p>
+            
+            <div className="mb-4">
+              <label 
+                htmlFor="rename-input"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                New filename (without extension)
+              </label>
+              <input
+                id="rename-input"
+                ref={renameInputRef}
+                type="text"
+                value={renameNewFilename}
+                onChange={(e) => {
+                  setRenameNewFilename(e.target.value)
+                  // Clear error when user starts typing
+                  if (renameStatus?.type === 'error') {
+                    setRenameStatus(null)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleRename()
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault()
+                    handleRenameModalClose()
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter new filename"
+                aria-describedby={renameStatus?.type === 'error' ? 'rename-error rename-extension-hint' : 'rename-extension-hint'}
+                aria-invalid={renameStatus?.type === 'error' ? 'true' : 'false'}
+                aria-required="true"
+              />
+              <p 
+                id="rename-extension-hint"
+                className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              >
+                {renameFilename.lastIndexOf('.') > 0 
+                  ? `Extension will be preserved: ${renameFilename.substring(renameFilename.lastIndexOf('.'))}`
+                  : 'No file extension to preserve'}
+              </p>
+            </div>
+            
+            {renameStatus && renameStatus.type === 'error' && (
+              <div 
+                id="rename-error"
+                className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
+                {renameStatus.message}
+              </div>
+            )}
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={handleRenameModalClose}
+                variant="outline"
+                aria-label="Cancel rename"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRename}
+                disabled={!renameNewFilename.trim() || renaming === renameFilename}
+                aria-busy={renaming === renameFilename}
+                aria-label="Confirm rename"
+              >
+                {renaming === renameFilename ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Renaming...
+                  </>
+                ) : (
+                  'Rename'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination Controls (matching legacy FileManager behavior) */}
+      {!isSearchMode && paginationInfo && paginationInfo.totalPages > 1 && (
+        <nav 
+          className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4" 
+          role="navigation" 
+          aria-label="Pagination navigation"
+        >
+          <div className="flex items-center gap-2">
+            {/* WCAG: Use disabled button instead of span for better accessibility */}
+            <Button
+              onClick={handlePreviousPage}
+              variant="outline"
+              size="sm"
+              disabled={!paginationInfo.hasPreviousPage}
+              aria-label={`Previous page${paginationInfo.hasPreviousPage ? '' : ' (disabled)'}`}
+              aria-disabled={!paginationInfo.hasPreviousPage}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" aria-hidden="true" />
+              Previous Page
+            </Button>
+          </div>
+          
+          {/* WCAG: Update aria-live when page changes */}
+          <div 
+            className="text-sm text-gray-600 dark:text-gray-400" 
+            role="status" 
+            aria-live="polite"
+            aria-atomic="true"
+            id="pagination-status"
+          >
+            Page {paginationInfo.page + 1} of {paginationInfo.totalPages}
+            {paginationInfo.total > 0 && (
+              <span className="ml-2" aria-label={`Total of ${paginationInfo.total} images`}>
+                ({paginationInfo.total} total images)
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* WCAG: Use disabled button instead of span for better accessibility */}
+            <Button
+              onClick={handleNextPage}
+              variant="outline"
+              size="sm"
+              disabled={!paginationInfo.hasNextPage}
+              aria-label={`Next page${paginationInfo.hasNextPage ? '' : ' (disabled)'}`}
+              aria-disabled={!paginationInfo.hasNextPage}
+            >
+              Next Page
+              <ChevronRight className="w-4 h-4 ml-1" aria-hidden="true" />
+            </Button>
+          </div>
+          
+          {/* WCAG: Keyboard shortcut hint for screen readers */}
+          <div className="sr-only" aria-live="polite">
+            Use left and right arrow keys to navigate pages
+          </div>
+        </nav>
+      )}
+
+      {/* Return to Listings (when in search mode, matching legacy) */}
+      {isSearchMode && (
+        <div className="mt-6 flex items-center justify-center border-t border-gray-200 dark:border-gray-700 pt-4">
+          <Button
+            onClick={handleReturnToListings}
+            variant="outline"
+            size="sm"
+            aria-label="Return to paginated listings"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" aria-hidden="true" />
+            Return to Listings
+          </Button>
+        </div>
+      )}
+
+      {/* Image Count */}
+      {filteredImages.length > 0 && (
+        <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 text-center" role="status" aria-live="polite">
+          {isSearchMode ? (
+            <>Showing {filteredImages.length} {filteredImages.length === 1 ? 'result' : 'results'}</>
+          ) : (
+            <>Showing {filteredImages.length} of {paginationInfo?.total || images.length} images</>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+

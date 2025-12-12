@@ -27,6 +27,11 @@ export function sanitizeText(input: string): string {
 export const sanitizeInput = sanitizeText;
 
 /**
+ * Default export alias
+ */
+export const sanitize = sanitizeText;
+
+/**
  * Sanitize HTML - strips all tags
  */
 export function stripHtml(input: string): string {

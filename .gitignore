@@ -39,4 +39,15 @@ next-env.d.ts
 auth.db
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
+database.sqlite
+
+# uploaded images and media files (keep directory structure)
+public/ProdImages/**/*
+!public/ProdImages/
+!public/ProdImages/**/.gitkeep
+
+# runtime product snapshot archives
+data/product-snapshots/
 

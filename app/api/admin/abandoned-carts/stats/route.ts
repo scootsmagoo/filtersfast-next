@@ -7,47 +7,21 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getAbandonedCartStats } from '@/lib/db/abandoned-carts';
-import { auth } from '@/lib/auth';
-import { isAdmin } from '@/lib/auth-admin';
+import { checkPermission } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
-  let session: any = null;
-  
   try {
-    // Check authentication
-    session = await auth.api.getSession({ headers: request.headers });
-    if (!session?.user) {
+    // Check permissions
+    const permissionCheck = await checkPermission(request, 'Analytics', 'read');
+    if (!permissionCheck.authorized) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check admin role
-    if (!isAdmin(session.user.email)) {
-      // Audit log - unauthorized access attempt
-      console.warn('[SECURITY] Unauthorized abandoned cart stats access attempt', {
-        ip: request.headers.get('x-forwarded-for') || 'unknown',
-        user_email: session.user.email,
-        timestamp: new Date().toISOString(),
-      });
-      
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
+        { error: permissionCheck.message },
         { status: 403 }
       );
     }
 
     // Get statistics
     const stats = getAbandonedCartStats();
-
-    // Audit log - admin accessed stats
-    console.log('[AUDIT] Admin accessed abandoned cart stats', {
-      admin_id: session.user.id,
-      admin_email: session.user.email,
-      ip: request.headers.get('x-forwarded-for') || 'unknown',
-      timestamp: new Date().toISOString(),
-    });
 
     return NextResponse.json({
       success: true,
@@ -70,14 +44,7 @@ export async function GET(request: NextRequest) {
     }, { status: 200 });
 
   } catch (error: any) {
-    // Security: Don't expose internal details
-    console.error('[ERROR] Failed to fetch abandoned cart stats:', {
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      admin_email: session?.user?.email,
-      timestamp: new Date().toISOString(),
-    });
-    
+    console.error('Error fetching abandoned cart stats:', error);
     return NextResponse.json(
       { error: 'Unable to fetch statistics' },
       { status: 500 }

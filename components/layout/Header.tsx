@@ -2,27 +2,48 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { usePathname } from 'next/navigation';
-import { ShoppingCart, Search, Phone, Menu, X, User } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ShoppingCart, Search, Phone, Menu, X, User, AlertCircle, Heart, Scale } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useCart } from '@/lib/cart-context';
+import { useWishlist } from '@/lib/wishlist-context';
+import { useComparison } from '@/lib/comparison-context';
 import { useSession } from '@/lib/auth-client';
 import SearchPreview from '@/components/search/SearchPreview';
 import { SearchableProduct } from '@/lib/types';
+import { CurrencySelector } from '@/components/layout/CurrencySelector';
+import LanguageSelector from '@/components/layout/LanguageSelector';
+import { useSystemConfig } from '@/lib/system-config-context';
 
 export default function Header() {
-  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchPreview, setShowSearchPreview] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
-  const [showMobileSearchPreview, setShowMobileSearchPreview] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
+  const { comparisonProducts } = useComparison();
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+  const systemConfig = useSystemConfig();
+
+  // Prevent hydration mismatch by only using pathname after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const phoneEnabled = systemConfig.phoneNumActive === 1;
+  const callWaitState = systemConfig.callLongWait ?? 0;
+
+  const callWaitMessage =
+    callWaitState === 1
+      ? 'High call volume — expect longer wait times.'
+      : callWaitState === 2
+        ? 'Phone support is currently unavailable. Please use chat or email.'
+        : null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,26 +54,14 @@ export default function Header() {
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log('Input change event:', { value, eventTarget: e.target.value });
-    setSearchQuery(value);
-    const shouldShow = value.length >= 2;
-    setShowSearchPreview(shouldShow);
-    console.log('Search change:', { value, shouldShow, currentState: showSearchPreview });
-    
-    // Debug: Check if the state was actually set
-    setTimeout(() => {
-      console.log('State after change:', { searchQuery, showSearchPreview });
-    }, 0);
+    setSearchQuery(e.target.value);
+    setShowSearchPreview(e.target.value.length >= 2);
   };
 
   const handleProductSelect = (product: SearchableProduct) => {
-    console.log('handleProductSelect called with:', product);
+    // Clear search and close preview (navigation handled by Link component)
     setSearchQuery('');
     setShowSearchPreview(false);
-    // Navigate to product detail page using Next.js router
-    console.log('Navigating to:', `/products/${product.id}`);
-    router.push(`/products/${product.id}`);
   };
 
   const handleSearchFocus = () => {
@@ -64,43 +73,32 @@ export default function Header() {
 
   const handleSearchBlur = () => {
     setSearchFocused(false);
-    // Delay hiding preview to allow clicks on suggestions
-    setTimeout(() => setShowSearchPreview(false), 300);
   };
 
   const closeSearchPreview = () => {
     setShowSearchPreview(false);
   };
 
-  const handleMobileSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setMobileSearchQuery(value);
-    setShowMobileSearchPreview(value.length >= 2);
-  };
-
-  const handleMobileProductSelect = (product: SearchableProduct) => {
-    setMobileSearchQuery('');
-    setShowMobileSearchPreview(false);
-    router.push(`/products/${product.id}`);
-  };
-
-  const closeMobileSearchPreview = () => {
-    setShowMobileSearchPreview(false);
-  };
-
-  // Close preview when clicking outside - use mouseup to allow clicks to complete
+  // Close preview when clicking outside
   useEffect(() => {
+    if (!showSearchPreview) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (searchRef.current && !searchRef.current.contains(target)) {
         setShowSearchPreview(false);
       }
     };
 
-    if (showSearchPreview) {
-      // Use mouseup instead of mousedown to allow button clicks to complete first
-      document.addEventListener('mouseup', handleClickOutside);
-      return () => document.removeEventListener('mouseup', handleClickOutside);
-    }
+    // Add listener after a brief delay to avoid closing immediately
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside, true);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
   }, [showSearchPreview]);
 
   // Close mobile menu when navigating to a new page
@@ -109,28 +107,44 @@ export default function Header() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-colors">
       {/* Top Banner */}
       <div className="bg-brand-orange text-white py-2">
         <div className="container-custom">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="font-semibold">⭐ Over 62,000 5-star reviews</span>
               <span className="hidden md:inline">Free Shipping on Orders $99+</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 justify-end">
               <Link href="/support" className="hidden md:inline hover:underline font-medium">
                 Support
               </Link>
               <Link href="/track-order" className="hidden sm:inline hover:underline font-medium">
                 Track Order
               </Link>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span className="font-semibold">1-866-438-3458</span>
+              <div className="hidden md:flex items-center gap-2">
+                <LanguageSelector />
+                <CurrencySelector />
               </div>
+              {phoneEnabled && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span className="font-semibold">1-866-438-3458</span>
+                </div>
+              )}
             </div>
           </div>
+          {callWaitMessage && (
+            <div
+              className="mt-2 flex items-center gap-2 text-xs sm:text-sm"
+              role="status"
+              aria-live="polite"
+            >
+              <AlertCircle className="w-4 h-4" aria-hidden="true" />
+              <span className="font-semibold">{callWaitMessage}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -145,7 +159,7 @@ export default function Header() {
               width={200}
               height={60}
               priority
-              className="h-auto w-auto max-h-14"
+              className="h-auto w-auto max-h-14 dark:border-2 dark:border-white transition-all"
             />
           </Link>
 
@@ -164,7 +178,7 @@ export default function Header() {
                   onChange={handleSearchChange}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
-                  className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
+                  className="w-full pl-4 pr-12 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all"
                   aria-describedby="search-help"
                   autoComplete="off"
                 />
@@ -195,24 +209,54 @@ export default function Header() {
             {session ? (
               <Link 
                 href="/account" 
-                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
                   {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium">{session.user.name?.split(' ')[0] || 'Account'}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{session.user.name?.split(' ')[0] || 'Account'}</span>
               </Link>
             ) : (
-              <Link href="/sign-in" className="hidden md:block text-sm hover:text-brand-orange transition-colors">
+              <Link href="/sign-in" className="hidden md:block text-sm text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
                 Sign In
               </Link>
             )}
+            <Link 
+              href="/compare" 
+              className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-label={`Compare ${comparisonProducts.length} products`}
+            >
+              <Scale className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors" />
+              {comparisonProducts.length > 0 && (
+                <span 
+                  className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  aria-label={`${comparisonProducts.length} products in comparison`}
+                >
+                  {comparisonProducts.length}
+                </span>
+              )}
+            </Link>
+            <Link 
+              href="/wishlist" 
+              className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
+              aria-label={`Wishlist with ${wishlistCount} items`}
+            >
+              <Heart className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors" />
+              {wishlistCount > 0 && (
+                <span 
+                  className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  aria-label={`${wishlistCount} items in wishlist`}
+                >
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <Link 
               href="/cart" 
               className="relative focus:ring-2 focus:ring-brand-orange focus:ring-offset-2 rounded-lg p-1"
               aria-label={`Shopping cart with ${itemCount} items`}
             >
-              <ShoppingCart className="w-6 h-6 hover:text-brand-orange transition-colors" />
+              <ShoppingCart className="w-6 h-6 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors" />
               {itemCount > 0 && (
                 <span 
                   className="absolute -top-2 -right-2 bg-brand-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
@@ -229,7 +273,7 @@ export default function Header() {
               aria-controls="mobile-menu"
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6 text-gray-900 dark:text-gray-100" /> : <Menu className="w-6 h-6 text-gray-900 dark:text-gray-100" />}
             </button>
           </div>
         </div>
@@ -245,9 +289,11 @@ export default function Header() {
                 id="mobile-search"
                 type="text"
                 placeholder="Search products..."
-                value={mobileSearchQuery}
-                onChange={handleMobileSearchChange}
-                className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                className="w-full pl-4 pr-12 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none"
                 aria-describedby="mobile-search-help"
                 autoComplete="off"
               />
@@ -265,10 +311,10 @@ export default function Header() {
             
             {/* Search Preview Dropdown - Mobile */}
             <SearchPreview
-              query={mobileSearchQuery}
-              isVisible={showMobileSearchPreview}
-              onSelectProduct={handleMobileProductSelect}
-              onClose={closeMobileSearchPreview}
+              query={searchQuery}
+              isVisible={showSearchPreview}
+              onSelectProduct={handleProductSelect}
+              onClose={closeSearchPreview}
             />
           </div>
         </div>
@@ -277,31 +323,79 @@ export default function Header() {
       {/* Navigation */}
       <nav className="bg-brand-blue text-white">
         <div className="container-custom">
-          <div className="hidden md:flex items-center justify-center gap-8 py-3">
+          <div className="hidden md:flex items-center justify-center gap-4 py-2.5">
             <Link 
               href="/model-lookup" 
-              className="hover:text-brand-orange transition-colors font-medium bg-white/10 px-4 py-2 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue"
+              className={`${mounted && pathname === '/model-lookup' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
               aria-label="Find filter by appliance model"
+              aria-current={mounted && pathname === '/model-lookup' ? 'page' : undefined}
             >
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter
             </Link>
-            <Link href="/refrigerator-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/auto-delivery" 
+              className={`${mounted && pathname === '/auto-delivery' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              aria-label="Home Filter Club - Subscribe and save"
+              aria-current={mounted && pathname === '/auto-delivery' ? 'page' : undefined}
+            >
+              <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
+            </Link>
+            <Link 
+              href="/store-locator" 
+              className={`${mounted && pathname === '/store-locator' ? 'bg-white/20 font-bold' : 'bg-white/10'} hover:text-brand-orange transition-colors text-sm font-medium px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-blue whitespace-nowrap`}
+              aria-label="Find nearby retail locations and dealer partners"
+              aria-current={mounted && pathname === '/store-locator' ? 'page' : undefined}
+            >
+              <span role="img" aria-label="Map icon">🗺️</span> Store Locator
+            </Link>
+            <Link 
+              href="/refrigerator-filters" 
+              className={`${mounted && pathname === '/refrigerator-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/refrigerator-filters' ? 'page' : undefined}
+            >
               Refrigerator Filters
             </Link>
-            <Link href="/air-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/air-filters" 
+              className={`${mounted && pathname === '/air-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/air-filters' ? 'page' : undefined}
+            >
               Air Filters
             </Link>
-            <Link href="/water-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/water-filters" 
+              className={`${mounted && pathname === '/water-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/water-filters' ? 'page' : undefined}
+            >
               Water Filters
             </Link>
-            <Link href="/pool-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/pool-filters" 
+              className={`${mounted && pathname === '/pool-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/pool-filters' ? 'page' : undefined}
+            >
               Pool & Spa
             </Link>
-            <Link href="/humidifier-filters" className="hover:text-brand-orange transition-colors font-medium">
+            <Link 
+              href="/humidifier-filters" 
+              className={`${mounted && pathname === '/humidifier-filters' ? 'bg-white/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/humidifier-filters' ? 'page' : undefined}
+            >
               Humidifier Filters
             </Link>
-            <Link href="/sale" className="hover:text-brand-orange transition-colors font-medium text-brand-orange">
+            <Link 
+              href="/sale" 
+              className={`${mounted && pathname === '/sale' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/sale' ? 'page' : undefined}
+            >
               Sale
+            </Link>
+            <Link 
+              href="/deals" 
+              className={`${mounted && pathname === '/deals' ? 'bg-brand-orange/20 font-bold' : ''} hover:text-brand-orange transition-colors text-sm font-medium text-brand-orange px-2.5 py-1.5 rounded-lg whitespace-nowrap`}
+              aria-current={mounted && pathname === '/deals' ? 'page' : undefined}
+            >
+              Offers
             </Link>
           </div>
         </div>
@@ -311,7 +405,7 @@ export default function Header() {
       {mobileMenuOpen && (
         <div 
           id="mobile-menu"
-          className="md:hidden bg-white border-t shadow-lg"
+          className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg transition-colors"
           role="menu"
           aria-label="Main navigation"
         >
@@ -323,24 +417,41 @@ export default function Header() {
             >
               <span role="img" aria-label="Search icon">🔍</span> Find My Filter by Model
             </Link>
+            <Link 
+              href="/auto-delivery" 
+              className="block py-3 px-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-brand-blue dark:text-blue-400 font-bold hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              aria-label="Home Filter Club - Subscribe and save with interactive wizard"
+            >
+              <span role="img" aria-label="Shield icon">🛡️</span> Filter Club
+            </Link>
+            <Link 
+              href="/store-locator" 
+              className="block py-3 px-4 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-700 dark:text-green-300 font-bold hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+              aria-label="Find nearby stores and dealer locations"
+            >
+              <span role="img" aria-label="Map icon">🗺️</span> Store Locator
+            </Link>
             <hr />
-            <Link href="/refrigerator-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/refrigerator-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Refrigerator Filters
             </Link>
-            <Link href="/air-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/air-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Air Filters
             </Link>
-            <Link href="/water-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/water-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Water Filters
             </Link>
-            <Link href="/pool-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/pool-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Pool & Spa Filters
             </Link>
-            <Link href="/humidifier-filters" className="block py-2 hover:text-brand-orange transition-colors">
+            <Link href="/humidifier-filters" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
               Humidifier Filters
             </Link>
             <Link href="/sale" className="block py-2 text-brand-orange font-semibold">
               Sale
+            </Link>
+            <Link href="/deals" className="block py-2 text-brand-orange font-semibold">
+              Special Offers
             </Link>
             <hr />
             {session ? (
@@ -349,11 +460,11 @@ export default function Header() {
                   <div className="w-8 h-8 bg-brand-orange text-white rounded-full flex items-center justify-center text-sm font-semibold">
                     {session.user.name?.charAt(0).toUpperCase() || session.user.email.charAt(0).toUpperCase()}
                   </div>
-                  <span>{session.user.name || 'My Account'}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{session.user.name || 'My Account'}</span>
                 </div>
               </Link>
             ) : (
-              <Link href="/sign-in" className="block py-2 hover:text-brand-orange transition-colors">
+              <Link href="/sign-in" className="block py-2 text-gray-900 dark:text-gray-100 hover:text-brand-orange transition-colors">
                 Sign In / Register
               </Link>
             )}
@@ -363,4 +474,7 @@ export default function Header() {
     </header>
   );
 }
+
+
+
 

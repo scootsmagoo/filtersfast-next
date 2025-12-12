@@ -19,7 +19,7 @@ interface TrackingTimelineProps {
 
 export default function TrackingTimeline({ events }: TrackingTimelineProps) {
   const getIcon = (status: string, completed: boolean) => {
-    const iconClass = `w-5 h-5 ${completed ? 'text-white' : 'text-gray-400'}`;
+    const iconClass = `w-5 h-5 ${completed ? 'text-white' : 'text-gray-400 dark:text-gray-500'}`;
     
     const statusLower = status.toLowerCase();
     if (statusLower.includes('placed') || statusLower.includes('received')) {
@@ -46,26 +46,26 @@ export default function TrackingTimeline({ events }: TrackingTimelineProps) {
         <div key={index} className="flex gap-4 pb-8 last:pb-0">
           {/* Icon Column */}
           <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              event.completed ? 'bg-green-600' : 'bg-gray-300'
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              event.completed ? 'bg-green-600 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
             }`}>
               {getIcon(event.status, event.completed)}
             </div>
             {index < events.length - 1 && (
-              <div className={`w-0.5 h-full mt-2 ${
-                event.completed ? 'bg-green-600' : 'bg-gray-300'
+              <div className={`w-0.5 h-full mt-2 transition-colors ${
+                event.completed ? 'bg-green-600 dark:bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
               }`} />
             )}
           </div>
           
           {/* Content Column */}
           <div className="flex-1 pt-1">
-            <h3 className={`font-semibold text-lg ${
-              event.completed ? 'text-gray-900' : 'text-gray-500'
+            <h3 className={`font-semibold text-lg transition-colors ${
+              event.completed ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
             }`}>
               {event.status}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors">
               {new Date(event.date).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
@@ -75,7 +75,7 @@ export default function TrackingTimeline({ events }: TrackingTimelineProps) {
               })}
             </p>
             {event.description && (
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 transition-colors">
                 {event.description}
               </p>
             )}

@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ReturnRequest, ReturnStatus, UpdateReturnStatus } from '@/lib/types/returns';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import AdminBreadcrumb from '@/components/admin/AdminBreadcrumb';
 
 export default function AdminReturnDetailsPage() {
   const params = useParams();

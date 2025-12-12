@@ -28,9 +28,11 @@ import type { PaymentMethodResponse } from '@/lib/types/payment-methods';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting
+    // Rate limiting - more lenient in development
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    const rateLimitResult = await rateLimit(ip, 20, 60); // 20 requests per minute
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const maxRequests = isDevelopment ? 60 : 20; // 60 req/min in dev, 20 in prod
+    const rateLimitResult = await rateLimit(ip, maxRequests, 60);
     
     if (!rateLimitResult.success) {
       return NextResponse.json(
@@ -209,12 +211,17 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('[ERROR] Payment method creation failed:', error.message);
+    // OWASP A09: Security logging without sensitive data exposure
+    console.error('[ERROR] Payment method creation failed:', {
+      error_type: error.type || 'unknown',
+      user_id: session?.user?.id || 'unknown',
+      timestamp: new Date().toISOString(),
+    });
     
-    // Handle Stripe errors without exposing internal details
+    // OWASP A04: Generic error messages to prevent information disclosure
     if (error.type === 'StripeInvalidRequestError') {
       return NextResponse.json(
-        { error: 'Invalid payment method' },
+        { error: 'Unable to process payment method. Please verify your information.' },
         { status: 400 }
       );
     }
@@ -227,7 +234,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to save payment method' },
+      { error: 'Unable to save payment method. Please try again or contact support.' },
       { status: 500 }
     );
   }

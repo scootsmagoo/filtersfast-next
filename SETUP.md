@@ -173,14 +173,78 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 Get your keys from [PayPal Developer Dashboard](https://developer.paypal.com/developer/applications/):
 
 ```env
-# PayPal Keys
+# PayPal Keys (Required for PayPal/Venmo payments)
 PAYPAL_CLIENT_ID=your_paypal_client_id_here
 PAYPAL_CLIENT_SECRET=your_paypal_client_secret_here
 NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_paypal_client_id_here
 
-# Use sandbox for testing
-PAYPAL_MODE=sandbox
+# Environment: sandbox for testing, production for live
+NODE_ENV=development
 ```
+
+**Getting Your PayPal API Keys:**
+
+1. Go to [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/applications)
+2. Log in with your PayPal account
+3. Create a new app or select existing app
+4. Copy the **Client ID** and **Secret** from the app details
+5. For testing: Use **Sandbox** credentials
+6. For production: Switch to **Live** credentials
+
+**Sandbox Testing:**
+- Create test accounts at [Sandbox Accounts](https://developer.paypal.com/dashboard/accounts)
+- Test payments without real money
+- Use sandbox client ID and secret
+
+**Features Enabled:**
+- PayPal Checkout with full order breakdown
+- Venmo payments (automatic)
+- Transaction logging in database
+- Order creation after successful payment
+- Error tracking and monitoring
+
+**Testing PayPal Integration:**
+
+1. Start dev server: `npm run dev`
+2. Add items to cart
+3. Proceed to checkout
+4. Fill in shipping address
+5. On payment step, click "Pay with PayPal" button
+6. Log in with sandbox test account
+7. Complete payment
+8. Order is created and customer redirected to success page
+
+**Production Setup:**
+
+1. Switch from sandbox to live credentials
+2. Update `NODE_ENV=production` in environment
+3. Test with real PayPal account
+4. Monitor transactions in `paypal_transactions` database table
+
+### Authorize.Net Configuration (Optional Backup)
+
+```env
+# Authorize.Net (AIM / Accept.js)
+AUTHORIZENET_API_LOGIN_ID=your_authorizenet_api_login_id
+AUTHORIZENET_TRANSACTION_KEY=your_authorizenet_transaction_key
+```
+
+Enable the gateway from **Admin → Payment Gateways** once credentials are present. When active, Authorize.Net becomes the first failover after Stripe.
+
+### CyberSource Failover Configuration (Legacy Parity)
+
+```env
+# CyberSource HTTP Signature credentials
+CYBERSOURCE_MERCHANT_ID=your_merchant_id
+CYBERSOURCE_API_KEY_ID=your_rest_api_key_id
+CYBERSOURCE_API_SECRET=your_base64_rest_api_secret
+
+# Optional overrides
+CYBERSOURCE_ENVIRONMENT=sandbox   # or production
+# CYBERSOURCE_HOST=api.cybersource.com  # override host if needed
+```
+
+CyberSource is attempted automatically if all higher-priority gateways throw transport or system errors. Provide REST API credentials (HTTP Signature method). Set `CYBERSOURCE_ENVIRONMENT=production` and regenerate the init script (`npm run init:payment-gateways`) when ready for live traffic.
 
 ---
 
@@ -254,6 +318,39 @@ Admins can monitor MFA adoption at `/admin/mfa`:
 
 ---
 
+## 🛡️ Azure Key Vault Monitoring
+
+Keep the Azure Key Vault integration healthy so expiring secrets never catch you off guard.
+
+### Required Environment Variables
+
+Add the following to your `.env.local` (or production secrets) to enable the admin Key Vault monitor:
+
+```env
+# Azure Key Vault legacy KVM API bridge
+KEY_VAULT_API_BASE_URL=https://www.filtersfast.com/kvmapi/api
+KEY_VAULT_API_BEARER=your-shared-bearer-token-here
+
+# Optional configuration
+KEY_VAULT_ENVIRONMENT=Production          # Prefix used for default secret names (Test in non-prod)
+KEY_VAULT_SECRET_SUFFIXES=CyberSourceUSKey,CyberSourceINTKey,PayPalSecret,SiteConfigEncryptionKey
+# Or provide explicit names (takes precedence over suffix list)
+# KEY_VAULT_SECRET_NAMES=ProductionCyberSourceUSKey,ProductionCyberSourceINTKey
+```
+
+- `KEY_VAULT_API_BEARER` must match the token provisioned for the legacy `kvmapi` bridge.
+- By default the monitor assumes `"Production"` prefixes; override `KEY_VAULT_ENVIRONMENT` to track staging/test vaults.
+- Use `KEY_VAULT_SECRET_SUFFIXES` to append to the environment prefix, or supply a comma-separated `KEY_VAULT_SECRET_NAMES` list for full control.
+
+### Operations Checklist
+
+- Visit `/admin/utilities/key-vault` to verify API connectivity, secret expirations, and rotation timelines.
+- Secrets flagged as **Expiring Soon** have 30 days or fewer remaining; schedule rotation before their deadline.
+- Secrets marked **Expired** require immediate rotation in Azure and dependent systems.
+- Jump directly to Azure management via the built-in portal link.
+
+---
+
 ## ⭐ Trustpilot Reviews Setup (Optional)
 
 To enable product reviews from Trustpilot:
@@ -280,24 +377,51 @@ NEXT_PUBLIC_TRUSTPILOT_ENABLED=true
 - Rate limiting (30 req/min)
 - Graceful fallback if not configured
 
+**Admin Review Management:**
+- `npm run sync:reviews` – Pull latest Trustpilot company reviews into the admin dashboard
+- Use the “Sync Latest Reviews” button in `/admin/reviews` for on-demand updates
+- Replies posted from the admin panel are written back to Trustpilot and reflected in the local store
+
 ---
 
-## 📧 Email Service Setup (Optional)
+## 📧 Email Service Setup
 
-For password reset and email verification to work in production:
-
-### SendGrid (Recommended)
+FiltersFast-Next now ships with a first-class SendGrid integration. Configure these variables to enable real delivery:
 
 ```env
+# Required for SendGrid
+EMAIL_PROVIDER=sendgrid
 SENDGRID_API_KEY=your_sendgrid_api_key
 SENDGRID_FROM_EMAIL=noreply@filtersfast.com
+
+# Optional: deliver but keep messages in SendGrid sandbox (great for staging)
+SENDGRID_SANDBOX_MODE=true
+
+# Email campaign dispatcher tuning (optional)
+EMAIL_CAMPAIGN_BATCH_SIZE=100
+EMAIL_CAMPAIGN_MAX_PARALLEL=3
+# Override destination when campaign.test_mode = true
+EMAIL_CAMPAIGN_TEST_RECIPIENT=marketing-team@example.com
+
+# Admin direct-email composer allow list (optional)
+DIRECT_EMAIL_FROM_ADDRESSES="Support Team <support@filtersfast.com>,sales@filtersfast.com"
+DIRECT_EMAIL_DEFAULT_FROM=support@filtersfast.com
 ```
 
-### Alternative: Mailgun, AWS SES, Postmark
+Leave `EMAIL_PROVIDER` unset (or set to `console`) to fall back to the mock logger during development.
 
-Update the email sending code in:
-- `app/api/auth/forgot-password/route.ts`
-- `app/api/auth/send-verification/route.ts`
+If the direct-email variables are omitted the composer will automatically expose FiltersFast Sales, Support, and Admin addresses as safe defaults.
+
+Once configured you can verify the integration from the admin Utilities → Test Email tool (`/api/admin/utilities/test-email`), which now sends through SendGrid and reports any delivery errors.
+
+### Alternative Providers
+
+If you prefer Mailgun, AWS SES, Postmark, etc., add a provider module in `lib/email/` similar to `sendgrid.ts` and point `EMAIL_PROVIDER` to your implementation.
+
+### Cron / Background Processing
+
+- Run `npm run cron:email-campaigns` on a schedule (e.g. every 5 minutes) to process scheduled or in-flight campaigns on servers where the Next.js app alone isn't long-lived.
+- Admin actions (“Send now”, “Schedule”, “Resume”) automatically enqueue in-process background jobs; the cron job serves as a safety net and for worker environments.
 
 ---
 
@@ -466,6 +590,172 @@ Conversations are automatically saved to SQLite:
 - Message history
 - Feedback collection
 - Analytics ready
+
+---
+
+## 💱 Multi-Currency Support Setup
+
+### Overview
+FiltersFast supports 5 currencies: USD, CAD, AUD, EUR, and GBP with automatic geo-detection and real-time exchange rates.
+
+### Quick Setup (5 minutes)
+
+#### Step 1: Initialize Currency Tables
+```bash
+npm run init:currency
+```
+
+This creates:
+- `currency_rates` table with supported currencies
+- Adds currency columns to orders table
+- Seeds default rates (all 1.0 initially)
+
+#### Step 2: Fetch Real Exchange Rates
+```bash
+npm run update:currency-rates
+```
+
+This fetches current exchange rates from Open Exchange Rates API and updates the database.
+
+#### Step 3: Test It Out
+```bash
+npm run dev
+```
+
+Visit `http://localhost:3000` and you should see the currency selector in the header!
+
+### Environment Variables (Optional)
+
+The default API key has rate limits. For production, get your own:
+
+```env
+# Optional: Custom API key for Open Exchange Rates
+OPEN_EXCHANGE_RATES_APP_ID=your_app_id_here
+```
+
+**Getting Your API Key:**
+1. Sign up at https://openexchangerates.org/
+2. Get your App ID from the dashboard
+3. Add to `.env.local`
+
+**Free Tier Limits:**
+- 1,000 requests/month
+- Hourly updates recommended
+- Plenty for most deployments
+
+### Verify Installation
+
+Check that rates are loaded:
+```bash
+# View currency rates in database
+sqlite3 filtersfast.db "SELECT * FROM currency_rates;"
+```
+
+Expected output:
+```
+USD|US Dollar|$|1.0|[timestamp]
+CAD|Canadian Dollar|CA$|1.35|[timestamp]
+AUD|Australian Dollar|A$|1.52|[timestamp]
+EUR|Euro|€|0.92|[timestamp]
+GBP|British Pound|£|0.79|[timestamp]
+```
+
+### Testing Checklist
+
+- [ ] Currency selector visible in header
+- [ ] All 5 currencies display correctly
+- [ ] Selecting currency updates all prices instantly
+- [ ] Currency preference persists on page refresh
+- [ ] Cart totals update when currency changes
+- [ ] Prices show proper currency symbols (€, £, CA$, A$, $)
+- [ ] Mobile currency selector works
+
+### Scheduled Updates (Recommended)
+
+Set up a daily cron job to keep rates current:
+
+**Linux/Mac:**
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line (runs at 2 AM daily)
+0 2 * * * cd /path/to/FiltersFast-Next && npm run update:currency-rates
+```
+
+**Windows Task Scheduler:**
+1. Open Task Scheduler
+2. Create Basic Task
+3. Trigger: Daily at 2:00 AM
+4. Action: Start a program
+5. Program: `C:\Program Files\nodejs\npm.cmd`
+6. Arguments: `run update:currency-rates`
+7. Start in: `C:\Users\adam\source\repos\FiltersFast-Next`
+
+### Usage in Components
+
+Replace hardcoded prices with the Price component:
+
+```tsx
+// ❌ Wrong - doesn't convert
+<span>${product.price}</span>
+
+// ✅ Correct - auto-converts to selected currency
+import { Price } from '@/components/products/Price';
+<Price amountUSD={product.price} showCurrency />
+```
+
+**Available Price Components:**
+- `<Price>` - Basic price with conversion
+- `<PriceRange>` - Min/max price ranges
+- `<StartingAtPrice>` - "Starting at" prefix
+- `<Savings>` - Discount amounts
+- `<PricePerUnit>` - Unit pricing
+- `<HeroPrice>` - Large product page display
+
+### API Endpoints
+
+**Public:**
+- `GET /api/currency/rates` - Get all current rates
+- `POST /api/currency/convert` - Convert between currencies
+
+**Admin (requires authentication):**
+- `POST /api/admin/currency/update-rates` - Manually trigger rate update
+
+### Troubleshooting
+
+**Currency selector not showing:**
+- Verify CurrencyProvider is in app layout (already configured)
+- Check browser console for errors
+
+**Rates not updating:**
+```bash
+# Test the update script
+npm run update:currency-rates
+
+# Check for API errors in output
+```
+
+**Prices not converting:**
+- Use `<Price>` component instead of hardcoded values
+- Check rates loaded: visit `/api/currency/rates`
+
+**API rate limit exceeded:**
+- Check usage at https://openexchangerates.org/dashboard
+- Add your own API key to `.env.local`
+- Reduce update frequency
+
+### Features
+
+✅ **Automatic geo-detection** via Cloudflare headers  
+✅ **Manual selection** with persistent preference  
+✅ **Real-time conversion** using live exchange rates  
+✅ **5 currencies supported:** USD, CAD, AUD, EUR, GBP  
+✅ **Mobile optimized** with compact selector  
+✅ **Accessible** with keyboard navigation  
+✅ **Admin controls** for manual rate updates  
+
+For complete documentation, see the Multi-Currency Support section in `FEATURES.md`.
 
 ---
 

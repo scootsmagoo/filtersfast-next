@@ -13,50 +13,9 @@
  * "cron:abandoned-carts": "tsx scripts/send-abandoned-cart-emails.ts"
  */
 
-import {
-  getCartsReadyForEmail,
-  recordEmailSent,
-  deleteOldAbandonedCarts,
-} from '../lib/db/abandoned-carts';
-import {
-  abandonedCart1HourEmail,
-  abandonedCart24HourEmail,
-  abandonedCart72HourEmail,
-} from '../lib/email-templates/abandoned-cart';
-
-// Mock email send function - replace with actual SendGrid integration
-async function sendEmail(emailData: {
-  to: string;
-  subject: string;
-  html: string;
-  text: string;
-}): Promise<boolean> {
-  // TODO: Integrate with SendGrid or your email service
-  console.log(`[EMAIL] Sending to ${emailData.to}: ${emailData.subject}`);
-  
-  // In production, use SendGrid:
-  /*
-  const sgMail = require('@sendgrid/mail');
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  
-  try {
-    await sgMail.send({
-      to: emailData.to,
-      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@filtersfast.com',
-      subject: emailData.subject,
-      text: emailData.text,
-      html: emailData.html,
-    });
-    return true;
-  } catch (error) {
-    console.error('SendGrid error:', error);
-    return false;
-  }
-  */
-  
-  // For now, just log (development mode)
-  return true;
-}
+import { getCartsReadyForEmail, recordEmailSent, deleteOldAbandonedCarts } from '../lib/db/abandoned-carts';
+import { abandonedCart1HourEmail, abandonedCart24HourEmail, abandonedCart72HourEmail } from '../lib/email-templates/abandoned-cart';
+import { sendEmail } from '../lib/email';
 
 async function sendAbandonedCartEmails() {
   console.log('\n🚀 Starting Abandoned Cart Email Job...\n');
@@ -86,14 +45,14 @@ async function sendAbandonedCartEmails() {
           optOutLink,
         });
 
-        const sent = await sendEmail(emailData);
-        if (sent) {
+        const result = await sendEmail(emailData);
+        if (result.success) {
           recordEmailSent(cart.id, 'reminder_1hr');
           totalSent++;
           console.log(`✅ Sent 1hr reminder to ${cart.email}`);
         } else {
           totalErrors++;
-          console.error(`❌ Failed to send 1hr reminder to ${cart.email}`);
+          console.error(`❌ Failed to send 1hr reminder to ${cart.email}`, result.error || '');
         }
       } catch (error: any) {
         totalErrors++;
@@ -121,14 +80,14 @@ async function sendAbandonedCartEmails() {
           optOutLink,
         });
 
-        const sent = await sendEmail(emailData);
-        if (sent) {
+        const result = await sendEmail(emailData);
+        if (result.success) {
           recordEmailSent(cart.id, 'reminder_24hr');
           totalSent++;
           console.log(`✅ Sent 24hr reminder to ${cart.email}`);
         } else {
           totalErrors++;
-          console.error(`❌ Failed to send 24hr reminder to ${cart.email}`);
+          console.error(`❌ Failed to send 24hr reminder to ${cart.email}`, result.error || '');
         }
       } catch (error: any) {
         totalErrors++;
@@ -156,14 +115,14 @@ async function sendAbandonedCartEmails() {
           optOutLink,
         });
 
-        const sent = await sendEmail(emailData);
-        if (sent) {
+        const result = await sendEmail(emailData);
+        if (result.success) {
           recordEmailSent(cart.id, 'reminder_72hr');
           totalSent++;
           console.log(`✅ Sent 72hr reminder to ${cart.email}`);
         } else {
           totalErrors++;
-          console.error(`❌ Failed to send 72hr reminder to ${cart.email}`);
+          console.error(`❌ Failed to send 72hr reminder to ${cart.email}`, result.error || '');
         }
       } catch (error: any) {
         totalErrors++;

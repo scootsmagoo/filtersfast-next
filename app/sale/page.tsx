@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import FilterSidebar from '@/components/products/FilterSidebar';
 import ProductGrid from '@/components/products/ProductGrid';
 
@@ -108,44 +108,93 @@ export default function SalePage() {
   const [activeFilters, setActiveFilters] = useState<any>({});
   const [filteredProducts, setFilteredProducts] = useState(saleProducts);
 
+  // Calculate price range from products
+  const calculatedPriceRange = useMemo(() => {
+    const prices = saleProducts.map(p => p.price || 0).filter(p => p > 0);
+    if (prices.length === 0) return [0, 200];
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+    return [min, max];
+  }, []);
+
   const handleFilterChange = (filters: any) => {
     setActiveFilters(filters);
     
     // Apply filters
     let filtered = [...saleProducts];
     
-    // Brand filter
-    if (filters.brands?.length > 0) {
-      filtered = filtered.filter(product => 
-        filters.brands.includes(product.brand)
+    // OWASP: Validate and sanitize brand filter
+    if (filters.brands && Array.isArray(filters.brands) && filters.brands.length > 0) {
+      const validBrands = filters.brands.filter((b: any) => 
+        typeof b === 'string' && b.length > 0 && b.length <= 100
       );
+      if (validBrands.length > 0) {
+        filtered = filtered.filter(product => 
+          validBrands.includes(product.brand)
+        );
+      }
     }
     
-    // Price filter
-    if (filters.priceRange) {
-      filtered = filtered.filter(product => 
-        product.price >= filters.priceRange[0] && 
-        product.price <= filters.priceRange[1]
-      );
+    // OWASP: Validate and sanitize price filter
+    if (filters.priceRange && Array.isArray(filters.priceRange) && filters.priceRange.length === 2) {
+      const [min, max] = filters.priceRange;
+      if (typeof min === 'number' && typeof max === 'number' && 
+          isFinite(min) && isFinite(max) && 
+          min >= 0 && max >= 0 && min <= max) {
+        filtered = filtered.filter(product => 
+          typeof product.price === 'number' &&
+          product.price >= min && 
+          product.price <= max
+        );
+      }
     }
     
-    // Rating filter
-    if (filters.minRating) {
-      filtered = filtered.filter(product => 
-        product.rating >= filters.minRating
+    // OWASP: Validate and sanitize rating filter
+    if (filters.ratings && Array.isArray(filters.ratings) && filters.ratings.length > 0) {
+      const validRatings = filters.ratings.filter((r: any) => 
+        Number.isInteger(r) && r >= 1 && r <= 5
       );
+      if (validRatings.length > 0) {
+        filtered = filtered.filter(product => {
+          if (typeof product.rating !== 'number' || !isFinite(product.rating)) return false;
+          return validRatings.some((minRating: number) => product.rating >= minRating);
+        });
+      }
     }
     
-    // In stock filter
-    if (filters.inStock) {
-      filtered = filtered.filter(product => product.inStock);
+    // OWASP: Validate features filter (whitelist approach)
+    const allowedFeatures = ['Genuine OEM', 'NSF Certified', 'Free Shipping', 'On Sale', 'In Stock'];
+    if (filters.features && Array.isArray(filters.features) && filters.features.length > 0) {
+      const validFeatures = filters.features.filter((f: any) => 
+        typeof f === 'string' && allowedFeatures.includes(f)
+      );
+      if (validFeatures.length > 0) {
+        filtered = filtered.filter(product => {
+          return validFeatures.some((feature: string) => {
+            switch (feature) {
+              case 'Genuine OEM':
+                return product.brand && !product.brand.toLowerCase().includes('filtersfast') && !product.brand.toLowerCase().includes('filters fast');
+              case 'NSF Certified':
+                return product.nsfCertified || product.attributes?.certifications?.includes('NSF');
+              case 'Free Shipping':
+                return product.freeShipping || (typeof product.price === 'number' && product.price >= 50);
+              case 'On Sale':
+                return product.badge && typeof product.badge === 'string' && (product.badge.includes('Save') || product.badge.includes('Clearance'));
+              case 'In Stock':
+                return product.inStock;
+              default:
+                return false;
+            }
+          });
+        });
+      }
     }
     
     setFilteredProducts(filtered);
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray-50">
+    <div className="min-h-screen bg-brand-gray-50 dark:bg-gray-900 transition-colors">
       {/* Page Header */}
       <div className="bg-gradient-to-r from-brand-orange to-red-600 text-white">
         <div className="container-custom py-12">
@@ -165,17 +214,18 @@ export default function SalePage() {
             <FilterSidebar
               onFilterChange={handleFilterChange}
               availableBrands={['Whirlpool', 'Filters Fast', 'LG', 'Aprilaire', 'Filtrete', 'Samsung']}
-              priceRange={[0, 200]}
+              priceRange={calculatedPriceRange}
+              products={saleProducts}
             />
           </aside>
 
           {/* Product Grid */}
           <main className="flex-1">
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-700 rounded-lg p-4 mb-6 transition-colors">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-yellow-900 mb-1">⏰ Sale Ends Soon!</h3>
-                  <p className="text-sm text-yellow-800">These deals won't last long. Stock up and save today!</p>
+                  <h3 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-1 transition-colors">⏰ Sale Ends Soon!</h3>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 transition-colors">These deals won't last long. Stock up and save today!</p>
                 </div>
               </div>
             </div>
@@ -189,7 +239,7 @@ export default function SalePage() {
       </div>
 
       {/* Promotional Sections */}
-      <div className="bg-white border-t mt-12">
+      <div className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-12 transition-colors">
         <div className="container-custom py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -198,8 +248,8 @@ export default function SalePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">Bulk Discounts</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Bulk Discounts</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Save even more when you buy multi-packs. Perfect for stocking up!
               </p>
             </div>
@@ -209,8 +259,8 @@ export default function SalePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">Clearance Items</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Clearance Items</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 Final clearance on select products. Get them before they're gone!
               </p>
             </div>
@@ -220,8 +270,8 @@ export default function SalePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-brand-gray-900 mb-2">Limited Time Only</h3>
-              <p className="text-sm text-brand-gray-600">
+              <h3 className="text-lg font-semibold text-brand-gray-900 dark:text-gray-100 mb-2 transition-colors">Limited Time Only</h3>
+              <p className="text-sm text-brand-gray-600 dark:text-gray-300 transition-colors">
                 These special prices won't last. Shop now to lock in your savings!
               </p>
             </div>

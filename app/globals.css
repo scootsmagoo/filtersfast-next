@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark Mode Variables */
+@layer base {
+  :root {
+    --bg-primary: 255 255 255;
+    --bg-secondary: 249 250 251;
+    --text-primary: 17 24 39;
+    --text-secondary: 75 85 99;
+    --border-color: 229 231 235;
+  }
+
+  .dark {
+    --bg-primary: 17 24 39;
+    --bg-secondary: 31 41 55;
+    --text-primary: 249 250 251;
+    --text-secondary: 209 213 219;
+    --border-color: 55 65 81;
+  }
+}
+
 /* Accessibility utilities */
 .sr-only {
   position: absolute;
@@ -80,6 +99,28 @@ textarea:focus-visible {
   }
 }
 
+/* Smooth animations for Filter Club wizard */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
 /* Line clamp utility for text truncation */
 .line-clamp-2 {
   display: -webkit-box;
@@ -108,11 +149,24 @@ textarea:focus-visible {
   }
   
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all;
+    @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500;
   }
   
   .card {
     @apply bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300;
+  }
+  
+  /* Secure background images for Our Brand page - OWASP compliant */
+  .bg-household-filter-bg {
+    background-image: url('/images/household-brand-filter-change-v1.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .bg-household-water-bg {
+    background-image: url('/images/household-brand-water-glass-v1.jpg');
+    background-size: cover;
+    background-position: center;
   }
 }
 

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { SearchableProduct } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
 import { Star, Search } from 'lucide-react';
+import { Price } from '@/components/products/Price';
 
 interface SearchPreviewProps {
   query: string;
@@ -24,13 +26,11 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Debug: Log props on every render
-  console.log('SearchPreview props:', { query, isVisible, suggestions: suggestions.length });
+  const router = useRouter();
 
   // Fetch search suggestions
   useEffect(() => {
-    if (!isVisible || !query.trim() || query.length < 2) {
+    if (!query.trim() || query.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -51,7 +51,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
 
     const debounceTimer = setTimeout(fetchSuggestions, 200);
     return () => clearTimeout(debounceTimer);
-  }, [query, isVisible]);
+  }, [query]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -91,23 +91,6 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
     setSelectedIndex(-1);
   }, [suggestions]);
 
-  // Handle click outside - use mouseup instead of mousedown to allow clicks to complete
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isVisible) {
-      // Use mouseup instead of mousedown to allow button clicks to complete first
-      document.addEventListener('mouseup', handleClickOutside);
-      return () => document.removeEventListener('mouseup', handleClickOutside);
-    }
-  }, [isVisible, onClose]);
-
-  console.log('SearchPreview render check:', { isVisible, query, queryLength: query.length, suggestions: suggestions.length });
-  
   if (!isVisible || query.length < 2) {
     return null;
   }
@@ -115,32 +98,49 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
   return (
     <div
       ref={dropdownRef}
+      role="listbox"
+      aria-label="Search suggestions"
+      aria-expanded={isVisible && suggestions.length > 0}
       className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 mt-1 max-h-96 overflow-y-auto"
     >
       {loading ? (
-        <div className="p-4 text-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-orange mx-auto"></div>
-          <p className="text-sm text-gray-600 mt-2">Searching...</p>
+        <div className="p-4 text-center" role="status" aria-live="polite">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-orange mx-auto" aria-hidden="true"></div>
+          <p className="text-sm text-gray-600 mt-2">
+            <span className="sr-only">Loading search suggestions</span>
+            <span aria-hidden="true">Searching...</span>
+          </p>
         </div>
       ) : suggestions.length > 0 ? (
         <div className="py-2">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={suggestion.product.id}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+          {suggestions.map((suggestion, index) => {
+            // CRITICAL: Use productId if available (string ID from database), otherwise use numeric id
+            // The API returns productId: "prod-1762456823138-11r0fq" for database products
+            // We MUST use this instead of the numeric id to avoid 404 errors
+            const product = suggestion.product;
+            
+            // ALWAYS prefer productId over numeric id for database products
+            // The API returns productId: "prod-xxx" for database products
+            // Check if productId exists - it should be a string like "prod-1762456823138-11r0fq"
+            const productLinkId: string = product.productId && typeof product.productId === 'string'
+              ? product.productId  // Use the string productId from database
+              : String(product.id); // Fallback to numeric id (for mock/legacy products)
+            
+            return (
+            <Link
+              key={product.id}
+              href={`/products/${productLinkId}`}
+              role="option"
+              aria-selected={index === selectedIndex}
+              onClick={() => {
                 onSelectProduct(suggestion.product);
               }}
-              onMouseDown={(e) => {
-                // Prevent the click-outside handler from firing
-                e.stopPropagation();
-              }}
-              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors ${
+              className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors block focus:outline-none focus:ring-2 focus:ring-brand-orange focus:bg-gray-50 ${
                 index === selectedIndex ? 'bg-gray-50' : ''
               } ${index === 0 ? 'rounded-t-lg' : ''} ${
                 index === suggestions.length - 1 ? 'rounded-b-lg' : ''
               }`}
+              aria-label={`${suggestion.product.name}, ${suggestion.product.brand}, $${suggestion.product.price}`}
             >
               {/* Product Image */}
               <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
@@ -169,7 +169,7 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                         {suggestion.product.brand} • SKU: {suggestion.product.sku}
                       </span>
                       {suggestion.matchType === 'exact' && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded" aria-label="Exact match">
                           Exact Match
                         </span>
                       )}
@@ -177,15 +177,14 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                   </div>
                   <div className="text-right ml-2">
                     <div className="text-sm font-bold text-brand-orange">
-                      {formatPrice(suggestion.product.price)}
+                      <Price 
+                        amountUSD={suggestion.product.price}
+                        originalPrice={suggestion.product.originalPrice}
+                        className="text-sm"
+                      />
                     </div>
-                    {suggestion.product.originalPrice && (
-                      <div className="text-xs text-gray-500 line-through">
-                        {formatPrice(suggestion.product.originalPrice)}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                    <div className="flex items-center gap-1 mt-1" role="img" aria-label={`Rating: ${suggestion.product.rating} out of 5 stars`}>
+                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" aria-hidden="true" />
                       <span className="text-xs text-gray-600">
                         {suggestion.product.rating}
                       </span>
@@ -193,29 +192,26 @@ export default function SearchPreview({ query, isVisible, onSelectProduct, onClo
                   </div>
                 </div>
               </div>
-            </button>
-          ))}
+            </Link>
+            );
+          })}
 
           {/* View All Results */}
           <div className="border-t border-gray-200 px-4 py-2">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/search?q=${encodeURIComponent(query)}`;
-              }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
+            <Link
+              href={`/search?q=${encodeURIComponent(query)}`}
+              onClick={() => {
+                onClose();
               }}
               className="w-full text-left text-sm text-brand-orange hover:text-brand-orange-dark font-medium flex items-center gap-2"
             >
               <Search className="w-4 h-4" />
               View all results for "{query}"
-            </button>
+            </Link>
           </div>
         </div>
       ) : (
-        <div className="p-4 text-center text-gray-500">
+        <div className="p-4 text-center text-gray-500" role="status" aria-live="polite">
           <p className="text-sm">No products found for "{query}"</p>
           <p className="text-xs mt-1">Try different keywords or check spelling</p>
         </div>

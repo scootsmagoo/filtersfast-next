@@ -92,7 +92,7 @@ export default function SavedPaymentSelector({
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
-        <span className="ml-3 text-gray-600">Loading payment methods...</span>
+        <span className="ml-3 text-gray-600 dark:text-gray-300 transition-colors">Loading payment methods...</span>
       </div>
     );
   }
@@ -100,11 +100,11 @@ export default function SavedPaymentSelector({
   if (error) {
     return (
       <div
-        className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start"
+        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start transition-colors"
         role="alert"
       >
-        <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-        <p className="ml-3 text-red-800">{error}</p>
+        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+        <p className="ml-3 text-red-800 dark:text-red-300 transition-colors">{error}</p>
       </div>
     );
   }
@@ -112,8 +112,8 @@ export default function SavedPaymentSelector({
   if (paymentMethods.length === 0) {
     return (
       <Card className="text-center py-8">
-        <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-600 mb-4">No saved payment methods</p>
+        <CreditCard className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+        <p className="text-gray-600 dark:text-gray-300 mb-4 transition-colors">No saved payment methods</p>
         <Button size="sm" onClick={onAddNew}>
           <Plus className="w-4 h-4 mr-2" />
           Add Payment Method
@@ -125,7 +125,7 @@ export default function SavedPaymentSelector({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
           Select Payment Method
         </h3>
         <Button size="sm" variant="secondary" onClick={onAddNew}>
@@ -143,8 +143,8 @@ export default function SavedPaymentSelector({
             onClick={() => onSelectPaymentMethod(method.id)}
             className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
               selectedPaymentMethodId === method.id
-                ? 'border-orange-500 bg-orange-50'
-                : 'border-gray-200 hover:border-gray-300 bg-white'
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
             }`}
             aria-pressed={selectedPaymentMethodId === method.id}
           >
@@ -155,7 +155,7 @@ export default function SavedPaymentSelector({
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     selectedPaymentMethodId === method.id
                       ? 'border-orange-500'
-                      : 'border-gray-300'
+                      : 'border-gray-300 dark:border-gray-600'
                   }`}
                 >
                   {selectedPaymentMethodId === method.id && (
@@ -166,7 +166,7 @@ export default function SavedPaymentSelector({
 
               {/* Card Icon */}
               <div className="flex-shrink-0 mr-4">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xl">
+                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-xl transition-colors">
                   {getCardBrandLogo(method.card_brand)}
                 </div>
               </div>
@@ -174,22 +174,22 @@ export default function SavedPaymentSelector({
               {/* Card Details */}
               <div className="flex-1">
                 <div className="flex items-center">
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                     {formatCardBrand(method.card_brand)} ••••{method.card_last4}
                   </span>
                   {method.is_default && (
-                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 transition-colors">
                       <Star className="w-3 h-3 mr-1 fill-current" />
                       Default
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                   Expires {method.card_exp_month.toString().padStart(2, '0')}/
                   {method.card_exp_year}
                 </p>
                 {method.billing_name && (
-                  <p className="text-sm text-gray-500">{method.billing_name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors">{method.billing_name}</p>
                 )}
               </div>
             </div>
@@ -198,8 +198,8 @@ export default function SavedPaymentSelector({
       </div>
 
       {/* Security Note */}
-      <div className="mt-4 text-sm text-gray-600 flex items-center">
-        <CreditCard className="w-4 h-4 mr-2 text-gray-400" />
+      <div className="mt-4 text-sm text-gray-600 dark:text-gray-300 flex items-center transition-colors">
+        <CreditCard className="w-4 h-4 mr-2 text-gray-400 dark:text-gray-500" />
         <span>
           Your payment information is encrypted and secure
         </span>

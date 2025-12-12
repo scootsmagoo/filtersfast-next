@@ -124,30 +124,30 @@ export default function OrdersPage() {
   const getStatusIcon = (status: Order['status']) => {
     switch (status) {
       case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 transition-colors" />;
       case 'processing':
-        return <Package className="w-5 h-5 text-blue-600" />;
+        return <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 transition-colors" />;
       case 'shipped':
-        return <Truck className="w-5 h-5 text-purple-600" />;
+        return <Truck className="w-5 h-5 text-purple-600 dark:text-purple-400 transition-colors" />;
       case 'delivered':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 transition-colors" />;
       case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-600" />;
+        return <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 transition-colors" />;
     }
   };
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
     }
   };
 
@@ -157,10 +157,10 @@ export default function OrdersPage() {
 
   if (isPending || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-brand-orange mx-auto mb-4" />
-          <p className="text-gray-600">Loading your orders...</p>
+          <p className="text-gray-600 dark:text-gray-300 transition-colors">Loading your orders...</p>
         </div>
       </div>
     );
@@ -171,65 +171,69 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="container-custom">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <Link 
               href="/account"
-              className="inline-flex items-center gap-2 text-brand-orange hover:underline mb-4"
+              className="inline-flex items-center gap-2 text-brand-orange hover:underline mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Account
             </Link>
             
-            <h1 className="text-3xl font-bold text-gray-900">Order History</h1>
-            <p className="text-gray-600 mt-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors">Order History</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors">
               View and track all your orders
             </p>
           </div>
 
           {/* Filters */}
           <Card className="p-4 mb-6">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter orders">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange dark:focus:ring-offset-gray-900 ${
                   filter === 'all'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
+                aria-pressed={filter === 'all'}
               >
                 All Orders ({orders.length})
               </button>
               <button
                 onClick={() => setFilter('pending')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange dark:focus:ring-offset-gray-900 ${
                   filter === 'pending'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
+                aria-pressed={filter === 'pending'}
               >
                 Pending ({orders.filter(o => o.status === 'pending').length})
               </button>
               <button
                 onClick={() => setFilter('shipped')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange dark:focus:ring-offset-gray-900 ${
                   filter === 'shipped'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
+                aria-pressed={filter === 'shipped'}
               >
                 Shipped ({orders.filter(o => o.status === 'shipped').length})
               </button>
               <button
                 onClick={() => setFilter('delivered')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange dark:focus:ring-offset-gray-900 ${
                   filter === 'delivered'
                     ? 'bg-brand-orange text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
+                aria-pressed={filter === 'delivered'}
               >
                 Delivered ({orders.filter(o => o.status === 'delivered').length})
               </button>
@@ -239,9 +243,9 @@ export default function OrdersPage() {
           {/* Orders List */}
           {filteredOrders.length === 0 ? (
             <Card className="p-12 text-center">
-              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-gray-900 mb-2">No orders found</h2>
-              <p className="text-gray-600 mb-6">
+              <Package className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4 transition-colors" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">No orders found</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors">
                 {filter === 'all' 
                   ? "You haven't placed any orders yet" 
                   : `No ${filter} orders`}
@@ -258,10 +262,10 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-4">
                       {getStatusIcon(order.status)}
                       <div>
-                        <h3 className="font-bold text-gray-900">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 transition-colors">
                           Order #{order.orderNumber}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                           Placed on {new Date(order.date).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -272,7 +276,7 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${getStatusColor(order.status)}`}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                       <span className="text-lg font-bold text-brand-orange">
@@ -282,10 +286,10 @@ export default function OrdersPage() {
                   </div>
 
                   {/* Order Items Preview */}
-                  <div className="mb-4 pb-4 border-b border-gray-200">
+                  <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 transition-colors">
                     <div className="flex items-center gap-4">
                       {order.items.slice(0, 3).map((item, index) => (
-                        <div key={index} className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
+                        <div key={index} className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden transition-colors">
                           <img
                             src={item.image}
                             alt={item.name}
@@ -296,7 +300,7 @@ export default function OrdersPage() {
                           />
                         </div>
                       ))}
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                         {order.itemCount} {order.itemCount === 1 ? 'item' : 'items'}
                       </p>
                     </div>
@@ -304,16 +308,16 @@ export default function OrdersPage() {
 
                   {/* Tracking Info */}
                   {order.trackingNumber && (
-                    <div className="mb-4 bg-gray-50 rounded-lg p-3">
+                    <div className="mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 transition-colors">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Tracking Number</p>
-                          <p className="text-sm text-gray-900 font-mono">{order.trackingNumber}</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">Tracking Number</p>
+                          <p className="text-sm text-gray-900 dark:text-gray-100 font-mono transition-colors">{order.trackingNumber}</p>
                         </div>
                         {order.estimatedDelivery && (
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-700">Estimated Delivery</p>
-                            <p className="text-sm text-gray-900">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">Estimated Delivery</p>
+                            <p className="text-sm text-gray-900 dark:text-gray-100 transition-colors">
                               {new Date(order.estimatedDelivery).toLocaleDateString()}
                             </p>
                           </div>
@@ -345,7 +349,7 @@ export default function OrdersPage() {
                         href={`https://www.ups.com/track?tracknum=${order.trackingNumber}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
                       >
                         <Truck className="w-4 h-4" />
                         Track Package

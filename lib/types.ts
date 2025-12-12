@@ -1,6 +1,7 @@
 // Enhanced product interface for search functionality
 export interface SearchableProduct {
-  id: number;
+  id: number | string; // Can be numeric (legacy) or string (database IDs)
+  productId?: string; // Original database product ID (for linking)
   name: string;
   brand: string;
   sku: string;
@@ -11,6 +12,12 @@ export interface SearchableProduct {
   image: string;
   inStock: boolean;
   badges?: string[];
+  productType?: string;
+  requiresShipping?: boolean;
+  maxCartQty?: number | null;
+  retExclude?: 0 | 1 | 2;
+  blockedReason?: string | null;
+  isBlocked?: boolean;
   
   // Search-specific fields
   category: 'refrigerator' | 'water' | 'air' | 'pool' | 'humidifier' | 'sale';

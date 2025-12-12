@@ -125,19 +125,19 @@ export default function ModelLookup({
       <Card className="p-6">
         <form onSubmit={handleSearch} className="space-y-4" role="search" aria-label="Search for appliance models">
           <div>
-            <label htmlFor="model-search" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="model-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Enter Model Number or Brand
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
               </div>
               <input
                 id="model-search"
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-500 transition-colors"
                 placeholder="e.g., GE GSS25GSHSS or Samsung RF28..."
                 disabled={loading}
                 aria-describedby="search-help"
@@ -151,7 +151,7 @@ export default function ModelLookup({
           </div>
 
           <div>
-            <label htmlFor="appliance-type" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="appliance-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Appliance Type (Optional)
             </label>
             <p id="type-help" className="sr-only">
@@ -161,7 +161,7 @@ export default function ModelLookup({
               id="appliance-type"
               value={applianceType}
               onChange={(e) => setApplianceType(e.target.value as ApplianceType | '')}
-              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none transition-all"
+              className="block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-brand-orange outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
               disabled={loading}
               aria-describedby="type-help"
             >
@@ -199,33 +199,33 @@ export default function ModelLookup({
         {/* Success Message */}
         {saveSuccess && (
           <div 
-            className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3"
+            className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-start gap-3 transition-colors"
             role="status"
             aria-live="polite"
           >
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <p className="text-sm text-green-800">{saveSuccess}</p>
+            <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-green-800 dark:text-green-300 transition-colors">{saveSuccess}</p>
           </div>
         )}
 
         {/* Error Message */}
         {error && (
           <div 
-            className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+            className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3 transition-colors"
             role="alert"
             aria-live="assertive"
           >
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
             <div className="flex-1">
-              <p className="text-sm text-red-800">{error}</p>
+              <p className="text-sm text-red-800 dark:text-red-300 transition-colors">{error}</p>
               {error.includes('sign in') && (
-                <p className="text-xs text-red-700 mt-2">
-                  <strong>Tip:</strong> <a href="/sign-in" className="underline hover:no-underline">Sign in to your account</a> to save models for quick reordering.
+                <p className="text-xs text-red-700 dark:text-red-400 mt-2 transition-colors">
+                  <strong>Tip:</strong> <a href="/sign-in" className="underline hover:no-underline dark:text-red-300">Sign in to your account</a> to save models for quick reordering.
                 </p>
               )}
               {error.includes('already saved') && (
-                <p className="text-xs text-red-700 mt-2">
-                  <strong>Tip:</strong> View your <a href="/account/models" className="underline hover:no-underline">saved models</a> to manage them.
+                <p className="text-xs text-red-700 dark:text-red-400 mt-2 transition-colors">
+                  <strong>Tip:</strong> View your <a href="/account/models" className="underline hover:no-underline dark:text-red-300">saved models</a> to manage them.
                 </p>
               )}
             </div>
@@ -238,7 +238,7 @@ export default function ModelLookup({
         <div className="mt-6" role="region" aria-live="polite" aria-label="Search results">
           {results.length > 0 ? (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                 <span className="sr-only">Search complete: </span>
                 Found {results.length} Model{results.length !== 1 ? 's' : ''}
               </h3>
@@ -251,29 +251,29 @@ export default function ModelLookup({
                         <span className="text-2xl" role="img" aria-label={APPLIANCE_TYPE_LABELS[model.applianceType]}>
                           {APPLIANCE_TYPE_ICONS[model.applianceType]}
                         </span>
-                        <h4 className="text-lg font-semibold text-gray-900">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 transition-colors">
                           {model.brand} {model.modelNumber}
                         </h4>
                       </div>
                       
                       {model.modelName && (
-                        <p className="text-sm text-gray-600 mb-2">{model.modelName}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 transition-colors">{model.modelName}</p>
                       )}
                       
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 transition-colors">
                         {APPLIANCE_TYPE_LABELS[model.applianceType]}
                       </p>
 
                       {model.compatibleFilters && model.compatibleFilters.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm font-medium text-gray-700 mb-2">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                             Compatible Filters:
                           </p>
                           <div className="space-y-2">
                             {model.compatibleFilters.slice(0, 3).map((filter, idx) => (
                               <div 
                                 key={idx}
-                                className="text-sm text-gray-600 flex items-center gap-2"
+                                className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2 transition-colors"
                               >
                                 {filter.isPrimary && (
                                   <CheckCircle2 className="w-4 h-4 text-green-600" aria-label="Recommended" />
@@ -316,14 +316,14 @@ export default function ModelLookup({
             </div>
           ) : (
             <Card className="p-8 text-center">
-              <p className="text-gray-600 mb-2">
+              <p className="text-gray-600 dark:text-gray-300 mb-2 transition-colors">
                 <span className="sr-only">No results: </span>
                 No models found for "{query}"
               </p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 transition-colors">
                 <strong>Suggestions:</strong>
               </p>
-              <ul className="text-sm text-gray-600 text-left max-w-md mx-auto space-y-1">
+              <ul className="text-sm text-gray-600 dark:text-gray-300 text-left max-w-md mx-auto space-y-1 transition-colors">
                 <li>• Check your spelling and try again</li>
                 <li>• Try searching for just the brand name (e.g., "GE" or "Samsung")</li>
                 <li>• Look for the model number on your appliance label</li>

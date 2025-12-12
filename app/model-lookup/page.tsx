@@ -8,7 +8,7 @@ import { Suspense } from 'react';
 
 function ModelLookup() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-gray-100">Loading...</div>}>
       <ModelLookupBase />
     </Suspense>
   );
@@ -22,7 +22,7 @@ export const metadata = {
 
 export default function ModelLookupPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-brand-orange to-orange-600 text-white py-16">
         <div className="container-custom">
@@ -64,28 +64,28 @@ export default function ModelLookupPage() {
               <div className="w-16 h-16 bg-brand-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-brand-orange" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">1. Search</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">1. Search</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                 Enter your appliance model number or brand name
               </p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-brand-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-brand-orange/10 dark:bg-brand-orange/20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
                 <CheckCircle2 className="w-8 h-8 text-brand-orange" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">2. Find</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">2. Find</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                 See all compatible filters for your specific model
               </p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-brand-orange/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-brand-orange/10 dark:bg-brand-orange/20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
                 <Bookmark className="w-8 h-8 text-brand-orange" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">3. Save</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors">3. Save</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors">
                 Save models for quick reordering and reminders
               </p>
             </div>
@@ -93,14 +93,14 @@ export default function ModelLookupPage() {
 
           {/* Popular Brands */}
           <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8 transition-colors">
               Popular Brands
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {['GE', 'Samsung', 'Whirlpool', 'LG', 'Honeywell', 'Carrier', 'Trane', 'Lennox', 'Aprilaire', 'Goodman'].map(brand => (
                 <button
                   key={brand}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:border-brand-orange hover:shadow-md transition-all text-center font-medium text-gray-700"
+                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-brand-orange hover:shadow-md transition-all text-center font-medium text-gray-700 dark:text-gray-300"
                 >
                   {brand}
                 </button>

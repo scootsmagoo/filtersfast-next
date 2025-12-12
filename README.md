@@ -1,269 +1,78 @@
-# FiltersFast Next.js - Modern Redesign Demo
+# FiltersFast Next
 
-A modern, performant redesign of the FiltersFast e-commerce platform built with Next.js 16, TypeScript, and Tailwind CSS.
+Modern FiltersFast e-commerce experience built with Next.js 16, TypeScript, Tailwind CSS, and a hardened API layer. This repository hosts the full storefront, customer portal, and admin workspace used in production.
 
-## 🆕 Latest Updates (October 29, 2025)
+_Last updated: November 2025_
 
-**Recent Improvements:**
-- ✅ **Admin Portal Access** - Admin users now have a visible link to the admin portal in their account sidebar (no more manual URL editing!)
-- ✅ **Account Edit Button Fixed** - The "Edit" button in Account Information now properly navigates to settings
-- ✅ **Enhanced Admin UX** - Purple-themed admin portal link with Shield icon for easy identification
+## Quick Start
+- **Prerequisites:** Node.js 18+, npm, Git. SQLite is bundled; PostgreSQL/MySQL optional.
+- **Install & run:**
+  1. `git clone git@github.com:scootsmagoo/filtersfast-next.git`
+  2. `cd filtersfast-next`
+  3. `npm install`
+  4. `cp .env.example .env.local` and fill required secrets (see `SETUP.md`)
+  5. `npm run dev` → http://localhost:3000
+- Common seed scripts live in `scripts/` (example: `npm run init:products`, `npm run init:marketplaces`). Only run what you need—details below.
 
-## 🚀 Tech Stack
+## Common Scripts
+- `npm run dev` – Next.js dev server with Turbopack
+- `npm run build` / `npm run start` – Production build & serve
+- `npm run lint`, `npm run type-check` – Quality gates
+- `npm run test:e2e` – Playwright smoke tests (see `DEVELOPMENT.md`)
+- `npm run init:*` – Database/bootstrap helpers (`npm run init:blog`, `init:orders`, etc.)
+- `npm run update:*` / `npm run sync:*` – Background sync jobs (currency, marketplaces, reviews, email)
 
-- **Framework:** Next.js 16 (Turbopack, App Router)
-- **UI Library:** React 19.2.0
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React
-- **Package Manager:** npm
-- **Authentication:** Better Auth
-- **Database:** SQLite (Better SQLite3)
-- **Payments:** Stripe + PayPal (replacing CyberSource/Authorize.Net)
+Refer to `package.json` scripts for the full catalog.
 
-## ✨ Features
+## Environment & Data Setup
+- `.env.local` is required; copy from `.env.example`.
+- Core secrets: `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`.
+- Payments (Stripe, PayPal, Authorize.net, CyberSource), email (SendGrid), Trustpilot, currency rates, marketplaces, and AI chatbot each have optional blocks that can remain unset in local development.
+- Database defaults to SQLite (`filtersfast.db`). Swap `DATABASE_URL` for Postgres/MySQL in production.
+- See `SETUP.md` for detailed provider configuration, MFA encryption, cron jobs, and troubleshooting.
 
-### Implemented Features
+## Key Capabilities (All Live)
+- **Authentication & Accounts:** Better Auth with social login, MFA, trusted devices, and admin role gates.
+- **Catalog & Search:** Typed SQLite/Postgres models, SKU compatibility, rich merchandising controls, AI-assisted search, and analytics dashboards.
+- **Checkout & Payments:** Stripe primary gateway with PayPal, Authorize.net, and CyberSource failover; digital gift cards; cart rewards; tax/shipping integrations.
+- **Admin Workspace:** Product, category, blog, email campaign, marketplace, and image management with full audit logging and accessibility coverage.
+- **Customer Experience:** Subscription manager, reminders, pooled filter wizard, reviews, multi-currency pricing, accessibility-first UI, and responsive layout.
 
-**Core E-Commerce:**
-- ✅ Modern, responsive homepage with hero section
-- ✅ Complete authentication (email + OAuth: Google, Facebook, Apple)
-- ✅ Shopping cart with persistence
-- ✅ Multi-step checkout flow with guest checkout
-- ✅ Order management and tracking
-- ✅ **Model Lookup Tool** - Find filters by appliance model 🆕
-- ✅ Product search with real-time preview
-- ✅ Custom air filter builder
+## Documentation Index
+- `SETUP.md` – End-to-end environment, auth, payments, email, and optional integrations.
+- `DEVELOPMENT.md` – Day-to-day workflow, code quality expectations, testing strategy.
+- `FEATURES.md` – Deep dives on major modules and UX decisions.
+- `AUDIT-EXECUTIVE-SUMMARY.md` – High-level modernization outcomes and compliance status.
+- `AUDIT-LEGACY-FEATURES.md` – Legacy parity map with implementation notes.
+- `MISSING-FEATURES-SUMMARY.md` – Remaining gaps versus legacy platform (keep in sync as work lands).
 
-**Customer Features:**
-- ✅ **Multi-Factor Authentication (MFA/2FA)** - TOTP with backup codes, trusted devices
-- ✅ **Saved Payment Methods** - PCI-compliant payment vault with Stripe
-- ✅ **ID.me Verification** - Military & first responder discounts (10% off)
-- ✅ **Filter Reminders** - Never forget to replace filters
-- ✅ **Subscriptions** (Subscribe & Save with 5% discount)
-- ✅ **Saved Models** - Quick reorder for your appliances
-- ✅ **Quick Reorder** - One-click from previous orders
-- ✅ **Returns System** - Full 365-day return workflow
-- ✅ **Charitable Donations** - Support causes at checkout
+## Project Structure
+- `app/` – App Router pages for storefront, customer portal, admin.
+- `components/` – Shared UI + domain components (namespaced by feature).
+- `lib/` – Server utilities: auth, payments, analytics, background jobs, db access.
+- `scripts/` – One-off CLI scripts for seeding, migrations, syncing external systems.
+- `database/` – SQL schema files for initializing feature-specific tables.
 
-**Business Features:**
-- ✅ **Abandoned Cart Recovery** - 3-stage automated emails (10-30% recovery rate)
-- ✅ **Promo Code System** - Discounts, free shipping, usage limits
-- ✅ **Admin Dashboard** - Manage codes, returns, reminders, donations, MFA stats
-- ✅ **Address Validation** - SmartyStreets integration
+## Testing & Quality
+- `npm run lint` – ESLint (CI blocking)
+- `npm run type-check` – TypeScript project references
+- `npm run test:e2e` – Playwright journeys (requires seeded demo data; see `DEVELOPMENT.md`)
+- `npm run audit` – npm advisory scan (run before production deployments)
+- Git hooks (Husky) enforce lint/type-check on committed files—run `npm run prepare` after fresh installs if hooks are missing.
 
-**Customer Support:**
-- ✅ **AI Chatbot** - GPT-3.5-turbo powered assistant with RAG 🆕
-- ✅ **Support Articles** - Searchable knowledge base
-- ✅ **Contact Forms** - Multiple support channels
+## Deployment
+- **Vercel:** Preferred for staging/production. Connect repo, mirror `.env.local` values, set `NEXT_PUBLIC_APP_URL` per environment.
+- **Self-hosted:** `npm run build` → `npm run start` behind Node 18 LTS process manager (PM2, systemd, etc.).
+- Background jobs (currency rates, marketplaces, campaigns) should run via scheduled `npm run update:*`/`npm run sync:*` commands in production.
+- Security checklist lives in `SETUP.md` (“Security Checklist” section). Review before promoting builds.
 
-**Security & Quality:**
-- ✅ **reCAPTCHA v3** - Invisible bot protection
-- ✅ **Password Visibility Toggle** - Enhanced UX
-- ✅ WCAG 2.1 AA accessibility compliant
-- ✅ OWASP Top 10 security hardened
-- ✅ Rate limiting on all endpoints
-- ✅ Comprehensive audit logging
-
-### Key Improvements Over Original
-
-1. **Performance:** 3-5x faster page loads with server-side rendering and code splitting
-2. **Developer Experience:** Component-based architecture makes updates easier
-3. **Maintainability:** Tailwind utilities replace massive CSS files
-4. **Type Safety:** TypeScript prevents runtime errors
-5. **Modern UX:** Smooth animations, better mobile experience
-6. **SEO:** Built-in Next.js optimizations for search engines
-
-## 📦 Installation
-
-Since Node.js may not be in your PATH, you have two options:
-
-### Option 1: Add Node.js to PATH (Recommended)
-
-1. Find your Node.js installation (usually `C:\Program Files\nodejs\`)
-2. Add it to your system PATH environment variable
-3. Restart your terminal
-4. Run:
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-### Option 2: Use Full Path to Node/NPM
-
-1. Find your Node.js installation directory
-2. Run:
-   ```bash
-   "C:\Program Files\nodejs\npm.cmd" install
-   "C:\Program Files\nodejs\npm.cmd" run dev
-   ```
-
-## 🎨 Design System
-
-### Brand Colors (EXACT match from original FiltersFast)
-
-- **Orange:** `#f26722` - Primary CTA buttons, accents
-- **Blue:** `#054f97` - Secondary actions, navigation, headings
-- **Blue (Links):** `#086db6` - Text links, hover states
-- **Green (Success):** `#37b033` - Success messages, confirmations
-- **Gray Scale:** Neutral backgrounds and text
-
-**Note:** All colors have been audited against the original FiltersFast ASP site CSS to ensure perfect brand consistency.
-
-### Component Library
-
-Located in `/components`:
-
-- **UI Components:** Button, Card (reusable primitives)
-- **Layout:** Header, Footer (persistent across pages)
-- **Home:** HeroSection, FilterTools, FeaturedCategories, etc.
-
-### Tailwind Utilities
-
-Common patterns defined in `globals.css`:
-
-- `.btn-primary` - Orange CTA button
-- `.btn-secondary` - Blue action button
-- `.input-field` - Standardized form inputs
-- `.card` - Product/content cards
-
-## 📁 Project Structure
-
-```
-FiltersFast-Next/
-├── app/
-│   ├── layout.tsx          # Root layout with Header/Footer
-│   ├── page.tsx            # Homepage
-│   └── globals.css         # Global styles + Tailwind
-├── components/
-│   ├── ui/                 # Reusable UI primitives
-│   │   ├── Button.tsx
-│   │   └── Card.tsx
-│   ├── layout/             # Layout components
-│   │   ├── Header.tsx
-│   │   └── Footer.tsx
-│   └── home/               # Homepage sections
-│       ├── HeroSection.tsx
-│       ├── FilterTools.tsx
-│       ├── FeaturedCategories.tsx
-│       ├── HomeFilterClub.tsx
-│       └── TrustIndicators.tsx
-├── lib/
-│   └── utils.ts            # Utility functions
-├── public/                 # Static assets
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-└── next.config.mjs
-```
-
-## 🔧 Development
-
-```bash
-npm run dev      # Start development server (localhost:3000)
-npm run build    # Production build
-npm run start    # Start production server
-npm run lint     # Run ESLint
-```
-
-## 🎯 Upcoming Features (Roadmap)
-
-Based on legacy FiltersFast features and business priorities:
-
-### High Priority (Next 3-6 months)
-- [ ] **Browse Filters by Size** - Dedicated page for size-based filter search (e.g., "16x20x1")
-- [ ] **SMS Marketing (Attentive)** - Order updates and promotions via text (98% open rate!)
-- [ ] **Giveaways & Sweepstakes** - Promotional contests for email list growth
-
-### Medium Priority (6-12 months)
-- [ ] **Referral Program** - "Give $10, Get $10" customer acquisition
-- [ ] **Shipping Insurance** - Optional insurance for high-value orders
-- [ ] **Newsletter Preferences** - Granular email subscription settings
-- [ ] **Multi-Currency Support** - CAD, GBP, EUR, AUD for international customers
-
-### Future Considerations
-- [ ] **B2B Portal** - Wholesale/business customer portal with custom pricing
-- [ ] **WebAuthn/Passkeys** - Passwordless authentication
-- [ ] **Multi-Language Support** - Spanish, French translations
-
-**Note:** All core e-commerce features are complete. The above are enhancements from the legacy system.
-
-## 🚢 Deployment Options
-
-### Recommended: Vercel
-
-1. Push to GitHub
-2. Connect to Vercel
-3. Deploy with one click
-4. Automatic preview deployments for PRs
-
-### Alternative: AWS
-
-- Next.js on AWS App Runner or ECS
-- CloudFront CDN
-- RDS for SQL Server (or keep existing database)
-
-## 📊 Expected Performance Improvements
-
-Based on industry benchmarks for ASP Classic → Next.js migrations:
-
-| Metric | ASP Classic | Next.js 16 | Improvement |
-|--------|-------------|------------|-------------|
-| TTFB | 800-2000ms | 50-200ms | **4-10x faster** |
-| Full Load | 3-5s | 0.8-1.5s | **3-5x faster** |
-| Lighthouse | 40-60 | 90-98 | **+50 pts** |
-| Mobile Score | 30-50 | 85-98 | **+55 pts** |
-| Build Speed | N/A | Turbopack | **5-10x faster** |
-
-## 🎨 Design Philosophy
-
-This redesign maintains the FiltersFast brand identity while modernizing:
-
-1. **Clean, Spacious Layout:** More whitespace, easier to scan
-2. **Mobile-First:** 59% of FiltersFast traffic is mobile
-3. **Action-Oriented:** Clear CTAs guide users to conversion
-4. **Trust Signals:** Reviews, guarantees, and social proof prominent
-5. **Fast & Smooth:** Animations and interactions feel instant
-
-## 🔗 Original Repo Reference
-
-This is a **standalone demo** and does not modify the original FiltersFast ASP Classic codebase at:
-`C:\Users\adam\source\repos\FiltersFast`
-
-Color schemes, brand elements, and key features are extracted from the original to maintain consistency.
-
-## 📝 License
-
-This is a demo/proof-of-concept. All FiltersFast branding and intellectual property belongs to FiltersFast.
-
-## 📚 Documentation
-
-### Core Documentation (5 Files)
-
-1. **[README.md](./README.md)** (You are here) - Project overview and quick start
-2. **[FEATURES.md](./FEATURES.md)** - Complete feature documentation
-   - All implemented features with API endpoints
-   - Model Lookup, reCAPTCHA, Promo Codes, Subscriptions, Returns, etc.
-3. **[SETUP.md](./SETUP.md)** - Setup and configuration guide
-   - Environment variables
-   - OAuth setup
-   - reCAPTCHA configuration
-   - Payment integration
-4. **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development guide
-   - Project structure
-   - Coding standards
-   - Testing procedures
-5. **[CHANGELOG.md](./CHANGELOG.md)** - Version history
-
-**Start here:** Read [SETUP.md](./SETUP.md) to get the app running locally.
+## Support & Contributions
+- Open issues or enhancement requests in this repository.
+- Use feature-specific docs above when handing off workstreams or onboarding new contributors.
+- For urgent production incidents, follow the internal escalation playbook (see `docs/ops/` if present).
 
 ---
 
-## 💡 Questions?
+For anything missing or outdated, please update the relevant doc alongside your code changes to keep the knowledge base tight.
 
-Contact the development team for more information about migrating to this modern stack.
-
----
-
-**Built with ❤️ using Next.js 16 (Turbopack) + React 19**
 

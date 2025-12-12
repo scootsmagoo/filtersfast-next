@@ -83,8 +83,8 @@ export default function HeroSection() {
       
       {/* Bottom Wave */}
       <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 48h1440V0c-240 48-720 48-1440 0v48z" fill="white"/>
+        <svg viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white dark:text-gray-900">
+          <path d="M0 48h1440V0c-240 48-720 48-1440 0v48z" fill="currentColor"/>
         </svg>
       </div>
     </section>
